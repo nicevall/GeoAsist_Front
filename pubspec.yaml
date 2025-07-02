@@ -44,10 +44,16 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Assets for the app
-  assets:
-    - assets/images/
-    - assets/icons/
+  # ✅ REMOVIDO: Assets que no existen
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
+
+  # ✅ AGREGADO: Instrucciones para crear assets cuando sea necesario
+  # Para agregar assets:
+  # 1. Crear las carpetas assets/images/ y assets/icons/
+  # 2. Descomentar las líneas de assets arriba
+  # 3. Ejecutar flutter pub get
 
   # Fonts (if needed)
   # fonts:

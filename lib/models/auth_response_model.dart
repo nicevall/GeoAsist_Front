@@ -1,4 +1,6 @@
 // lib/models/auth_response_model.dart
+import 'usuario_model.dart';
+
 class AuthResponse {
   final bool ok;
   final String mensaje;

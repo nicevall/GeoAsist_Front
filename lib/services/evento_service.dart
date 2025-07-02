@@ -1,4 +1,5 @@
 // lib/services/evento_service.dart
+import 'package:flutter/material.dart';
 import '../models/evento_model.dart';
 import '../models/api_response_model.dart';
 import '../core/app_constants.dart';
@@ -18,18 +19,49 @@ class EventoService {
       final response = await _apiService.get(AppConstants.eventosEndpoint);
 
       if (response.success && response.data != null) {
-        // El backend retorna directamente la lista de eventos
-        final eventosData = response.data;
-        if (eventosData is List) {
-          return eventosData.map((evento) => Evento.fromJson(evento)).toList();
-        } else if (eventosData is Map && eventosData.containsKey('eventos')) {
-          final eventosList = eventosData['eventos'] as List;
-          return eventosList.map((evento) => Evento.fromJson(evento)).toList();
+        final responseData = response.data!;
+
+        // Inicializar lista vacía
+        List<dynamic> eventosList = [];
+
+        // Verificar el tipo de respuesta del backend
+        if (responseData is List) {
+          // Caso 1: El backend retorna directamente una lista de eventos
+          eventosList = responseData;
+        } else if (responseData is Map<String, dynamic>) {
+          // Caso 2: El backend retorna un objeto que contiene la lista
+          final eventosData = responseData['eventos'];
+          if (eventosData != null && eventosData is List) {
+            eventosList = eventosData;
+          }
         }
+
+        // Convertir cada elemento de la lista a un objeto Evento
+        final List<Evento> eventos = [];
+        for (int i = 0; i < eventosList.length; i++) {
+          final eventoData = eventosList[i];
+          if (eventoData is Map<String, dynamic>) {
+            try {
+              final evento = Evento.fromJson(eventoData);
+              eventos.add(evento);
+            } catch (e) {
+              debugPrint('Error al parsear evento en índice $i: $e');
+              // Continúa procesando los demás eventos
+            }
+          } else {
+            debugPrint(
+                'Elemento en índice $i no es un Map válido: $eventoData');
+          }
+        }
+
+        debugPrint('Se obtuvieron ${eventos.length} eventos exitosamente');
+        return eventos;
       }
+
+      debugPrint('Respuesta no exitosa o datos nulos');
       return [];
     } catch (e) {
-      print('Error al obtener eventos: $e');
+      debugPrint('Error al obtener eventos: $e');
       return [];
     }
   }
@@ -44,7 +76,7 @@ class EventoService {
       }
       return null;
     } catch (e) {
-      print('Error al obtener evento: $e');
+      debugPrint('Error al obtener evento: $e');
       return null;
     }
   }

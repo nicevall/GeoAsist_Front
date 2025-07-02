@@ -1,4 +1,7 @@
 // lib/models/asistencia_model.dart
+
+import 'ubicacion_model.dart';
+
 class Asistencia {
   final String? id;
   final String estudiante;

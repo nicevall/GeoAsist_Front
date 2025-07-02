@@ -1,4 +1,6 @@
 // lib/models/evento_model.dart
+import 'ubicacion_model.dart';
+
 class Evento {
   final String? id;
   final String titulo;
