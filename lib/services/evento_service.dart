@@ -14,6 +14,8 @@ class EventoService {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
 
+// lib/services/evento_service.dart - Sección corregida
+
   Future<List<Evento>> obtenerEventos() async {
     try {
       final response = await _apiService.get(AppConstants.eventosEndpoint);
@@ -22,22 +24,27 @@ class EventoService {
         final responseData = response.data!;
 
         // Inicializar lista vacía
-        List<dynamic> eventosList = [];
+        List<dynamic> eventosList = <dynamic>[];
 
-        // Verificar el tipo de respuesta del backend
+        // Verificar el tipo de respuesta del backend con manejo seguro
         if (responseData is List) {
           // Caso 1: El backend retorna directamente una lista de eventos
-          eventosList = responseData;
-        } else if (responseData is Map<String, dynamic>) {
+          eventosList = List<dynamic>.from(responseData as Iterable);
+        } else {
           // Caso 2: El backend retorna un objeto que contiene la lista
+          // CAMBIO: Removemos la verificación redundante 'is Map<String, dynamic>'
           final eventosData = responseData['eventos'];
           if (eventosData != null && eventosData is List) {
-            eventosList = eventosData;
+            eventosList = List<dynamic>.from(eventosData);
+          } else {
+            // Si responseData es un Map pero no tiene la estructura esperada,
+            // podría ser un solo evento, así que lo convertimos en lista
+            eventosList = <dynamic>[responseData];
           }
         }
 
-        // Convertir cada elemento de la lista a un objeto Evento
-        final List<Evento> eventos = [];
+        // Resto del código permanece igual...
+        final List<Evento> eventos = <Evento>[];
         for (int i = 0; i < eventosList.length; i++) {
           final eventoData = eventosList[i];
           if (eventoData is Map<String, dynamic>) {
@@ -46,7 +53,6 @@ class EventoService {
               eventos.add(evento);
             } catch (e) {
               debugPrint('Error al parsear evento en índice $i: $e');
-              // Continúa procesando los demás eventos
             }
           } else {
             debugPrint(
@@ -59,10 +65,10 @@ class EventoService {
       }
 
       debugPrint('Respuesta no exitosa o datos nulos');
-      return [];
+      return <Evento>[];
     } catch (e) {
       debugPrint('Error al obtener eventos: $e');
-      return [];
+      return <Evento>[];
     }
   }
 

@@ -94,16 +94,37 @@ class ApiService {
 
   ApiResponse<Map<String, dynamic>> _handleResponse(http.Response response) {
     try {
-      final Map<String, dynamic> data = json.decode(response.body);
+      final dynamic rawData = json.decode(response.body);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        // Normalizar la respuesta para que siempre sea un Map
+        Map<String, dynamic> data;
+
+        if (rawData is List) {
+          // Si el backend retorna un array directo, lo wrapeamos
+          data = {'data': rawData};
+        } else if (rawData is Map<String, dynamic>) {
+          // Si ya es un Map, lo usamos directamente
+          data = rawData;
+        } else {
+          // Caso inesperado, wrapeamos el valor
+          data = {'data': rawData};
+        }
+
         return ApiResponse.success(
           data,
           message: data['mensaje'] ?? data['message'] ?? 'Success',
         );
       } else {
+        // Para errores, intentamos extraer el mensaje
+        String errorMessage = 'Error desconocido';
+
+        if (rawData is Map<String, dynamic>) {
+          errorMessage = rawData['error'] ?? rawData['mensaje'] ?? errorMessage;
+        }
+
         return ApiResponse.error(
-          data['error'] ?? data['mensaje'] ?? 'Error desconocido',
+          errorMessage,
           message: 'Error ${response.statusCode}',
         );
       }
