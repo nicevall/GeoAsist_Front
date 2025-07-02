@@ -1,4 +1,4 @@
-// lib/screens/widgets/status_panel.dart
+// lib/screens/map_view/widgets/status_panel.dart - ARCHIVO CORREGIDO
 import 'package:flutter/material.dart';
 import '../../../utils/colors.dart';
 import '../../../models/evento_model.dart';
@@ -38,7 +38,8 @@ class StatusPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            // ✅ CORREGIDO: withOpacity -> withValues (línea 41)
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),

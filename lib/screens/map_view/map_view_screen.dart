@@ -1,4 +1,4 @@
-// lib/screens/map_view_screen.dart
+// lib/screens/map_view/map_view_screen.dart - ARCHIVO CORREGIDO COMPLETO
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
 import '../../core/app_constants.dart';
@@ -8,6 +8,7 @@ import '../../services/location_service.dart';
 import '../../services/storage_service.dart';
 import '../../models/evento_model.dart';
 import '../../models/usuario_model.dart';
+import '../../utils/app_router.dart';
 import 'widgets/status_panel.dart';
 import 'widgets/map_area.dart';
 import 'widgets/control_panel.dart';
@@ -53,9 +54,7 @@ class _MapViewScreenState extends State<MapViewScreen>
   List<Evento> _eventos = [];
   Evento? _currentEvento;
 
-  // Coordenadas simuladas
-  final double _centerLat = -0.1807;
-  final double _centerLng = -78.4678;
+  // Coordenadas simuladas (mantenemos solo las del usuario)
   final double _userLat = -0.1805;
   final double _userLng = -78.4680;
 
@@ -216,6 +215,7 @@ class _MapViewScreenState extends State<MapViewScreen>
     });
   }
 
+  // ✅ CORREGIDO: Agregada verificación mounted
   Future<void> _registerAttendance() async {
     if (_currentEvento == null || _currentUser == null) return;
 
@@ -226,12 +226,15 @@ class _MapViewScreenState extends State<MapViewScreen>
         longitud: _userLng,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(response.message),
-          backgroundColor: response.success ? Colors.green : Colors.red,
-        ),
-      );
+      // ✅ Verificar que el widget esté montado antes de usar context
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message),
+            backgroundColor: response.success ? Colors.green : Colors.red,
+          ),
+        );
+      }
     } catch (e) {
       debugPrint('Error al registrar asistencia: $e');
     }
@@ -316,6 +319,55 @@ class _MapViewScreenState extends State<MapViewScreen>
     );
   }
 
+  // ✅ CORREGIDO: Implementado diálogo de configuraciones
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('⚙️ Configuraciones'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.location_on),
+              title: const Text('Precisión GPS'),
+              // ignore: prefer_const_constructors
+              subtitle: Text('${AppConstants.defaultLocationAccuracy}m'),
+              onTap: () {
+                // Configuración de precisión GPS
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.timer),
+              title: const Text('Período de gracia'),
+              subtitle:
+                  Text('${AppConstants.gracePeriodDuration.inMinutes} min'),
+              onTap: () {
+                // Configuración de período de gracia
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Cerrar sesión'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await AppRouter.logout();
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -341,11 +393,10 @@ class _MapViewScreenState extends State<MapViewScreen>
             icon: const Icon(Icons.refresh),
             onPressed: _initializeData,
           ),
+          // ✅ CORREGIDO: Implementada navegación a configuraciones
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () {
-              // TODO: Navegar a configuraciones
-            },
+            onPressed: () => _showSettingsDialog(),
           ),
         ],
       ),

@@ -171,6 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
+                    // ignore: prefer_const_constructors
                     Text(
                       'Conectado al servidor: ${AppConstants.baseUrl}',
                       style: const TextStyle(

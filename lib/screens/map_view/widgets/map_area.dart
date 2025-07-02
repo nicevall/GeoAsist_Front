@@ -1,4 +1,4 @@
-// lib/screens/widgets/map_area.dart
+// lib/screens/map_view/widgets/map_area.dart - ARCHIVO CORREGIDO COMPLETO
 import 'package:flutter/material.dart';
 import '../../../utils/colors.dart';
 import '../../../models/evento_model.dart';
@@ -26,7 +26,8 @@ class MapArea extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            // ✅ CORREGIDO: withOpacity -> withValues (línea 29)
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -75,13 +76,17 @@ class MapArea extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(
             color: isOnBreak
-                ? AppColors.secondaryTeal.withOpacity(0.5)
-                : AppColors.primaryOrange.withOpacity(0.8),
+                // ✅ CORREGIDO: withOpacity -> withValues (línea 78)
+                ? AppColors.secondaryTeal.withValues(alpha: 0.5)
+                // ✅ CORREGIDO: withOpacity -> withValues (línea 79)
+                : AppColors.primaryOrange.withValues(alpha: 0.8),
             width: 3,
           ),
           color: isOnBreak
-              ? AppColors.secondaryTeal.withOpacity(0.1)
-              : AppColors.primaryOrange.withOpacity(0.1),
+              // ✅ CORREGIDO: withOpacity -> withValues (línea 83)
+              ? AppColors.secondaryTeal.withValues(alpha: 0.1)
+              // ✅ CORREGIDO: withOpacity -> withValues (línea 84)
+              : AppColors.primaryOrange.withValues(alpha: 0.1),
         ),
       ),
     );
@@ -105,7 +110,8 @@ class MapArea extends StatelessWidget {
                 boxShadow: [
                   BoxShadow(
                     color: (isInsideGeofence ? Colors.blue : Colors.red)
-                        .withOpacity(0.5),
+                        // ✅ CORREGIDO: withOpacity -> withValues (línea 108)
+                        .withValues(alpha: 0.5),
                     blurRadius: 10,
                     spreadRadius: 5,
                   ),
@@ -151,32 +157,47 @@ class MapArea extends StatelessWidget {
         top: 50,
         left: 0,
         right: 0,
-        child: Container(height: 2, color: Colors.grey.withOpacity(0.3)),
+        child: Container(
+            height: 2,
+            // ✅ CORREGIDO: withOpacity -> withValues (línea 154)
+            color: Colors.grey.withValues(alpha: 0.3)),
       ),
       Positioned(
         top: 150,
         left: 0,
         right: 0,
-        child: Container(height: 2, color: Colors.grey.withOpacity(0.3)),
+        child: Container(
+            height: 2,
+            // ✅ CORREGIDO: withOpacity -> withValues (línea 160)
+            color: Colors.grey.withValues(alpha: 0.3)),
       ),
       Positioned(
         bottom: 50,
         left: 0,
         right: 0,
-        child: Container(height: 2, color: Colors.grey.withOpacity(0.3)),
+        child: Container(
+            height: 2,
+            // ✅ CORREGIDO: withOpacity -> withValues (línea 166)
+            color: Colors.grey.withValues(alpha: 0.3)),
       ),
       // Líneas verticales
       Positioned(
         top: 0,
         bottom: 0,
         left: 80,
-        child: Container(width: 2, color: Colors.grey.withOpacity(0.3)),
+        child: Container(
+            width: 2,
+            // ✅ CORREGIDO: withOpacity -> withValues (línea 173)
+            color: Colors.grey.withValues(alpha: 0.3)),
       ),
       Positioned(
         top: 0,
         bottom: 0,
         right: 80,
-        child: Container(width: 2, color: Colors.grey.withOpacity(0.3)),
+        child: Container(
+            width: 2,
+            // ✅ CORREGIDO: withOpacity -> withValues (línea 179)
+            color: Colors.grey.withValues(alpha: 0.3)),
       ),
     ];
   }
@@ -205,7 +226,8 @@ class MapArea extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  // ✅ CORREGIDO: withOpacity -> withValues (línea 208)
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 5,
                 ),
               ],
@@ -227,7 +249,8 @@ class MapArea extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  // ✅ CORREGIDO: withOpacity -> withValues (línea 230)
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 5,
                 ),
               ],
@@ -251,11 +274,13 @@ class MapArea extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(0.9),
+          // ✅ CORREGIDO: withOpacity -> withValues (línea 254)
+          color: AppColors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              // ✅ CORREGIDO: withOpacity -> withValues (línea 258)
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 5,
             ),
           ],

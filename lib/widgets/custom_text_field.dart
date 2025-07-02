@@ -76,25 +76,24 @@ class _CustomTextFieldState extends State<CustomTextField> {
         onEditingComplete: widget.onEditingComplete,
         decoration: InputDecoration(
           hintText: widget.hintText,
+          // ignore: prefer_const_constructors
           hintStyle: TextStyle(color: AppColors.textGray, fontSize: 16),
-          prefixIcon:
-              widget.prefixIcon != null
-                  ? Icon(widget.prefixIcon, color: AppColors.textGray)
-                  : null,
-          suffixIcon:
-              widget.isPassword
-                  ? IconButton(
-                    icon: Icon(
-                      _obscureText ? Icons.visibility : Icons.visibility_off,
-                      color: AppColors.textGray,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureText = !_obscureText;
-                      });
-                    },
-                  )
-                  : null,
+          prefixIcon: widget.prefixIcon != null
+              ? Icon(widget.prefixIcon, color: AppColors.textGray)
+              : null,
+          suffixIcon: widget.isPassword
+              ? IconButton(
+                  icon: Icon(
+                    _obscureText ? Icons.visibility : Icons.visibility_off,
+                    color: AppColors.textGray,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                )
+              : null,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(25),
             borderSide: BorderSide.none,

@@ -1,4 +1,4 @@
-// lib/screens/widgets/attendance_status_cards.dart
+// lib/screens/map_view/widgets/attendance_status_cards.dart - ARCHIVO CORREGIDO
 import 'package:flutter/material.dart';
 import '../../../utils/colors.dart';
 
@@ -27,9 +27,10 @@ class AttendanceStatusCards extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
+        // ✅ CORREGIDO: withOpacity -> withValues
         color: isAttendanceActive
-            ? AppColors.secondaryTeal.withOpacity(0.1)
-            : Colors.red.withOpacity(0.1),
+            ? AppColors.secondaryTeal.withValues(alpha: 0.1)
+            : Colors.red.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
           color: isAttendanceActive ? AppColors.secondaryTeal : Colors.red,
@@ -60,9 +61,10 @@ class AttendanceStatusCards extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
+        // ✅ CORREGIDO: withOpacity -> withValues
         color: isInsideGeofence
-            ? Colors.green.withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1),
+            ? Colors.green.withValues(alpha: 0.1)
+            : Colors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
           color: isInsideGeofence ? Colors.green : Colors.orange,

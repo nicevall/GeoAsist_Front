@@ -1,5 +1,5 @@
-// lib/services/dashboard_service.dart
-import '../models/api_response_model.dart';
+// lib/services/dashboard_service.dart - ARCHIVO CORREGIDO
+import 'package:flutter/foundation.dart';
 import '../core/app_constants.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
@@ -27,7 +27,8 @@ class DashboardService {
       }
       return null;
     } catch (e) {
-      print('Error al obtener métricas: $e');
+      // ✅ CORREGIDO: Usar debugPrint en lugar de print
+      debugPrint('Error al obtener métricas: $e');
       return null;
     }
   }
@@ -48,6 +49,8 @@ class DashboardService {
 
       return response.success;
     } catch (e) {
+      // ✅ CORREGIDO: Usar debugPrint en lugar de print
+      debugPrint('Error al actualizar métrica: $e');
       return false;
     }
   }

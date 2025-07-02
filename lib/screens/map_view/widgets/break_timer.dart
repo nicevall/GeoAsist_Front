@@ -1,4 +1,4 @@
-// lib/screens/widgets/break_timer.dart
+// lib/screens/map_view/widgets/break_timer.dart - ARCHIVO CORREGIDO
 import 'package:flutter/material.dart';
 import '../../../utils/colors.dart';
 
@@ -15,7 +15,8 @@ class BreakTimer extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: AppColors.secondaryTeal.withOpacity(0.1),
+        // ✅ CORREGIDO: withOpacity -> withValues
+        color: AppColors.secondaryTeal.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.secondaryTeal, width: 2),
       ),

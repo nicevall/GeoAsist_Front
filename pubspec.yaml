@@ -10,36 +10,38 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # HTTP requests
-  http: ^1.1.0
+  # HTTP requests - Actualizado
+  http: ^1.4.0
 
-  # Local storage
-  shared_preferences: ^2.2.2
+  # Local storage - Actualizado
+  shared_preferences: ^2.5.3
 
-  # JSON serialization
-  json_annotation: ^4.8.1
+  # JSON serialization - Actualizado
+  json_annotation: ^4.9.0
 
-  # State management (for future use)
-  provider: ^6.1.1
+  # State management
+  provider: ^6.1.5
 
-  # Location services
-  geolocator: ^10.1.0
-  permission_handler: ^11.1.0
+  # Location services - ACTUALIZACIONES IMPORTANTES
+  geolocator: ^14.0.1 # ✅ ACTUALIZADO: Mejor precisión GPS
+  permission_handler: ^12.0.0+1 # ✅ ACTUALIZADO: Permisos mejorados
 
   # Maps (for future integration)
-  google_maps_flutter: ^2.5.0
+  google_maps_flutter: ^2.12.3
 
-  # Utils
-  intl: ^0.19.0
+  # Utils - Actualizado
+  intl: ^0.20.2 # ✅ ACTUALIZADO: Mejor localización
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
 
-  # JSON code generation
-  build_runner: ^2.4.7
-  json_serializable: ^6.7.1
+  # Lints - ACTUALIZADO
+  flutter_lints: ^6.0.0 # ✅ ACTUALIZADO: Reglas modernas
+
+  # JSON code generation - Actualizado
+  build_runner: ^2.5.4
+  json_serializable: ^6.9.5
 
 flutter:
   uses-material-design: true

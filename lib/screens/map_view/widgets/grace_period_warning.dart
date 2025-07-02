@@ -1,4 +1,4 @@
-// lib/screens/widgets/grace_period_warning.dart
+// lib/screens/map_view/widgets/grace_period_warning.dart - ARCHIVO CORREGIDO
 import 'package:flutter/material.dart';
 
 class GracePeriodWarning extends StatelessWidget {
@@ -19,7 +19,8 @@ class GracePeriodWarning extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: graceColorAnimation.value!.withOpacity(0.1),
+            // ✅ CORREGIDO: withOpacity -> withValues
+            color: graceColorAnimation.value!.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: graceColorAnimation.value!, width: 2),
           ),
