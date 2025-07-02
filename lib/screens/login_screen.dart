@@ -141,9 +141,8 @@ class _LoginScreenState extends State<LoginScreen> {
               CustomButton(
                 text: 'Registrarse',
                 onPressed: () {
-                  AppRouter.showSnackBar(
-                    'Función de registro próximamente disponible',
-                  );
+                  // Navegar a la pantalla de registro
+                  AppRouter.goToRegister();
                 },
                 isPrimary: false,
               ),

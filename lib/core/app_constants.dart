@@ -64,7 +64,8 @@ class AppConstants {
 
   // Success Messages
   static const String loginSuccessMessage = '¡Inicio de sesión exitoso!';
-  static const String registrationSuccessMessage = '¡Registro exitoso!';
+  static const String registrationSuccessMessage =
+      '¡Registro exitoso! Ya puedes iniciar sesión.';
   static const String attendanceMarkedMessage =
       'Asistencia registrada correctamente.';
   static const String breakStartedMessage = 'Período de descanso iniciado.';

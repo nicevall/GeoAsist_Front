@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/app_constants.dart';
 import '../screens/login_screen.dart';
+import '../screens/register_screen.dart';
 import '../screens/map_view/map_view_screen.dart';
 import '../services/storage_service.dart';
 
@@ -21,6 +22,9 @@ class AppRouter {
       case AppConstants.loginRoute:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
 
+      case AppConstants.registerRoute:
+        return MaterialPageRoute(builder: (_) => const RegisterScreen());
+
       case AppConstants.mapViewRoute:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
@@ -30,10 +34,8 @@ class AppRouter {
           ),
         );
 
-      // T  ODO: Add other routes as screens are implemented
+      // TODO: Add other routes as screens are implemented
       /*
-      case AppConstants.registerRoute:
-        return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case AppConstants.adminDashboardRoute:
         return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
       case AppConstants.docenteDashboardRoute:
