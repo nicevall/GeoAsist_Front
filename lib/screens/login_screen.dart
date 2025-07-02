@@ -3,6 +3,8 @@ import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import '../utils/colors.dart';
 import '../utils/app_router.dart';
+import '../services/auth_service.dart';
+import '../core/app_constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,8 +14,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _correoController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -107,14 +112,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Campos de texto
               CustomTextField(
-                hintText: 'Username',
-                controller: _usernameController,
-                prefixIcon: Icons.person_outline,
-                keyboardType: TextInputType.text,
+                hintText: 'Correo electrónico',
+                controller: _correoController,
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
               ),
 
               CustomTextField(
-                hintText: 'Password',
+                hintText: 'Contraseña',
                 controller: _passwordController,
                 isPassword: true,
                 prefixIcon: Icons.lock_outline,
@@ -124,35 +129,18 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 30),
 
               // Botones
-              CustomButton(
-                text: 'Login',
-                onPressed: () {
-                  // Simular autenticación - En producción conectar con tu backend
-                  final username = _usernameController.text.trim();
-
-                  if (username.isEmpty) {
-                    AppRouter.showSnackBar(
-                      'Por favor ingresa tu usuario',
-                      isError: true,
-                    );
-                    return;
-                  }
-
-                  // Determinar si es admin o asistente basado en el username
-                  final isAdmin = username.toLowerCase().contains('admin');
-
-                  // Navegar a la pantalla del mapa
-                  AppRouter.goToMapView(
-                    isAdminMode: isAdmin,
-                    userName: username,
-                  );
-                },
-              ),
+              _isLoading
+                  ? const CircularProgressIndicator(
+                      color: AppColors.primaryOrange,
+                    )
+                  : CustomButton(
+                      text: 'Iniciar Sesión',
+                      onPressed: _handleLogin,
+                    ),
 
               CustomButton(
-                text: 'Register',
+                text: 'Registrarse',
                 onPressed: () {
-                  // TODO: Navigate to registration screen
                   AppRouter.showSnackBar(
                     'Función de registro próximamente disponible',
                   );
@@ -161,6 +149,38 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
 
               const SizedBox(height: 20),
+
+              // Indicador de estado del servidor
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.secondaryTeal.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.secondaryTeal, width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Conectado al servidor: ${AppConstants.baseUrl}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textGray,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -168,9 +188,96 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<void> _handleLogin() async {
+    final correo = _correoController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Validaciones básicas
+    if (correo.isEmpty || password.isEmpty) {
+      AppRouter.showSnackBar(
+        'Por favor completa todos los campos',
+        isError: true,
+      );
+      return;
+    }
+
+    if (!_isValidEmail(correo)) {
+      AppRouter.showSnackBar(
+        'Por favor ingresa un correo válido',
+        isError: true,
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Llamada real al backend
+      final response = await _authService.login(correo, password);
+
+      if (response.ok && response.usuario != null) {
+        AppRouter.showSnackBar(
+          response.mensaje.isNotEmpty
+              ? response.mensaje
+              : AppConstants.loginSuccessMessage,
+        );
+
+        // Determinar la ruta según el rol del usuario
+        final usuario = response.usuario!;
+        _navigateByRole(usuario.rol, usuario.nombre);
+      } else {
+        AppRouter.showSnackBar(
+          response.mensaje.isNotEmpty
+              ? response.mensaje
+              : AppConstants.invalidCredentialsMessage,
+          isError: true,
+        );
+      }
+    } catch (e) {
+      AppRouter.showSnackBar(
+        AppConstants.networkErrorMessage,
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _navigateByRole(String rol, String userName) {
+    bool isAdminMode = false;
+
+    switch (rol) {
+      case AppConstants.adminRole:
+      case AppConstants.docenteRole:
+        isAdminMode = true;
+        break;
+      case AppConstants.estudianteRole:
+        isAdminMode = false;
+        break;
+      default:
+        isAdminMode = false;
+    }
+
+    // Navegar a la pantalla del mapa con el rol correspondiente
+    AppRouter.goToMapView(
+      isAdminMode: isAdminMode,
+      userName: userName,
+    );
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email);
+  }
+
   @override
   void dispose() {
-    _usernameController.dispose();
+    _correoController.dispose();
     _passwordController.dispose();
     super.dispose();
   }

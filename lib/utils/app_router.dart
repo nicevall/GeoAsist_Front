@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/app_constants.dart';
 import '../screens/login_screen.dart';
-import '../screens/map_view_screen.dart';
+import '../screens/map_view/map_view_screen.dart';
+import '../services/storage_service.dart';
 
 class AppRouter {
   // Private constructor to prevent instantiation
@@ -10,6 +11,9 @@ class AppRouter {
   // Global key for navigator
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
+
+  // Storage service for user data
+  static final StorageService _storageService = StorageService();
 
   // Simple route generator for now (we'll upgrade to GoRouter once dependencies are added)
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -26,14 +30,16 @@ class AppRouter {
           ),
         );
 
-      // TODO: Add other routes as screens are implemented
+      // T  ODO: Add other routes as screens are implemented
       /*
       case AppConstants.registerRoute:
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case AppConstants.adminDashboardRoute:
         return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
-      case AppConstants.attendeeDashboardRoute:
-        return MaterialPageRoute(builder: (_) => const AttendeeDashboardScreen());
+      case AppConstants.docenteDashboardRoute:
+        return MaterialPageRoute(builder: (_) => const DocenteDashboardScreen());
+      case AppConstants.estudianteDashboardRoute:
+        return MaterialPageRoute(builder: (_) => const EstudianteDashboardScreen());
       */
 
       default:
@@ -47,7 +53,7 @@ class AppRouter {
                   const Icon(Icons.error_outline, size: 64, color: Colors.red),
                   const SizedBox(height: 16),
                   Text(
-                    'Page not found: ${settings.name}',
+                    'Página no encontrada: ${settings.name}',
                     style: const TextStyle(fontSize: 18),
                     textAlign: TextAlign.center,
                   ),
@@ -55,7 +61,7 @@ class AppRouter {
                   ElevatedButton(
                     onPressed: () => Navigator.of(navigatorKey.currentContext!)
                         .pushReplacementNamed(AppConstants.loginRoute),
-                    child: const Text('Go to Login'),
+                    child: const Text('Ir al Login'),
                   ),
                 ],
               ),
@@ -81,14 +87,19 @@ class AppRouter {
         .pushReplacementNamed(AppConstants.adminDashboardRoute);
   }
 
-  static void goToAttendeeDashboard() {
+  static void goToDocenteDashboard() {
     Navigator.of(navigatorKey.currentContext!)
-        .pushReplacementNamed(AppConstants.attendeeDashboardRoute);
+        .pushReplacementNamed(AppConstants.docenteDashboardRoute);
+  }
+
+  static void goToEstudianteDashboard() {
+    Navigator.of(navigatorKey.currentContext!)
+        .pushReplacementNamed(AppConstants.estudianteDashboardRoute);
   }
 
   static void goToMapView(
       {bool isAdminMode = false, String userName = 'Usuario'}) {
-    Navigator.of(navigatorKey.currentContext!).pushNamed(
+    Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
       AppConstants.mapViewRoute,
       arguments: {
         'isAdminMode': isAdminMode,
@@ -106,14 +117,15 @@ class AppRouter {
     }
   }
 
-  // Navigate based on user role
-  static void navigateByRole(String userRole) {
+  // Navigate based on user role - ACTUALIZADO PARA NUEVOS ROLES
+  static void navigateByRole(String userRole, String userName) {
     switch (userRole) {
       case AppConstants.adminRole:
-        goToAdminDashboard();
+      case AppConstants.docenteRole:
+        goToMapView(isAdminMode: true, userName: userName);
         break;
-      case AppConstants.attendeeRole:
-        goToAttendeeDashboard();
+      case AppConstants.estudianteRole:
+        goToMapView(isAdminMode: false, userName: userName);
         break;
       default:
         goToLogin();
@@ -127,9 +139,16 @@ class AppRouter {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: isError ? Colors.red : null,
+          backgroundColor: isError ? Colors.red : Colors.green,
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 3),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: Colors.white,
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+          ),
         ),
       );
     }
@@ -139,8 +158,8 @@ class AppRouter {
   static Future<bool?> showConfirmDialog({
     required String title,
     required String content,
-    String confirmText = 'Confirm',
-    String cancelText = 'Cancel',
+    String confirmText = 'Confirmar',
+    String cancelText = 'Cancelar',
   }) {
     final context = navigatorKey.currentContext;
     if (context == null) return Future.value(false);
@@ -164,15 +183,48 @@ class AppRouter {
     );
   }
 
-  // Check if user is authenticated (placeholder - implement with your auth logic)
-  static bool get isAuthenticated {
-    // TODO: Implement authentication check
-    return false;
+  // Check if user is authenticated
+  static Future<bool> get isAuthenticated async {
+    try {
+      final user = await _storageService.getUser();
+      final token = await _storageService.getToken();
+      return user != null && token != null;
+    } catch (e) {
+      return false;
+    }
   }
 
-  // Get current user role (placeholder - implement with your auth logic)
-  static String? get currentUserRole {
-    // TODO: Implement user role retrieval
-    return null;
+  // Get current user role
+  static Future<String?> get currentUserRole async {
+    try {
+      return await _storageService.getUserRole();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Auto-navigate based on stored session
+  static Future<void> autoNavigateFromSession() async {
+    try {
+      final user = await _storageService.getUser();
+      if (user != null) {
+        navigateByRole(user.rol, user.nombre);
+      } else {
+        goToLogin();
+      }
+    } catch (e) {
+      goToLogin();
+    }
+  }
+
+  // Logout and clear session
+  static Future<void> logout() async {
+    try {
+      await _storageService.clearAll();
+      goToLogin();
+      showSnackBar('Sesión cerrada correctamente');
+    } catch (e) {
+      showSnackBar('Error al cerrar sesión', isError: true);
+    }
   }
 }

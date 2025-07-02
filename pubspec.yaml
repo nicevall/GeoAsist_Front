@@ -10,18 +10,47 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Básico para funcionalidad actual
-  # (Agregar más dependencias gradualmente según necesites)
+  # HTTP requests
+  http: ^1.1.0
+
+  # Local storage
+  shared_preferences: ^2.2.2
+
+  # JSON serialization
+  json_annotation: ^4.8.1
+
+  # State management (for future use)
+  provider: ^6.1.1
+
+  # Location services
+  geolocator: ^10.1.0
+  permission_handler: ^11.1.0
+
+  # Maps (for future integration)
+  google_maps_flutter: ^2.5.0
+
+  # Utils
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
 
+  # JSON code generation
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1
+
 flutter:
   uses-material-design: true
 
-  # Add your assets here when needed
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
+  # Assets for the app
+  assets:
+    - assets/images/
+    - assets/icons/
+
+  # Fonts (if needed)
+  # fonts:
+  #   - family: CustomFont
+  #     fonts:
+  #       - asset: fonts/CustomFont-Regular.ttf

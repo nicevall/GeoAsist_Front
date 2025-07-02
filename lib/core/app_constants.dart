@@ -7,16 +7,24 @@ class AppConstants {
   static const String appVersion = '1.0.0';
   static const String appDescription = 'Geo-location based attendance system';
 
-  // API Configuration
-  static const String baseUrl =
-      'YOUR_NODE_JS_BACKEND_URL'; // Replace with actual backend URL
+  // API Configuration - ACTUALIZADO PARA BACKEND REAL
+  static const String baseUrl = 'http://54.210.246.199/api'; // Backend real
   static const String apiVersion = 'v1';
   static const Duration apiTimeout = Duration(seconds: 30);
+
+  // API Endpoints
+  static const String loginEndpoint = '/usuarios/login';
+  static const String registerEndpoint = '/usuarios/registrar';
+  static const String profileEndpoint = '/usuarios/perfil';
+  static const String eventosEndpoint = '/eventos';
+  static const String asistenciaEndpoint = '/asistencia/registrar';
+  static const String locationEndpoint = '/location/update';
+  static const String dashboardEndpoint = '/dashboard/metrics';
 
   // Location & Geofencing
   static const double defaultLocationAccuracy = 5.0; // meters
   static const Duration locationUpdateInterval = Duration(seconds: 10);
-  static const Duration graceGeriodDuration = Duration(minutes: 1);
+  static const Duration gracePeriodDuration = Duration(minutes: 1);
   static const double geofenceRadius = 100.0; // meters
   static const Duration breakTimerInterval = Duration(seconds: 1);
 
@@ -25,39 +33,42 @@ class AppConstants {
   static const String tokenKey = 'auth_token';
   static const String userRoleKey = 'user_role';
   static const String userDataKey = 'user_data';
+  static const String userIdKey = 'user_id';
 
-  // User Roles
+  // User Roles - COHERENTE CON BACKEND
   static const String adminRole = 'admin';
-  static const String attendeeRole = 'attendee';
+  static const String docenteRole = 'docente';
+  static const String estudianteRole = 'estudiante';
 
   // Navigation Routes
   static const String loginRoute = '/login';
   static const String registerRoute = '/register';
   static const String adminDashboardRoute = '/admin-dashboard';
-  static const String attendeeDashboardRoute = '/attendee-dashboard';
+  static const String docenteDashboardRoute = '/docente-dashboard';
+  static const String estudianteDashboardRoute = '/estudiante-dashboard';
   static const String mapViewRoute = '/map-view';
   static const String profileRoute = '/profile';
   static const String settingsRoute = '/settings';
 
   // Error Messages
   static const String networkErrorMessage =
-      'Network connection error. Please check your internet.';
+      'Error de conexión. Verifica tu internet.';
   static const String locationPermissionDeniedMessage =
-      'Location permission is required for attendance tracking.';
+      'Se requiere permiso de ubicación para el seguimiento de asistencia.';
   static const String locationServiceDisabledMessage =
-      'Please enable location services to continue.';
+      'Activa los servicios de ubicación para continuar.';
   static const String invalidCredentialsMessage =
-      'Invalid username or password.';
+      'Correo o contraseña incorrectos.';
   static const String genericErrorMessage =
-      'An unexpected error occurred. Please try again.';
+      'Ocurrió un error inesperado. Inténtalo de nuevo.';
 
   // Success Messages
-  static const String loginSuccessMessage = 'Login successful!';
-  static const String registrationSuccessMessage = 'Registration successful!';
+  static const String loginSuccessMessage = '¡Inicio de sesión exitoso!';
+  static const String registrationSuccessMessage = '¡Registro exitoso!';
   static const String attendanceMarkedMessage =
-      'Attendance marked successfully.';
-  static const String breakStartedMessage = 'Break period started.';
-  static const String breakEndedMessage = 'Break period ended.';
+      'Asistencia registrada correctamente.';
+  static const String breakStartedMessage = 'Período de descanso iniciado.';
+  static const String breakEndedMessage = 'Período de descanso terminado.';
 
   // UI Configuration
   static const double borderRadius = 25.0;
@@ -79,4 +90,15 @@ class AppConstants {
   // Break System
   static const List<int> defaultBreakDurations = [5, 10, 15, 30]; // minutes
   static const int maxBreakDuration = 60; // minutes
+
+  // Request Headers
+  static Map<String, String> get defaultHeaders => {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+  static Map<String, String> getAuthHeaders(String token) => {
+        ...defaultHeaders,
+        'Authorization': 'Bearer $token',
+      };
 }
