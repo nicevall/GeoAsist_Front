@@ -7,7 +7,7 @@ import '../screens/map_view/map_view_screen.dart';
 import '../screens/admin_panel_screen.dart';
 import '../screens/create_professor_screen.dart';
 import '../screens/dashboard_screen.dart';
-// import '../screens/professor_management_screen.dart'; // Lo agregaremos después
+import '../screens/professor_management_screen.dart'; // Lo agregaremos después
 import '../services/storage_service.dart';
 
 class AppRouter {
@@ -58,8 +58,9 @@ class AppRouter {
       case AppConstants.createProfessorRoute:
         return MaterialPageRoute(builder: (_) => const CreateProfessorScreen());
 
-      // case AppConstants.professorManagementRoute:
-      //   return MaterialPageRoute(builder: (_) => const ProfessorManagementScreen());
+      case AppConstants.professorManagementRoute:
+        return MaterialPageRoute(
+            builder: (_) => const ProfessorManagementScreen());
 
       default:
         return MaterialPageRoute(
