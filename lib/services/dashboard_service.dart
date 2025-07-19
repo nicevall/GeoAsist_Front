@@ -1,6 +1,7 @@
-// lib/services/dashboard_service.dart - ARCHIVO CORREGIDO
+// lib/services/dashboard_service.dart
 import 'package:flutter/foundation.dart';
 import '../core/app_constants.dart';
+import '../models/dashboard_metric_model.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
 
@@ -12,7 +13,35 @@ class DashboardService {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
 
-  Future<Map<String, dynamic>?> getMetrics() async {
+  Future<List<DashboardMetric>?> getMetrics() async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) return null;
+
+      final response = await _apiService.get(
+        AppConstants.dashboardEndpoint,
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success && response.data != null) {
+        // El backend retorna un array de métricas
+        final metricsData = response.data!['data'] ?? response.data;
+
+        if (metricsData is List) {
+          return metricsData
+              .map((json) => DashboardMetric.fromJson(json))
+              .toList();
+        }
+      }
+      return null;
+    } catch (e) {
+      // ✅ CORREGIDO: Usar debugPrint en lugar de print
+      debugPrint('Error al obtener métricas: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getRawMetrics() async {
     try {
       final token = await _storageService.getToken();
       if (token == null) return null;

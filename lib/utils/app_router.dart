@@ -1,8 +1,13 @@
+// lib/utils/app_router.dart - VERSIÓN CORREGIDA COMPLETA
 import 'package:flutter/material.dart';
 import '../core/app_constants.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/map_view/map_view_screen.dart';
+import '../screens/admin_panel_screen.dart';
+import '../screens/create_professor_screen.dart';
+import '../screens/dashboard_screen.dart';
+// import '../screens/professor_management_screen.dart'; // Lo agregaremos después
 import '../services/storage_service.dart';
 
 class AppRouter {
@@ -16,7 +21,7 @@ class AppRouter {
   // Storage service for user data
   static final StorageService _storageService = StorageService();
 
-  // Simple route generator for now (we'll upgrade to GoRouter once dependencies are added)
+  // Simple route generator
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case AppConstants.loginRoute:
@@ -34,15 +39,27 @@ class AppRouter {
           ),
         );
 
-      // TODO: Add other routes as screens are implemented
-      /*
-      case AppConstants.adminDashboardRoute:
-        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
-      case AppConstants.docenteDashboardRoute:
-        return MaterialPageRoute(builder: (_) => const DocenteDashboardScreen());
-      case AppConstants.estudianteDashboardRoute:
-        return MaterialPageRoute(builder: (_) => const EstudianteDashboardScreen());
-      */
+      case AppConstants.adminPanelRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => AdminPanelScreen(
+            userName: args?['userName'] ?? 'Admin',
+          ),
+        );
+
+      case AppConstants.dashboardRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => DashboardScreen(
+            userName: args?['userName'] ?? 'Usuario',
+          ),
+        );
+
+      case AppConstants.createProfessorRoute:
+        return MaterialPageRoute(builder: (_) => const CreateProfessorScreen());
+
+      // case AppConstants.professorManagementRoute:
+      //   return MaterialPageRoute(builder: (_) => const ProfessorManagementScreen());
 
       default:
         return MaterialPageRoute(
@@ -84,19 +101,28 @@ class AppRouter {
         .pushNamed(AppConstants.registerRoute);
   }
 
-  static void goToAdminDashboard() {
-    Navigator.of(navigatorKey.currentContext!)
-        .pushReplacementNamed(AppConstants.adminDashboardRoute);
+  static void goToAdminPanel({String userName = 'Admin'}) {
+    Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
+      AppConstants.adminPanelRoute,
+      arguments: {'userName': userName},
+    );
   }
 
-  static void goToDocenteDashboard() {
-    Navigator.of(navigatorKey.currentContext!)
-        .pushReplacementNamed(AppConstants.docenteDashboardRoute);
+  static void goToDashboard({String userName = 'Usuario'}) {
+    Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
+      AppConstants.dashboardRoute,
+      arguments: {'userName': userName},
+    );
   }
 
-  static void goToEstudianteDashboard() {
+  static void goToCreateProfessor() {
     Navigator.of(navigatorKey.currentContext!)
-        .pushReplacementNamed(AppConstants.estudianteDashboardRoute);
+        .pushNamed(AppConstants.createProfessorRoute);
+  }
+
+  static void goToProfessorManagement() {
+    Navigator.of(navigatorKey.currentContext!)
+        .pushNamed(AppConstants.professorManagementRoute);
   }
 
   static void goToMapView(
@@ -123,8 +149,10 @@ class AppRouter {
   static void navigateByRole(String userRole, String userName) {
     switch (userRole) {
       case AppConstants.adminRole:
+        goToAdminPanel(userName: userName);
+        break;
       case AppConstants.docenteRole:
-        goToMapView(isAdminMode: true, userName: userName);
+        goToDashboard(userName: userName);
         break;
       case AppConstants.estudianteRole:
         goToMapView(isAdminMode: false, userName: userName);

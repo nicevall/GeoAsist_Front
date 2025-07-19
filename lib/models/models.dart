@@ -7,3 +7,4 @@ export 'ubicacion_model.dart';
 export 'asistencia_model.dart';
 export 'auth_response_model.dart';
 export 'api_response_model.dart';
+export 'dashboard_metric_model.dart';

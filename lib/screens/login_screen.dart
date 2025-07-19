@@ -250,25 +250,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _navigateByRole(String rol, String userName) {
-    bool isAdminMode = false;
-
     switch (rol) {
       case AppConstants.adminRole:
+        // Admin va al panel de administración
+        AppRouter.goToAdminPanel(userName: userName);
+        break;
       case AppConstants.docenteRole:
-        isAdminMode = true;
+        // Docente va al dashboard
+        AppRouter.goToDashboard(userName: userName);
         break;
       case AppConstants.estudianteRole:
-        isAdminMode = false;
+        // Estudiante va al mapa
+        AppRouter.goToMapView(isAdminMode: false, userName: userName);
         break;
       default:
-        isAdminMode = false;
+        AppRouter.goToLogin();
     }
-
-    // Navegar a la pantalla del mapa con el rol correspondiente
-    AppRouter.goToMapView(
-      isAdminMode: isAdminMode,
-      userName: userName,
-    );
   }
 
   bool _isValidEmail(String email) {

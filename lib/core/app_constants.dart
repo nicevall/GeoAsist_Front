@@ -43,12 +43,14 @@ class AppConstants {
   // Navigation Routes
   static const String loginRoute = '/login';
   static const String registerRoute = '/register';
-  static const String adminDashboardRoute = '/admin-dashboard';
-  static const String docenteDashboardRoute = '/docente-dashboard';
-  static const String estudianteDashboardRoute = '/estudiante-dashboard';
   static const String mapViewRoute = '/map-view';
   static const String profileRoute = '/profile';
   static const String settingsRoute = '/settings';
+  // Rutas principales
+  static const String adminPanelRoute = '/admin-panel';
+  static const String dashboardRoute = '/dashboard';
+  static const String professorManagementRoute = '/professor-management';
+  static const String createProfessorRoute = '/create-professor';
 
   // Error Messages
   static const String networkErrorMessage =
@@ -61,6 +63,15 @@ class AppConstants {
       'Correo o contraseña incorrectos.';
   static const String genericErrorMessage =
       'Ocurrió un error inesperado. Inténtalo de nuevo.';
+  // Mensajes de error para gestión de Docentes
+  static const String professorCreationErrorMessage =
+      'Error al crear el Docente. Verifica los datos.';
+  static const String professorUpdateErrorMessage =
+      'Error al actualizar los datos del Docente.';
+  static const String professorDeletionErrorMessage =
+      'Error al eliminar el Docente.';
+  static const String duplicateEmailErrorMessage =
+      'Ya existe un usuario con este correo electrónico.';
 
   // Success Messages
   static const String loginSuccessMessage = '¡Inicio de sesión exitoso!';
@@ -70,6 +81,13 @@ class AppConstants {
       'Asistencia registrada correctamente.';
   static const String breakStartedMessage = 'Período de descanso iniciado.';
   static const String breakEndedMessage = 'Período de descanso terminado.';
+  // Mensajes de éxito para gestión de Docentes
+  static const String professorCreatedSuccessMessage =
+      '¡Docente creado exitosamente!';
+  static const String professorUpdatedSuccessMessage =
+      '¡Datos del Docente actualizados!';
+  static const String professorDeletedSuccessMessage =
+      '¡Docente eliminado exitosamente!';
 
   // UI Configuration
   static const double borderRadius = 25.0;

@@ -100,7 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 text: const TextSpan(
                   children: [
                     TextSpan(
-                      text: 'CREAR\nCUENTA\n',
+                      text: 'REGISTRO\nESTUDIANTES\n',
                       style: TextStyle(
                         color: AppColors.secondaryTeal,
                         fontSize: 28,
@@ -198,28 +198,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   color: AppColors.primaryOrange, size: 20),
                               SizedBox(width: 10),
                               Text('Estudiante'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: AppConstants.docenteRole,
-                          child: Row(
-                            children: [
-                              Icon(Icons.person_3,
-                                  color: AppColors.secondaryTeal, size: 20),
-                              SizedBox(width: 10),
-                              Text('Docente'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: AppConstants.adminRole,
-                          child: Row(
-                            children: [
-                              Icon(Icons.admin_panel_settings,
-                                  color: AppColors.darkGray, size: 20),
-                              SizedBox(width: 10),
-                              Text('Administrador'),
                             ],
                           ),
                         ),
