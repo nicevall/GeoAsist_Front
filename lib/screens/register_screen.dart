@@ -1,4 +1,4 @@
-// lib/screens/register_screen.dart
+// lib/screens/register_screen.dart - SOLO ESTUDIANTES
 import 'package:flutter/material.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
@@ -23,7 +23,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final AuthService _authService = AuthService();
 
   bool _isLoading = false;
-  String _selectedRole = AppConstants.estudianteRole;
+  // ✅ ROL FIJO - Solo estudiantes pueden registrarse por la app
+  final String _fixedRole = AppConstants.estudianteRole;
 
   @override
   Widget build(BuildContext context) {
@@ -154,60 +155,73 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 keyboardType: TextInputType.visiblePassword,
               ),
 
-              // Selector de rol
+              // ✅ INFORMACIÓN DE ROL FIJO (sin selector)
               Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
+                margin: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
+                  color: AppColors.secondaryTeal.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: AppColors.secondaryTeal, width: 2),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.school,
+                        color: AppColors.secondaryTeal, size: 24),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '🎓 Registro de Estudiante',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.secondaryTeal,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Te registrarás como estudiante para seguimiento de asistencia.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textGray,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedRole,
-                      isExpanded: true,
-                      hint: const Text('Selecciona tu rol'),
-                      icon: const Icon(Icons.arrow_drop_down,
-                          color: AppColors.textGray),
-                      style: const TextStyle(
-                        color: AppColors.darkGray,
-                        fontSize: 16,
-                      ),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            _selectedRole = newValue;
-                          });
-                        }
-                      },
-                      items: const [
-                        DropdownMenuItem(
-                          value: AppConstants.estudianteRole,
-                          child: Row(
-                            children: [
-                              Icon(Icons.school,
-                                  color: AppColors.primaryOrange, size: 20),
-                              SizedBox(width: 10),
-                              Text('Estudiante'),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ),
 
-              const SizedBox(height: 30),
+              // ✅ INFORMACIÓN PARA DOCENTES
+              Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primaryOrange, width: 1),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline,
+                        color: AppColors.primaryOrange, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '👨‍🏫 ¿Eres docente? Los docentes son registrados por el administrador del sistema.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textGray,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
               // Botón de registro
               _isLoading
@@ -215,10 +229,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       color: AppColors.secondaryTeal,
                     )
                   : CustomButton(
-                      text: 'Crear Cuenta',
+                      text: 'Crear Cuenta de Estudiante',
                       onPressed: _handleRegister,
-                      isPrimary:
-                          false, // Usamos teal como color primario para registro
+                      isPrimary: false, // Usar color teal para registro
                     ),
 
               const SizedBox(height: 15),
@@ -272,7 +285,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(width: 8),
                     const Text(
-                      'Servidor activo - Registro habilitado',
+                      'Servidor activo - Registro de estudiantes habilitado',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textGray,
@@ -288,6 +301,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  // ✅ FUNCIÓN DE REGISTRO - SOLO ESTUDIANTES
   Future<void> _handleRegister() async {
     final nombre = _nombreController.text.trim();
     final correo = _correoController.text.trim();
@@ -338,24 +352,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      // Llamada al backend
+      // ✅ REGISTRO SOLO COMO ESTUDIANTE
       final response = await _authService.register(
         nombre,
         correo,
         password,
-        _selectedRole,
+        _fixedRole, // Siempre 'estudiante'
       );
 
       if (response.ok) {
         AppRouter.showSnackBar(
           response.mensaje.isNotEmpty
               ? response.mensaje
-              : AppConstants.registrationSuccessMessage,
+              : 'Registro exitoso. Ya puedes iniciar sesión como estudiante.',
         );
 
         // Regresar al login después del registro exitoso
@@ -366,20 +378,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
         AppRouter.showSnackBar(
           response.mensaje.isNotEmpty
               ? response.mensaje
-              : 'Error al crear la cuenta',
+              : 'Error al crear la cuenta de estudiante',
           isError: true,
         );
       }
     } catch (e) {
       AppRouter.showSnackBar(
-        AppConstants.networkErrorMessage,
+        'Error de conexión. Verifica tu internet.',
         isError: true,
       );
+
+      // Debug en desarrollo
+      debugPrint('Error de registro: $e');
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
