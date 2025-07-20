@@ -131,10 +131,7 @@ class ProfessorDashboardWidgets {
                 title: 'Crear Evento',
                 subtitle: 'Nuevo evento de asistencia',
                 color: AppColors.primaryOrange,
-                onTap: () {
-                  // TODO: Navegar a crear evento cuando esté implementado
-                  AppRouter.showSnackBar('Próximamente: Crear evento');
-                },
+                onTap: () => AppRouter.goToCreateEvent(),
               ),
             ),
             const SizedBox(width: 12),
@@ -144,10 +141,7 @@ class ProfessorDashboardWidgets {
                 title: 'Mis Eventos',
                 subtitle: 'Gestionar mis eventos',
                 color: AppColors.secondaryTeal,
-                onTap: () {
-                  // TODO: Navegar a gestión de eventos del docente
-                  AppRouter.showSnackBar('Próximamente: Gestión de eventos');
-                },
+                onTap: () => AppRouter.goToEventManagement(),
               ),
             ),
           ],

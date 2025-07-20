@@ -1,14 +1,15 @@
-// lib/utils/app_router.dart - VERSIÓN CORREGIDA COMPLETA
+// lib/utils/app_router.dart - VERSIÓN COMPLETA CON EVENTOS
 import 'package:flutter/material.dart';
 import '../core/app_constants.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/map_view/map_view_screen.dart';
-import '../screens/admin_panel_screen.dart';
 import '../screens/create_professor_screen.dart';
 import '../screens/dashboard_screen.dart';
-import '../screens/professor_management_screen.dart'; // Lo agregaremos después
+import '../screens/professor_management_screen.dart';
+import '../screens/create_event_screen.dart'; // ✅ AGREGADO
 import '../services/storage_service.dart';
+import '../models/evento_model.dart'; // ✅ AGREGADO
 
 class AppRouter {
   // Private constructor to prevent instantiation
@@ -39,14 +40,6 @@ class AppRouter {
           ),
         );
 
-      case AppConstants.adminPanelRoute:
-        final args = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(
-          builder: (_) => AdminPanelScreen(
-            userName: args?['userName'] ?? 'Admin',
-          ),
-        );
-
       case AppConstants.dashboardRoute:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
@@ -61,6 +54,42 @@ class AppRouter {
       case AppConstants.professorManagementRoute:
         return MaterialPageRoute(
             builder: (_) => const ProfessorManagementScreen());
+
+      // ✅ NUEVAS RUTAS DE EVENTOS
+      case AppConstants.createEventRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => CreateEventScreen(
+            editEvent: args?['editEvent'] as Evento?,
+          ),
+        );
+
+      case AppConstants.eventManagementRoute:
+        return MaterialPageRoute(
+          builder: (_) => const Scaffold(
+            body: Center(
+              child: Text('Event Management - Próximamente'),
+            ),
+          ),
+        );
+
+      case AppConstants.eventDetailsRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final eventoId = args?['eventoId'] as String?;
+        if (eventoId == null) {
+          return MaterialPageRoute(
+            builder: (_) => const Scaffold(
+              body: Center(child: Text('ID de evento requerido')),
+            ),
+          );
+        }
+        return MaterialPageRoute(
+          builder: (_) => const Scaffold(
+            body: Center(
+              child: Text('Event Details - Próximamente'),
+            ),
+          ),
+        );
 
       default:
         return MaterialPageRoute(
@@ -102,13 +131,6 @@ class AppRouter {
         .pushNamed(AppConstants.registerRoute);
   }
 
-  static void goToAdminPanel({String userName = 'Admin'}) {
-    Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
-      AppConstants.adminPanelRoute,
-      arguments: {'userName': userName},
-    );
-  }
-
   static void goToDashboard({String userName = 'Usuario'}) {
     Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
       AppConstants.dashboardRoute,
@@ -137,6 +159,26 @@ class AppRouter {
     );
   }
 
+  // ✅ NUEVOS MÉTODOS DE NAVEGACIÓN PARA EVENTOS
+  static void goToCreateEvent({Evento? editEvent}) {
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppConstants.createEventRoute,
+      arguments: {'editEvent': editEvent},
+    );
+  }
+
+  static void goToEventManagement() {
+    Navigator.of(navigatorKey.currentContext!)
+        .pushNamed(AppConstants.eventManagementRoute);
+  }
+
+  static void goToEventDetails(String eventoId) {
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppConstants.eventDetailsRoute,
+      arguments: {'eventoId': eventoId},
+    );
+  }
+
   // Back navigation
   static void goBack() {
     if (Navigator.of(navigatorKey.currentContext!).canPop()) {
@@ -150,7 +192,7 @@ class AppRouter {
   static void navigateByRole(String userRole, String userName) {
     switch (userRole) {
       case AppConstants.adminRole:
-        goToAdminPanel(userName: userName);
+        goToDashboard(userName: userName);
         break;
       case AppConstants.docenteRole:
         goToDashboard(userName: userName);

@@ -1,4 +1,4 @@
-// lib/widgets/loading_skeleton.dart
+// lib/widgets/loading_skeleton.dart - VERSIÓN FUNCIONAL MEJORADA
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 
@@ -189,14 +189,16 @@ class SkeletonLoaders {
   }
 
   /// Skeleton para lista de métricas
-  static Widget metricsList({int count = 3}) {
+  static Widget metricsList({int count = 2}) {
+    // ✅ CAMBIADO: de 1 a 2
     return Column(
       children: List.generate(count, (index) => metricCard()),
     );
   }
 
   /// Skeleton para lista de eventos
-  static Widget eventsList({int count = 3}) {
+  static Widget eventsList({int count = 2}) {
+    // ✅ CAMBIADO: de 1 a 2
     return Column(
       children: List.generate(count, (index) => eventCard()),
     );
@@ -208,7 +210,8 @@ class SkeletonLoaders {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.lightGray,
+        color:
+            AppColors.lightGray.withValues(alpha: 0.3), // ✅ MEJORADO: Más sutil
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -265,36 +268,57 @@ class SkeletonLoaders {
             ),
           ],
         ),
+        const SizedBox(height: 12), // ✅ AGREGADO: Segunda fila
+        Row(
+          children: [
+            Expanded(
+              child: LoadingSkeleton(
+                width: double.infinity,
+                height: 100,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: LoadingSkeleton(
+                width: double.infinity,
+                height: 100,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
 
   /// Skeleton para pantalla completa de dashboard
   static Widget dashboardPage() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           welcomeHeader(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           quickActions(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           LoadingSkeleton(
             width: 140,
             height: 20,
             borderRadius: BorderRadius.circular(4),
           ),
+          const SizedBox(height: 12),
+          metricsList(count: 2), // ✅ CAMBIADO: Mostrar 2 métricas
           const SizedBox(height: 16),
-          metricsList(count: 2),
-          const SizedBox(height: 24),
           LoadingSkeleton(
             width: 160,
             height: 20,
             borderRadius: BorderRadius.circular(4),
           ),
-          const SizedBox(height: 16),
-          eventsList(count: 2),
+          const SizedBox(height: 12),
+          eventsList(count: 2), // ✅ CAMBIADO: Mostrar 2 eventos
+          const SizedBox(height: 80),
         ],
       ),
     );

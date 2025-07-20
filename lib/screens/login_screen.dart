@@ -252,8 +252,8 @@ class _LoginScreenState extends State<LoginScreen> {
   void _navigateByRole(String rol, String userName) {
     switch (rol) {
       case AppConstants.adminRole:
-        // Admin va al panel de administración
-        AppRouter.goToAdminPanel(userName: userName);
+        // Admin va al dashboard inteligente
+        AppRouter.goToDashboard(userName: userName);
         break;
       case AppConstants.docenteRole:
         // Docente va al dashboard

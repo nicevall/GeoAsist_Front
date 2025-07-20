@@ -14,8 +14,6 @@ class EventoService {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
 
-// lib/services/evento_service.dart - Sección corregida
-
   Future<List<Evento>> obtenerEventos() async {
     try {
       final response = await _apiService.get(AppConstants.eventosEndpoint);
@@ -32,7 +30,6 @@ class EventoService {
           eventosList = List<dynamic>.from(responseData as Iterable);
         } else {
           // Caso 2: El backend retorna un objeto que contiene la lista
-          // CAMBIO: Removemos la verificación redundante 'is Map<String, dynamic>'
           final eventosData = responseData['eventos'];
           if (eventosData != null && eventosData is List) {
             eventosList = List<dynamic>.from(eventosData);
@@ -43,16 +40,23 @@ class EventoService {
           }
         }
 
-        // Resto del código permanece igual...
+        // ✅ CORREGIDO: Parseo más robusto con validaciones
         final List<Evento> eventos = <Evento>[];
         for (int i = 0; i < eventosList.length; i++) {
           final eventoData = eventosList[i];
           if (eventoData is Map<String, dynamic>) {
             try {
-              final evento = Evento.fromJson(eventoData);
-              eventos.add(evento);
+              // ✅ VALIDAR campos requeridos antes del parsing
+              if (_isValidEventData(eventoData)) {
+                final evento = Evento.fromJson(eventoData);
+                eventos.add(evento);
+              } else {
+                debugPrint(
+                    'Evento en índice $i tiene datos incompletos: ${eventoData.keys}');
+              }
             } catch (e) {
               debugPrint('Error al parsear evento en índice $i: $e');
+              debugPrint('Datos del evento: $eventoData');
             }
           } else {
             debugPrint(
@@ -72,13 +76,46 @@ class EventoService {
     }
   }
 
+  /// ✅ NUEVO: Valida que los datos del evento tengan los campos mínimos requeridos
+  bool _isValidEventData(Map<String, dynamic> data) {
+    // Campos absolutamente requeridos según el modelo Evento
+    final requiredFields = ['titulo', 'fecha', 'horaInicio', 'horaFinal'];
+
+    for (String field in requiredFields) {
+      if (!data.containsKey(field) || data[field] == null) {
+        debugPrint('Campo requerido faltante: $field');
+        return false;
+      }
+    }
+
+    // Validar ubicación si existe
+    if (data.containsKey('ubicacion') && data['ubicacion'] != null) {
+      final ubicacion = data['ubicacion'];
+      if (ubicacion is Map<String, dynamic>) {
+        if (!ubicacion.containsKey('latitud') ||
+            !ubicacion.containsKey('longitud')) {
+          debugPrint('Ubicación incompleta - falta latitud o longitud');
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   Future<Evento?> obtenerEventoPorId(String eventoId) async {
     try {
       final response =
           await _apiService.get('${AppConstants.eventosEndpoint}/$eventoId');
 
       if (response.success && response.data != null) {
-        return Evento.fromJson(response.data!);
+        // ✅ VALIDAR antes de parsear
+        if (_isValidEventData(response.data!)) {
+          return Evento.fromJson(response.data!);
+        } else {
+          debugPrint('Datos de evento inválidos para ID: $eventoId');
+          return null;
+        }
       }
       return null;
     } catch (e) {
@@ -110,17 +147,30 @@ class EventoService {
           'latitud': latitud,
           'longitud': longitud,
         },
-        'fecha': fecha.toIso8601String(),
-        'horaInicio': horaInicio.toIso8601String(),
-        'horaFinal': horaFinal.toIso8601String(),
+        // ✅ REMOVIDO: No enviar campo 'fecha' separado
+        'fechaInicio': horaInicio.toIso8601String(), // Incluye fecha + hora
+        'fechaFinal': horaFinal.toIso8601String(), // Incluye fecha + hora
         'rangoPermitido': rangoPermitido,
       };
+
+      // ✅ AGREGADO: Debug del body
+      debugPrint('Body enviado al backend: $body');
+
+      // ✅ AGREGADO: Debug completo de la respuesta
+      debugPrint('Endpoint usado: ${AppConstants.eventosEndpoint}/crear');
+      debugPrint('Headers enviados: ${AppConstants.getAuthHeaders(token)}');
 
       final response = await _apiService.post(
         '${AppConstants.eventosEndpoint}/crear',
         body: body,
         headers: AppConstants.getAuthHeaders(token),
       );
+
+      // ✅ AGREGADO: Debug completo de la respuesta del backend
+      debugPrint('Response success: ${response.success}');
+      debugPrint('Response data: ${response.data}');
+      debugPrint('Response message: ${response.message}');
+      debugPrint('Response error: ${response.error}');
 
       if (response.success && response.data != null) {
         final eventoData = response.data!['evento'];
@@ -154,7 +204,7 @@ class EventoService {
 
       if (response.success && response.data != null) {
         final eventoData = response.data!['evento'];
-        if (eventoData != null) {
+        if (eventoData != null && _isValidEventData(eventoData)) {
           final evento = Evento.fromJson(eventoData);
           return ApiResponse.success(evento, message: response.message);
         }

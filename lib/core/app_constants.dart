@@ -47,10 +47,13 @@ class AppConstants {
   static const String profileRoute = '/profile';
   static const String settingsRoute = '/settings';
   // Rutas principales
-  static const String adminPanelRoute = '/admin-panel';
   static const String dashboardRoute = '/dashboard';
   static const String professorManagementRoute = '/professor-management';
   static const String createProfessorRoute = '/create-professor';
+
+  static const String createEventRoute = '/create-event';
+  static const String eventManagementRoute = '/event-management';
+  static const String eventDetailsRoute = '/event-details';
 
   // Error Messages
   static const String networkErrorMessage =
