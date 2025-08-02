@@ -46,6 +46,9 @@ class AppConstants {
   static const String mapViewRoute = '/map-view';
   static const String profileRoute = '/profile';
   static const String settingsRoute = '/settings';
+
+  static const String locationPickerRoute = '/location-picker';
+
   // Rutas principales
   static const String dashboardRoute = '/dashboard';
   static const String professorManagementRoute = '/professor-management';

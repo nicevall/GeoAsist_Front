@@ -12,6 +12,7 @@ import '../services/storage_service.dart';
 import '../models/evento_model.dart'; // ✅ AGREGADO
 import '../screens/available_events_screen.dart';
 import '../screens/student_dashboard_screen.dart';
+import '../screens/location_picker_screen.dart';
 
 class AppRouter {
   // Private constructor to prevent instantiation
@@ -102,6 +103,18 @@ class AppRouter {
             body: Center(
               child: Text('Event Details - Próximamente'),
             ),
+          ),
+        );
+
+      case AppConstants.locationPickerRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => LocationPickerScreen(
+            initialLatitude: args?['initialLatitude'] ?? -0.1805,
+            initialLongitude: args?['initialLongitude'] ?? -78.4680,
+            initialRange: args?['initialRange'] ?? 100.0,
+            initialLocationName:
+                args?['initialLocationName'] ?? 'UIDE Campus Principal',
           ),
         );
 
@@ -251,6 +264,23 @@ class AppRouter {
         ),
       );
     }
+  }
+
+  static void goToLocationPicker({
+    double initialLatitude = -0.1805,
+    double initialLongitude = -78.4680,
+    double initialRange = 100.0,
+    String initialLocationName = 'UIDE Campus Principal',
+  }) {
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppConstants.locationPickerRoute,
+      arguments: {
+        'initialLatitude': initialLatitude,
+        'initialLongitude': initialLongitude,
+        'initialRange': initialRange,
+        'initialLocationName': initialLocationName,
+      },
+    );
   }
 
   // Show dialog using navigator context

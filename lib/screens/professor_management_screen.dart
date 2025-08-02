@@ -14,7 +14,7 @@ class ProfessorManagementScreen extends StatefulWidget {
 
 class _ProfessorManagementScreenState extends State<ProfessorManagementScreen> {
   bool _isLoading = false;
-  List<Map<String, dynamic>> _professors =
+  final List<Map<String, dynamic>> _professors =
       []; // Temporal hasta implementar backend
 
   @override

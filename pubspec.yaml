@@ -23,7 +23,11 @@ dependencies:
   provider: ^6.1.5
 
   # Background processing - CRÍTICO para tracking continuo
-  workmanager: ^0.5.2
+  workmanager:
+    git:
+      url: https://github.com/fluttercommunity/flutter_workmanager.git
+      path: workmanager
+      ref: main
 
   # Location services - ACTUALIZACIONES IMPORTANTES
   geolocator: ^14.0.1 # ✅ ACTUALIZADO: Mejor precisión GPS

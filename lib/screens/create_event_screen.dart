@@ -6,6 +6,7 @@ import '../utils/colors.dart';
 import '../utils/app_router.dart';
 import '../services/evento_service.dart';
 import '../models/evento_model.dart';
+import '../core/app_constants.dart';
 
 // ✅ NUEVO: Modelo para día específico del evento
 class EventDay {
@@ -68,11 +69,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   // ✅ NUEVO: Para eventos multi-día con horarios específicos
   List<EventDay> _eventDays = [];
 
-  // ✅ NUEVO: Ubicación y rango seleccionados
-  final double _selectedLatitude = -0.1805; // UIDE por defecto
-  final double _selectedLongitude = -78.4680;
-  double _selectedRange = 100.0; // NO final - se puede modificar en UI
-  final String _selectedLocationName = 'UIDE Campus Principal';
+  double _selectedLatitude = -0.1805;
+  double _selectedLongitude = -78.4680;
+  double _selectedRange = 100.0;
+  String _selectedLocationName = 'UIDE Campus Principal';
 
   bool get _isEditMode => widget.editEvent != null;
 
@@ -682,25 +682,61 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           ),
 
           const SizedBox(height: 12),
-          ElevatedButton.icon(
-            onPressed: () {
-              // TODO: Navegar a pantalla de selección de mapa con slider de rango
-              AppRouter.showSnackBar(
-                  'Próximamente: Selector de ubicación y rango en mapa');
-            },
-            icon: const Icon(Icons.map, size: 16),
-            label: const Text('Seleccionar en Mapa'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondaryTeal,
-              foregroundColor: AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+
+          // ✅ BOTÓN FUNCIONAL: Navegar a selector de mapa
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _openLocationPicker,
+              icon: const Icon(Icons.map, size: 20),
+              label: const Text(
+                'Seleccionar en Mapa',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.secondaryTeal,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// ✅ NUEVO: Método para abrir el selector de ubicación
+  Future<void> _openLocationPicker() async {
+    final result = await Navigator.of(context).pushNamed(
+      AppConstants.locationPickerRoute,
+      arguments: {
+        'initialLatitude': _selectedLatitude,
+        'initialLongitude': _selectedLongitude,
+        'initialRange': _selectedRange,
+        'initialLocationName': _selectedLocationName,
+      },
+    );
+
+    // Actualizar las variables si el usuario seleccionó una ubicación
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _selectedLatitude = result['latitude'] ?? _selectedLatitude;
+        _selectedLongitude = result['longitude'] ?? _selectedLongitude;
+        _selectedRange = result['range'] ?? _selectedRange;
+        _selectedLocationName = result['locationName'] ?? _selectedLocationName;
+      });
+
+      debugPrint(
+          '📍 Ubicación actualizada: $_selectedLatitude, $_selectedLongitude');
+      debugPrint('📏 Rango actualizado: $_selectedRange m');
+    }
   }
 
   // ✅ NUEVOS: Métodos para manejar eventos multi-día
