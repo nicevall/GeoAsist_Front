@@ -22,6 +22,13 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   final StorageService _storageService = StorageService();
   final EventoService _eventoService = EventoService();
 
+  // TODO PHASE 4: Student Profile Management
+  // Este campo será usado para:
+  // - Personalización del dashboard con foto/nombre completo
+  // - Configuraciones de notificaciones personalizadas
+  // - Historial personal de asistencias del estudiante
+  // - Estadísticas individuales (% asistencia, eventos totales)
+  // - Integración con endpoints: PUT /api/usuarios/{id}, GET /api/usuarios/perfil/{id}
   Usuario? _currentUser;
   List<Evento> _upcomingEvents = [];
   bool _isLoadingEvents = true;

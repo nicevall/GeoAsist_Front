@@ -420,11 +420,12 @@ class _MapViewScreenState extends State<MapViewScreen>
   Future<void> _checkLocationPermissions() async {
     final hasPermissions = await _permissionService.hasLocationPermissions();
 
+    setState(() => _hasLocationPermissions = hasPermissions);
+
     if (hasPermissions) {
-      setState(() => _hasLocationPermissions = true);
       _startRealLocationTracking();
-    } else if (widget.isStudentMode) {
-      // Solo para estudiantes - solicitar permisos
+    } else {
+      // AMBOS roles necesitan GPS - solicitar permisos
       _showPermissionDialog();
     }
   }
@@ -695,6 +696,42 @@ class _MapViewScreenState extends State<MapViewScreen>
               isOnBreak: _isOnBreak,
               isInsideGeofence: _isInsideGeofence,
               pulseAnimation: _pulseAnimation,
+            ),
+          ),
+
+          // Indicador GPS para TODOS los usuarios
+          // Indicador GPS para TODOS los usuarios
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: (_hasLocationPermissions ? Colors.green : Colors.red)
+                  .withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _hasLocationPermissions ? Colors.green : Colors.red,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _hasLocationPermissions ? Icons.gps_fixed : Icons.gps_off,
+                  size: 12,
+                  color: _hasLocationPermissions ? Colors.green : Colors.red,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _hasLocationPermissions ? 'GPS Activo' : 'GPS Desactivado',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: _hasLocationPermissions ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
 

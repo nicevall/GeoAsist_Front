@@ -69,10 +69,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   List<EventDay> _eventDays = [];
 
   // ✅ NUEVO: Ubicación y rango seleccionados
-  double _selectedLatitude = -0.1805; // UIDE por defecto
-  double _selectedLongitude = -78.4680;
-  double _selectedRange = 100.0; // ✅ NUEVO: Rango seleccionado
-  String _selectedLocationName = 'UIDE Campus Principal';
+  final double _selectedLatitude = -0.1805; // UIDE por defecto
+  final double _selectedLongitude = -78.4680;
+  double _selectedRange = 100.0; // NO final - se puede modificar en UI
+  final String _selectedLocationName = 'UIDE Campus Principal';
 
   bool get _isEditMode => widget.editEvent != null;
 
