@@ -39,6 +39,8 @@ class AppRouter {
           builder: (_) => MapViewScreen(
             isAdminMode: args?['isAdminMode'] ?? false,
             userName: args?['userName'] ?? 'Usuario',
+            eventoId: args?['eventoId'],
+            isStudentMode: args?['isStudentMode'] ?? false,
           ),
         );
 

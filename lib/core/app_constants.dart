@@ -72,6 +72,15 @@ class AppConstants {
       'Correo o contraseña incorrectos.';
   static const String genericErrorMessage =
       'Ocurrió un error inesperado. Inténtalo de nuevo.';
+
+  // Location & Permission Messages
+  static const String locationPermissionRequiredMessage =
+      'Se requieren permisos de ubicación para registrar asistencia.';
+  static const String gpsDisabledMessage =
+      'Activa el GPS para continuar con el registro de asistencia.';
+  static const String locationErrorMessage =
+      'Error al obtener tu ubicación. Intenta nuevamente.';
+
   // Mensajes de error para gestión de Docentes
   static const String professorCreationErrorMessage =
       'Error al crear el Docente. Verifica los datos.';

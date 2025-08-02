@@ -1,6 +1,9 @@
 // lib/screens/map_view/map_view_screen.dart - ARCHIVO CORREGIDO COMPLETO
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:geolocator/geolocator.dart';
+import '../../services/permission_service.dart';
+import '../../widgets/permission_handler_widget.dart';
 import '../../utils/colors.dart';
 import '../../core/app_constants.dart';
 import '../../services/evento_service.dart';
@@ -61,9 +64,29 @@ class _MapViewScreenState extends State<MapViewScreen>
   List<Evento> _eventos = [];
   Evento? _currentEvento;
 
-  // Coordenadas simuladas (mantenemos solo las del usuario)
-  final double _userLat = -0.1805;
-  final double _userLng = -78.4680;
+  // Coordenadas del usuario (GPS real)
+  double _userLat = 0.0; // Se actualiza con GPS real
+  double _userLng = 0.0; // Se actualiza con GPS real
+
+  // Coordenadas del evento (del backend)
+  double _eventLat = 0.0; // Coordenadas donde el docente creó el evento
+  double _eventLng = 0.0; // Se cargan desde currentEvento.ubicacion
+  double _eventRange = 100.0; // Rango del evento
+
+  /// Calcula distancia entre estudiante y evento (para debugging)
+  double _calculateDistance() {
+    if (_eventLat == 0.0 ||
+        _eventLng == 0.0 ||
+        _userLat == 0.0 ||
+        _userLng == 0.0) {
+      return 0.0;
+    }
+
+    return Geolocator.distanceBetween(_userLat, _userLng, _eventLat, _eventLng);
+  }
+
+  bool _hasLocationPermissions = false;
+  final PermissionService _permissionService = PermissionService();
 
   // Variables para modo estudiante
   StudentAttendanceStatus? _attendanceStatus;
@@ -76,6 +99,7 @@ class _MapViewScreenState extends State<MapViewScreen>
     _initializeAnimations();
     _initializeData();
     _initializeStudentMode();
+    _checkLocationPermissions();
   }
 
   @override
@@ -392,11 +416,85 @@ class _MapViewScreenState extends State<MapViewScreen>
     }
   }
 
+  /// Verifica y solicita permisos de ubicación
+  Future<void> _checkLocationPermissions() async {
+    final hasPermissions = await _permissionService.hasLocationPermissions();
+
+    if (hasPermissions) {
+      setState(() => _hasLocationPermissions = true);
+      _startRealLocationTracking();
+    } else if (widget.isStudentMode) {
+      // Solo para estudiantes - solicitar permisos
+      _showPermissionDialog();
+    }
+  }
+
+  /// Muestra dialog de permisos
+  void _showPermissionDialog() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => PermissionHandlerWidget(
+            onPermissionGranted: () {
+              setState(() => _hasLocationPermissions = true);
+              _startRealLocationTracking();
+            },
+            onPermissionDenied: () {
+              // Continuar con coordenadas simuladas
+              debugPrint('Permisos denegados - usando coordenadas simuladas');
+            },
+          ),
+        );
+      }
+    });
+  }
+
+  /// Inicia tracking con GPS real
+  void _startRealLocationTracking() async {
+    try {
+      final position = await _permissionService.getCurrentLocation();
+      if (position != null && mounted) {
+        setState(() {
+          _userLat = position.latitude;
+          _userLng = position.longitude;
+        });
+        debugPrint('📱 Ubicación estudiante: $_userLat, $_userLng');
+        debugPrint('📍 Ubicación evento: $_eventLat, $_eventLng');
+        debugPrint('📏 Distancia calculada: ${_calculateDistance()}m');
+      }
+
+      // Iniciar stream de ubicación para actualizaciones continuas
+      _permissionService.getLocationStream().listen((position) {
+        if (mounted) {
+          setState(() {
+            _userLat = position.latitude;
+            _userLng = position.longitude;
+          });
+        }
+      });
+    } catch (e) {
+      debugPrint('Error obteniendo ubicación real: $e');
+    }
+  }
+
   void _findEventById(String eventoId) {
     try {
       _currentEvento = _eventos.firstWhere((evento) => evento.id == eventoId);
-      debugPrint(
-          'Evento encontrado para asistencia: ${_currentEvento?.titulo}');
+
+      // ✅ CARGAR COORDENADAS DEL EVENTO ESPECÍFICO
+      if (_currentEvento != null) {
+        setState(() {
+          _eventLat = _currentEvento!.ubicacion.latitud;
+          _eventLng = _currentEvento!.ubicacion.longitud;
+          _eventRange = _currentEvento!.rangoPermitido;
+        });
+
+        debugPrint('📍 Evento: ${_currentEvento!.titulo}');
+        debugPrint('📍 Ubicación evento: $_eventLat, $_eventLng');
+        debugPrint('📍 Rango evento: ${_eventRange}m');
+      }
     } catch (e) {
       debugPrint('Evento no encontrado: $eventoId');
     }
@@ -428,8 +526,8 @@ class _MapViewScreenState extends State<MapViewScreen>
     try {
       final response = await _locationService.updateUserLocation(
         userId: _currentUser!.id,
-        latitude: _userLat,
-        longitude: _userLng,
+        latitude: _userLat, // GPS real del estudiante
+        longitude: _userLng, // GPS real del estudiante
         eventoId: widget.eventoId,
       );
 
@@ -502,8 +600,8 @@ class _MapViewScreenState extends State<MapViewScreen>
     try {
       final response = await _asistenciaService.registrarAsistencia(
         eventoId: widget.eventoId!,
-        latitud: _userLat,
-        longitud: _userLng,
+        latitud: _userLat, // GPS real del estudiante
+        longitud: _userLng, // GPS real del estudiante
       );
 
       if (mounted) {
