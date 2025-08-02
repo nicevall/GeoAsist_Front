@@ -1,5 +1,6 @@
 // lib/screens/map_view/map_view_screen.dart - ARCHIVO CORREGIDO COMPLETO
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../../utils/colors.dart';
 import '../../core/app_constants.dart';
 import '../../services/evento_service.dart';
@@ -12,15 +13,21 @@ import '../../utils/app_router.dart';
 import 'widgets/status_panel.dart';
 import 'widgets/map_area.dart';
 import 'widgets/control_panel.dart';
+import '../../models/attendance_state_model.dart';
+import '../../widgets/attendance_button_widget.dart';
 
 class MapViewScreen extends StatefulWidget {
   final bool isAdminMode;
   final String userName;
+  final String? eventoId;
+  final bool isStudentMode;
 
   const MapViewScreen({
     super.key,
     this.isAdminMode = false,
     this.userName = "Usuario",
+    this.eventoId,
+    this.isStudentMode = false,
   });
 
   @override
@@ -58,17 +65,24 @@ class _MapViewScreenState extends State<MapViewScreen>
   final double _userLat = -0.1805;
   final double _userLng = -78.4680;
 
+  // Variables para modo estudiante
+  StudentAttendanceStatus? _attendanceStatus;
+  bool _isRegisteringAttendance = false;
+  Timer? _locationUpdateTimer;
+
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _initializeData();
+    _initializeStudentMode();
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
     _graceController.dispose();
+    _locationUpdateTimer?.cancel();
     super.dispose();
   }
 
@@ -368,6 +382,171 @@ class _MapViewScreenState extends State<MapViewScreen>
     );
   }
 
+  // ===== MÉTODOS MODO ESTUDIANTE =====
+
+  void _initializeStudentMode() {
+    if (widget.isStudentMode && widget.eventoId != null) {
+      _findEventById(widget.eventoId!);
+      _initializeAttendanceStatus();
+      _startLocationTracking();
+    }
+  }
+
+  void _findEventById(String eventoId) {
+    try {
+      _currentEvento = _eventos.firstWhere((evento) => evento.id == eventoId);
+      debugPrint(
+          'Evento encontrado para asistencia: ${_currentEvento?.titulo}');
+    } catch (e) {
+      debugPrint('Evento no encontrado: $eventoId');
+    }
+  }
+
+  void _initializeAttendanceStatus() {
+    if (widget.eventoId != null) {
+      setState(() {
+        _attendanceStatus = StudentAttendanceStatus.initial(widget.eventoId!);
+      });
+    }
+  }
+
+  void _startLocationTracking() {
+    if (!widget.isStudentMode) return;
+
+    _locationUpdateTimer = Timer.periodic(
+      const Duration(seconds: 5), // Cada 5 segundos
+      (timer) => _updateStudentLocation(),
+    );
+
+    // Primera actualización inmediata
+    _updateStudentLocation();
+  }
+
+  Future<void> _updateStudentLocation() async {
+    if (_currentUser == null || widget.eventoId == null) return;
+
+    try {
+      final response = await _locationService.updateUserLocation(
+        userId: _currentUser!.id,
+        latitude: _userLat,
+        longitude: _userLng,
+        eventoId: widget.eventoId,
+      );
+
+      if (response.success && response.data != null && mounted) {
+        final newStatus = StudentAttendanceStatus.fromLocationResponse(
+          eventoId: widget.eventoId!,
+          locationData: response.data!,
+          hasRegistered: _attendanceStatus?.hasRegistered ?? false,
+          registeredAt: _attendanceStatus?.registeredAt,
+        );
+
+        setState(() {
+          _attendanceStatus = newStatus;
+          _isInsideGeofence = newStatus.isInsideGeofence;
+        });
+
+        // Manejar período de gracia
+        if (newStatus.state == AttendanceState.gracePeriod) {
+          _startStudentGracePeriod();
+        }
+
+        debugPrint('Estado asistencia actualizado: $newStatus');
+      }
+    } catch (e) {
+      debugPrint('Error actualizando ubicación estudiante: $e');
+      if (mounted) {
+        setState(() {
+          _attendanceStatus = _attendanceStatus?.copyWith(
+            state: AttendanceState.error,
+            errorMessage: 'Error de conexión',
+          );
+        });
+      }
+    }
+  }
+
+  void _startStudentGracePeriod() {
+    if (_attendanceStatus?.state != AttendanceState.gracePeriod) return;
+
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted || _attendanceStatus?.state != AttendanceState.gracePeriod) {
+        timer.cancel();
+        return;
+      }
+
+      final currentSeconds = _attendanceStatus!.gracePeriodSeconds;
+      if (currentSeconds <= 0) {
+        timer.cancel();
+        setState(() {
+          _attendanceStatus = _attendanceStatus!.copyWith(
+            state: AttendanceState.outsideRange,
+            gracePeriodSeconds: 0,
+          );
+        });
+      } else {
+        setState(() {
+          _attendanceStatus = _attendanceStatus!.copyWith(
+            gracePeriodSeconds: currentSeconds - 1,
+          );
+        });
+      }
+    });
+  }
+
+  Future<void> _registerStudentAttendance() async {
+    if (_attendanceStatus?.canRegisterAttendance != true) return;
+
+    setState(() => _isRegisteringAttendance = true);
+
+    try {
+      final response = await _asistenciaService.registrarAsistencia(
+        eventoId: widget.eventoId!,
+        latitud: _userLat,
+        longitud: _userLng,
+      );
+
+      if (mounted) {
+        if (response.success) {
+          setState(() {
+            _attendanceStatus = _attendanceStatus!.copyWith(
+              state: AttendanceState.registered,
+              hasRegistered: true,
+              registeredAt: DateTime.now(),
+            );
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Asistencia registrada exitosamente'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ ${response.error ?? "Error al registrar"}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRegisteringAttendance = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -420,6 +599,15 @@ class _MapViewScreenState extends State<MapViewScreen>
               pulseAnimation: _pulseAnimation,
             ),
           ),
+
+          // 🆕 AGREGAR AQUÍ - Botón de asistencia para estudiantes
+          if (widget.isStudentMode && _attendanceStatus != null)
+            AttendanceButtonWidget(
+              attendanceStatus: _attendanceStatus!,
+              isLoading: _isRegisteringAttendance,
+              onPressed: _registerStudentAttendance,
+            ),
+
           ControlPanel(
             isAdminMode: widget.isAdminMode,
             isOnBreak: _isOnBreak,
