@@ -260,8 +260,8 @@ class _LoginScreenState extends State<LoginScreen> {
         AppRouter.goToDashboard(userName: userName);
         break;
       case AppConstants.estudianteRole:
-        // Estudiante va al mapa
-        AppRouter.goToMapView(isAdminMode: false, userName: userName);
+        // Estudiante va al dashboard
+        AppRouter.goToStudentDashboard(userName: userName);
         break;
       default:
         AppRouter.goToLogin();

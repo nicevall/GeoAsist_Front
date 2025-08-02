@@ -55,6 +55,12 @@ class AppConstants {
   static const String eventManagementRoute = '/event-management';
   static const String eventDetailsRoute = '/event-details';
 
+  static const String verifyEmailEndpoint = '/usuarios/verificar-correo';
+  static const String resendCodeEndpoint = '/usuarios/reenviar-codigo';
+
+  static const String availableEventsRoute = '/available-events';
+  static const String studentDashboardRoute = '/student-dashboard';
+
   // Error Messages
   static const String networkErrorMessage =
       'Error de conexión. Verifica tu internet.';

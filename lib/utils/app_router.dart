@@ -10,6 +10,8 @@ import '../screens/professor_management_screen.dart';
 import '../screens/create_event_screen.dart'; // ✅ AGREGADO
 import '../services/storage_service.dart';
 import '../models/evento_model.dart'; // ✅ AGREGADO
+import '../screens/available_events_screen.dart';
+import '../screens/student_dashboard_screen.dart';
 
 class AppRouter {
   // Private constructor to prevent instantiation
@@ -55,7 +57,17 @@ class AppRouter {
         return MaterialPageRoute(
             builder: (_) => const ProfessorManagementScreen());
 
-      // ✅ NUEVAS RUTAS DE EVENTOS
+      case AppConstants.availableEventsRoute:
+        return MaterialPageRoute(builder: (_) => const AvailableEventsScreen());
+
+      case AppConstants.studentDashboardRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => StudentDashboardScreen(
+            userName: args?['userName'] ?? 'Usuario',
+          ),
+        );
+
       case AppConstants.createEventRoute:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
@@ -159,12 +171,24 @@ class AppRouter {
     );
   }
 
+  static void goToStudentDashboard({String userName = 'Usuario'}) {
+    Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
+      AppConstants.studentDashboardRoute,
+      arguments: {'userName': userName},
+    );
+  }
+
   // ✅ NUEVOS MÉTODOS DE NAVEGACIÓN PARA EVENTOS
   static void goToCreateEvent({Evento? editEvent}) {
     Navigator.of(navigatorKey.currentContext!).pushNamed(
       AppConstants.createEventRoute,
       arguments: {'editEvent': editEvent},
     );
+  }
+
+  static void goToAvailableEvents() {
+    Navigator.of(navigatorKey.currentContext!)
+        .pushNamed(AppConstants.availableEventsRoute);
   }
 
   static void goToEventManagement() {
@@ -198,7 +222,7 @@ class AppRouter {
         goToDashboard(userName: userName);
         break;
       case AppConstants.estudianteRole:
-        goToMapView(isAdminMode: false, userName: userName);
+        goToStudentDashboard(userName: userName);
         break;
       default:
         goToLogin();

@@ -6,6 +6,7 @@ import '../utils/colors.dart';
 import '../utils/app_router.dart';
 import '../services/auth_service.dart';
 import '../core/app_constants.dart';
+import '../widgets/email_verification_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -364,15 +365,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (response.ok) {
-        AppRouter.showSnackBar(
-          response.mensaje.isNotEmpty
-              ? response.mensaje
-              : 'Registro exitoso. Ya puedes iniciar sesión como estudiante.',
-        );
-
-        // Regresar al login después del registro exitoso
+        // Mostrar pop-up de verificación automáticamente
         if (mounted) {
-          Navigator.of(context).pop();
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => EmailVerificationDialog(email: correo),
+          );
         }
       } else {
         AppRouter.showSnackBar(
