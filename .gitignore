@@ -1,5 +1,5 @@
 # ==========================================
-# .gitignore para Frontend Flutter
+# .gitignore para Frontend Flutter - SEGURIDAD API KEYS
 # ==========================================
 
 # ===== ARCHIVOS DE CREDENCIALES Y SEGURIDAD =====
@@ -16,10 +16,21 @@
 *.certSigningRequest        # Certificate requests
 key.properties              # Android key properties
 
-# API Keys y configuraciones sensibles
+# ===== API KEYS Y CONFIGURACIONES SENSIBLES =====
+# ⚠️ MUY IMPORTANTE: Proteger API keys específicamente
 lib/config/api_keys.dart
 lib/config/secrets.dart
 assets/config/production.json
+android/app/src/main/res/values/api_keys.xml
+android/app/src/debug/res/values/api_keys.xml
+android/app/src/release/res/values/api_keys.xml
+android/local.properties     # Contiene API keys locales
+ios/Runner/Config.xcconfig   # Configuraciones iOS sensibles
+
+# ===== ARCHIVOS ESPECÍFICOS DE GOOGLE MAPS =====
+# Si usas Google Maps, proteger estos archivos:
+android/app/src/main/AndroidManifest.xml.backup
+ios/Runner/Info.plist.backup
 
 # ===== FLUTTER CORE =====
 # Miscellaneous
@@ -61,27 +72,18 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
-# ===== ANDROID =====
-# Android Studio build artifacts
-/android/app/debug
-/android/app/profile
-/android/app/release
+# ===== ANDROID - EXCLUIR TODA LA CARPETA PARA PROTEGER API KEYS =====
+# ⚠️ DESARROLLADOR ÚNICO: Excluir toda la carpeta android/ por seguridad
+android/
 
-# Gradle files
-**/android/**/gradle-wrapper.jar
-**/android/.gradle
-**/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
-**/android/local.properties
-**/android/**/GeneratedPluginRegistrant.java
-**/android/.cxx/
+# Si necesitas versionar algún archivo específico de Android, úsalo así:
+# !android/archivo-especifico-que-quieras-incluir
 
-# Android keystore files
+# Android keystore files (por si están fuera de la carpeta android/)
 **/*.keystore
 **/*.jks
 
-# ===== iOS =====
+# ===== iOS - MANTENER ESTRUCTURA, PROTEGER SECRETS =====
 # iOS build artifacts
 **/ios/**/*.mode1v3
 **/ios/**/*.mode2v3
@@ -302,3 +304,9 @@ screenshots/
 
 # Metadata for app stores
 metadata/
+
+# ===== ARCHIVOS DE EJEMPLO Y PLANTILLAS =====
+# Crear archivos .example para guía de otros desarrolladores
+!android/local.properties.example
+!lib/config/api_keys.dart.example
+!android/app/src/main/res/values/api_keys.xml.example

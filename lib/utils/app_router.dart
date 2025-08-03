@@ -266,13 +266,13 @@ class AppRouter {
     }
   }
 
-  static void goToLocationPicker({
+  static Future<Map<String, dynamic>?> goToLocationPicker({
     double initialLatitude = -0.1805,
     double initialLongitude = -78.4680,
     double initialRange = 100.0,
     String initialLocationName = 'UIDE Campus Principal',
-  }) {
-    Navigator.of(navigatorKey.currentContext!).pushNamed(
+  }) async {
+    return await Navigator.of(navigatorKey.currentContext!).pushNamed(
       AppConstants.locationPickerRoute,
       arguments: {
         'initialLatitude': initialLatitude,
@@ -280,7 +280,7 @@ class AppRouter {
         'initialRange': initialRange,
         'initialLocationName': initialLocationName,
       },
-    );
+    ) as Map<String, dynamic>?;
   }
 
   // Show dialog using navigator context
