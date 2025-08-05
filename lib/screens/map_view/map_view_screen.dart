@@ -696,6 +696,8 @@ class _MapViewScreenState extends State<MapViewScreen>
               isOnBreak: _isOnBreak,
               isInsideGeofence: _isInsideGeofence,
               pulseAnimation: _pulseAnimation,
+              userLat: _userLat,
+              userLng: _userLng,
             ),
           ),
 

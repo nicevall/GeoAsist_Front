@@ -1,4 +1,4 @@
-// lib/services/evento_service.dart
+// lib/services/evento_service.dart - VERSIÓN COMPLETA CORREGIDA
 import 'package:flutter/material.dart';
 import '../models/evento_model.dart';
 import '../models/api_response_model.dart';
@@ -14,236 +14,278 @@ class EventoService {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
 
-  /// Obtener eventos públicos (para estudiantes) o todos los eventos (para admin)
-  Future<List<Evento>> obtenerEventos({bool soloMisEventos = false}) async {
+  Future<List<Evento>> obtenerEventos() async {
     try {
-      String endpoint = AppConstants.eventosEndpoint;
-      Map<String, String>? headers;
-
-      if (soloMisEventos) {
-        // Para docentes: obtener solo sus eventos
-        final token = await _storageService.getToken();
-        if (token != null) {
-          endpoint = '${AppConstants.eventosEndpoint}/mis';
-          headers = AppConstants.getAuthHeaders(token);
-        }
-      }
-
-      debugPrint('🌐 Llamando endpoint: $endpoint');
-      debugPrint('🔑 Headers: $headers');
-
-      final response = await _apiService.get(endpoint, headers: headers);
-
-      debugPrint('📡 Response success: ${response.success}');
-      debugPrint('📦 Response data type: ${response.data.runtimeType}');
-      debugPrint('📄 Response data: ${response.data}');
+      final response = await _apiService.get(AppConstants.eventosEndpoint);
 
       if (response.success && response.data != null) {
-        final responseData = response.data!;
+        final dynamic responseData = response.data;
+
+        debugPrint('🔍 Estructura completa de respuesta: $responseData');
+        debugPrint('🔍 Tipo de responseData: ${responseData.runtimeType}');
+
         List<dynamic> eventosList = <dynamic>[];
 
-        // Verificar el tipo de respuesta del backend con manejo seguro
-        if (responseData is List) {
-          debugPrint(
-              '📋 Respuesta es lista directa con ${responseData.length} elementos');
-          eventosList = List<dynamic>.from(responseData as Iterable);
-        } else {
-          debugPrint('📋 Respuesta es objeto, buscando array interno...');
-          final eventosData = responseData['eventos'];
-          if (eventosData != null && eventosData is List) {
-            debugPrint(
-                '📋 Encontrado array "eventos" con ${eventosData.length} elementos');
-            eventosList = List<dynamic>.from(eventosData);
+        // ✅ CORREGIDO: Manejo correcto de tipos sin errores
+        if (responseData is Map<String, dynamic>) {
+          // Caso 1: Respuesta es un objeto con array interno
+          if (responseData.containsKey('data')) {
+            final dataField = responseData['data'];
+            if (dataField is List<dynamic>) {
+              eventosList = dataField;
+              debugPrint(
+                  '✅ Encontrado array en "data": ${eventosList.length} eventos');
+            } else {
+              debugPrint(
+                  '❌ El campo "data" no es un array: ${dataField.runtimeType}');
+              return <Evento>[];
+            }
+          } else if (responseData.containsKey('eventos')) {
+            final eventosField = responseData['eventos'];
+            if (eventosField is List<dynamic>) {
+              eventosList = eventosField;
+              debugPrint(
+                  '✅ Encontrado array en "eventos": ${eventosList.length} eventos');
+            } else {
+              debugPrint(
+                  '❌ El campo "eventos" no es un array: ${eventosField.runtimeType}');
+              return <Evento>[];
+            }
           } else {
-            debugPrint('📋 No se encontró array, tratando como evento único');
-            eventosList = <dynamic>[responseData];
+            debugPrint('❌ No se encontró array de eventos en el objeto');
+            debugPrint('❌ Claves disponibles: ${responseData.keys.toList()}');
+            return <Evento>[];
           }
+        } else if (responseData is List<dynamic>) {
+          // Caso 2: Respuesta es directamente un array
+          eventosList = responseData;
+          debugPrint(
+              '✅ Respuesta directa como array: ${eventosList.length} eventos');
+        } else {
+          debugPrint(
+              '❌ Tipo de respuesta no soportado: ${responseData.runtimeType}');
+          return <Evento>[];
         }
 
-        debugPrint('🔢 Total elementos a procesar: ${eventosList.length}');
-
-        // ✅ CORREGIDO: Parseo más robusto con validaciones mejoradas
+        // ✅ CORREGIDO: Parseo de eventos con validación específica del backend
         final List<Evento> eventos = <Evento>[];
         for (int i = 0; i < eventosList.length; i++) {
           final eventoData = eventosList[i];
-          debugPrint('🔄 Procesando evento $i: ${eventoData.runtimeType}');
+          debugPrint('🔄 Procesando evento $i');
 
           if (eventoData is Map<String, dynamic>) {
+            debugPrint('🔄 Claves del evento $i: ${eventoData.keys.toList()}');
             try {
-              // ✅ VALIDAR campos requeridos antes del parsing
-              if (_isValidEventData(eventoData)) {
-                final evento = Evento.fromJson(eventoData);
+              // ✅ VALIDAR campos específicos del backend
+              if (_isValidBackendEventData(eventoData)) {
+                // ✅ MAPEAR campos del backend a modelo Flutter
+                final eventoMapeado = _mapBackendToFlutter(eventoData);
+                final evento = Evento.fromJson(eventoMapeado);
                 eventos.add(evento);
-                debugPrint(
-                    '✅ Evento $i parseado exitosamente: ${evento.titulo}');
+                debugPrint('✅ Evento parseado: ${evento.titulo}');
               } else {
-                debugPrint('❌ Evento $i no pasó validación');
+                debugPrint(
+                    '❌ Evento $i no tiene estructura válida del backend');
               }
             } catch (e) {
               debugPrint('❌ Error parseando evento $i: $e');
-              debugPrint('📄 Datos problemáticos: $eventoData');
+              debugPrint('❌ Datos del evento problemático: $eventoData');
             }
           } else {
             debugPrint(
-                '❌ Elemento $i no es Map válido: ${eventoData.runtimeType}');
+                '❌ Elemento $i no es Map<String, dynamic>: ${eventoData.runtimeType}');
           }
         }
 
-        debugPrint('🎯 Eventos finales parseados: ${eventos.length}');
+        debugPrint(
+            '🎯 Total eventos parseados exitosamente: ${eventos.length}');
         return eventos;
       }
 
       debugPrint('❌ Respuesta no exitosa o datos nulos');
       return <Evento>[];
     } catch (e) {
-      debugPrint('💥 Error general obteniendo eventos: $e');
+      debugPrint('❌ Error general obteniendo eventos: $e');
       return <Evento>[];
     }
   }
 
-  /// Método específico para docentes - obtener solo sus eventos
-  Future<List<Evento>> obtenerMisEventos() async {
-    try {
-      final token = await _storageService.getToken();
-      if (token == null) {
-        debugPrint('No hay token para obtener eventos del docente');
-        return <Evento>[];
-      }
+  /// ✅ CORREGIDO: Validación específica para estructura del backend
+  bool _isValidBackendEventData(Map<String, dynamic> data) {
+    debugPrint('🔍 Validando evento con claves: ${data.keys.toList()}');
 
-      debugPrint('🌐 Obteniendo MIS eventos...');
-      final response = await _apiService.get(
-        '${AppConstants.eventosEndpoint}/mis',
-        headers: AppConstants.getAuthHeaders(token),
-      );
+    // Verificar campos mínimos requeridos (flexible)
+    final hasId = data.containsKey('_id') || data.containsKey('id');
+    final hasNombre = data.containsKey('nombre') || data.containsKey('titulo');
 
-      debugPrint('📡 Mis eventos - Response success: ${response.success}');
-      debugPrint('📄 Mis eventos - Response data: ${response.data}');
-
-      if (response.success && response.data != null) {
-        final responseData = response.data!;
-        List<dynamic> eventosList = <dynamic>[];
-
-        if (responseData is List) {
-          debugPrint(
-              '📋 Mis eventos: lista directa con ${responseData.length} elementos');
-          eventosList = List<dynamic>.from(responseData as Iterable);
-        } else {
-          debugPrint('📋 Mis eventos: buscando en objeto...');
-          final eventosData = responseData['eventos'];
-          if (eventosData != null && eventosData is List) {
-            debugPrint(
-                '📋 Encontrado array "eventos" con ${eventosData.length} elementos');
-            eventosList = List<dynamic>.from(eventosData);
-          } else {
-            debugPrint('📋 Tratando como evento único');
-            eventosList = <dynamic>[responseData];
-          }
-        }
-
-        final List<Evento> eventos = <Evento>[];
-        for (int i = 0; i < eventosList.length; i++) {
-          final eventoData = eventosList[i];
-          if (eventoData is Map<String, dynamic>) {
-            try {
-              if (_isValidEventData(eventoData)) {
-                final evento = Evento.fromJson(eventoData);
-                eventos.add(evento);
-                debugPrint('✅ Mi evento $i parseado: ${evento.titulo}');
-              }
-            } catch (e) {
-              debugPrint('❌ Error parseando mi evento $i: $e');
-            }
-          }
-        }
-
-        debugPrint('🎯 Total mis eventos parseados: ${eventos.length}');
-        return eventos;
-      }
-
-      return <Evento>[];
-    } catch (e) {
-      debugPrint('💥 Error al obtener mis eventos: $e');
-      return <Evento>[];
-    }
-  }
-
-  /// ✅ MEJORADO: Validación más flexible para compatibilidad con backend
-  bool _isValidEventData(Map<String, dynamic> data) {
-    // Debug: Mostrar qué campos tiene el evento
-    debugPrint('🔍 Evento recibido: ${data.keys.toList()}');
-    debugPrint('📝 Contenido: $data');
-
-    // Campos posibles para título (backend puede usar cualquiera)
-    final titleFields = ['titulo', 'nombre', 'title', 'name'];
-
-    bool hasTitle = false;
-    for (String field in titleFields) {
-      if (data.containsKey(field) &&
-          data[field] != null &&
-          data[field].toString().isNotEmpty) {
-        hasTitle = true;
-        debugPrint('✅ Título encontrado en campo: $field = ${data[field]}');
-        break;
-      }
-    }
-
-    if (!hasTitle) {
-      debugPrint(
-          '❌ Campo título/nombre faltante. Campos disponibles: ${data.keys.toList()}');
+    if (!hasId) {
+      debugPrint('❌ Falta ID del evento');
       return false;
     }
 
-    // Validar fechas/horarios (al menos uno debe existir)
-    final dateFields = [
-      'fecha',
-      'fechaInicio',
-      'horaInicio',
-      'startDate',
-      'date'
-    ];
-    bool hasDate = false;
-    for (String field in dateFields) {
-      if (data.containsKey(field) && data[field] != null) {
-        hasDate = true;
-        debugPrint('✅ Fecha encontrada en campo: $field = ${data[field]}');
-        break;
-      }
+    if (!hasNombre) {
+      debugPrint('❌ Falta nombre/titulo del evento');
+      return false;
     }
 
-    if (!hasDate) {
-      debugPrint('⚠️ Sin fechas válidas, pero permitiendo el evento');
-      // No bloquear por fechas - el modelo puede manejar valores por defecto
+    // Validar fechas (al menos una debe existir)
+    final hasFechas = data.containsKey('fechaInicio') ||
+        data.containsKey('horaInicio') ||
+        data.containsKey('fecha');
+
+    if (!hasFechas) {
+      debugPrint('❌ Faltan datos de fecha/hora');
+      return false;
     }
 
-    // Validar ubicación/coordenadas (opcional - el modelo tiene valores por defecto)
-    if (data.containsKey('ubicacion') && data['ubicacion'] != null) {
-      final ubicacion = data['ubicacion'];
-      if (ubicacion is Map<String, dynamic>) {
-        if (!ubicacion.containsKey('latitud') ||
-            !ubicacion.containsKey('longitud')) {
-          debugPrint('⚠️ Ubicación incompleta - usando valores por defecto');
-        } else {
-          debugPrint(
-              '✅ Ubicación válida: lat=${ubicacion['latitud']}, lng=${ubicacion['longitud']}');
-        }
-      }
-    } else if (data.containsKey('coordenadas') && data['coordenadas'] != null) {
-      final coordenadas = data['coordenadas'];
-      if (coordenadas is Map<String, dynamic>) {
-        if (!coordenadas.containsKey('latitud') ||
-            !coordenadas.containsKey('longitud')) {
-          debugPrint('⚠️ Coordenadas incompletas - usando valores por defecto');
-        } else {
-          debugPrint(
-              '✅ Coordenadas válidas: lat=${coordenadas['latitud']}, lng=${coordenadas['longitud']}');
-        }
-      }
-    } else {
-      debugPrint('⚠️ Sin ubicación - usando valores por defecto (UIDE)');
-    }
-
-    debugPrint('✅ Evento válido para parseo');
+    debugPrint('✅ Evento válido para procesamiento');
     return true;
+  }
+
+  /// ✅ CORREGIDO: Mapear campos del backend a estructura que espera Flutter
+  Map<String, dynamic> _mapBackendToFlutter(Map<String, dynamic> backendData) {
+    debugPrint('🔄 Mapeando evento del backend a Flutter');
+    debugPrint('📥 Datos de entrada: $backendData');
+
+    try {
+      // Mapeo de ID
+      final id = backendData['_id'] ?? backendData['id'] ?? '';
+
+      // Mapeo de título/nombre
+      final titulo =
+          backendData['titulo'] ?? backendData['nombre'] ?? 'Evento sin título';
+
+      // Mapeo de descripción
+      final descripcion = backendData['descripcion'] ?? '';
+
+      // Mapeo de ubicación/coordenadas
+      Map<String, dynamic> ubicacion = {
+        'latitud': -0.1805, // UIDE por defecto
+        'longitud': -78.4680,
+      };
+
+      if (backendData.containsKey('coordenadas') &&
+          backendData['coordenadas'] is Map) {
+        final coords = backendData['coordenadas'] as Map<String, dynamic>;
+        ubicacion = {
+          'latitud': coords['latitud'] ?? -0.1805,
+          'longitud': coords['longitud'] ?? -78.4680,
+        };
+      } else if (backendData.containsKey('ubicacion') &&
+          backendData['ubicacion'] is Map) {
+        final coords = backendData['ubicacion'] as Map<String, dynamic>;
+        ubicacion = {
+          'latitud': coords['latitud'] ?? -0.1805,
+          'longitud': coords['longitud'] ?? -78.4680,
+        };
+      }
+
+      // Mapeo de fechas y horas
+      DateTime fechaBase = DateTime.now().add(const Duration(days: 1));
+      DateTime horaInicioCompleta = fechaBase;
+      DateTime horaFinalCompleta = fechaBase.add(const Duration(hours: 2));
+
+      // Intentar parsear fechas del backend
+      if (backendData.containsKey('fechaInicio') &&
+          backendData.containsKey('horaInicio')) {
+        try {
+          final fechaInicio = DateTime.parse(backendData['fechaInicio']);
+          final horaInicioStr = backendData['horaInicio'].toString();
+
+          if (horaInicioStr.contains(':')) {
+            final horaParts = horaInicioStr.split(':');
+            final horas = int.parse(horaParts[0]);
+            final minutos = int.parse(horaParts[1]);
+
+            horaInicioCompleta = DateTime(
+              fechaInicio.year,
+              fechaInicio.month,
+              fechaInicio.day,
+              horas,
+              minutos,
+            );
+          }
+        } catch (e) {
+          debugPrint('⚠️ Error parseando fechaInicio/horaInicio: $e');
+        }
+      }
+
+      if (backendData.containsKey('fechaFin') &&
+          backendData.containsKey('horaFin')) {
+        try {
+          final fechaFin = DateTime.parse(backendData['fechaFin']);
+          final horaFinStr = backendData['horaFin'].toString();
+
+          if (horaFinStr.contains(':')) {
+            final horaParts = horaFinStr.split(':');
+            final horas = int.parse(horaParts[0]);
+            final minutos = int.parse(horaParts[1]);
+
+            horaFinalCompleta = DateTime(
+              fechaFin.year,
+              fechaFin.month,
+              fechaFin.day,
+              horas,
+              minutos,
+            );
+          }
+        } catch (e) {
+          debugPrint('⚠️ Error parseando fechaFin/horaFin: $e');
+        }
+      }
+
+      // Mapeo de rango permitido
+      double rangoPermitido = 100.0;
+      if (backendData.containsKey('coordenadas') &&
+          backendData['coordenadas'] is Map &&
+          backendData['coordenadas']['radio'] != null) {
+        rangoPermitido =
+            (backendData['coordenadas']['radio'] as num).toDouble();
+      } else if (backendData.containsKey('rangoPermitido')) {
+        rangoPermitido = (backendData['rangoPermitido'] as num).toDouble();
+      }
+
+      final eventoMapeado = {
+        '_id': id,
+        'titulo': titulo,
+        'descripcion': descripcion,
+        'ubicacion': ubicacion,
+        'fecha': horaInicioCompleta.toIso8601String(),
+        'horaInicio': horaInicioCompleta.toIso8601String(),
+        'horaFinal': horaFinalCompleta.toIso8601String(),
+        'rangoPermitido': rangoPermitido,
+        'creadoPor': backendData['creadorId'] ?? backendData['creadoPor'] ?? '',
+        'createdAt': backendData['createdAt'],
+        'updatedAt': backendData['updatedAt'],
+      };
+
+      debugPrint('📤 Evento mapeado exitosamente: ${eventoMapeado['titulo']}');
+      return eventoMapeado;
+    } catch (e) {
+      debugPrint('❌ Error en mapeo: $e');
+      // Devolver estructura mínima válida
+      return {
+        '_id': backendData['_id'] ?? backendData['id'] ?? '',
+        'titulo': backendData['titulo'] ??
+            backendData['nombre'] ??
+            'Evento sin título',
+        'descripcion': backendData['descripcion'] ?? '',
+        'ubicacion': {
+          'latitud': -0.1805,
+          'longitud': -78.4680,
+        },
+        'fecha': DateTime.now().add(const Duration(days: 1)).toIso8601String(),
+        'horaInicio':
+            DateTime.now().add(const Duration(days: 1)).toIso8601String(),
+        'horaFinal': DateTime.now()
+            .add(const Duration(days: 1, hours: 2))
+            .toIso8601String(),
+        'rangoPermitido': 100.0,
+        'creadoPor': '',
+        'createdAt': null,
+        'updatedAt': null,
+      };
+    }
   }
 
   Future<Evento?> obtenerEventoPorId(String eventoId) async {
@@ -256,9 +298,9 @@ class EventoService {
       debugPrint('📄 Evento por ID - Data: ${response.data}');
 
       if (response.success && response.data != null) {
-        // ✅ VALIDAR antes de parsear
-        if (_isValidEventData(response.data!)) {
-          final evento = Evento.fromJson(response.data!);
+        if (_isValidBackendEventData(response.data!)) {
+          final eventoMapeado = _mapBackendToFlutter(response.data!);
+          final evento = Evento.fromJson(eventoMapeado);
           debugPrint('✅ Evento individual parseado: ${evento.titulo}');
           return evento;
         } else {
@@ -289,9 +331,18 @@ class EventoService {
         return ApiResponse.error('No hay sesión activa');
       }
 
+      // ✅ CORREGIDO: Formato que espera el backend
       final body = {
         'nombre': titulo, // titulo → nombre
-        'tipo': 'clase', // NUEVO: tipo requerido por backend
+        'tipo': 'clase', // NUEVO: campo requerido
+        'lugar': 'UIDE Campus Principal', // NUEVO: campo requerido
+        'descripcion': descripcion ?? '', // Mantener descripción
+        'coordenadas': {
+          // ubicacion → coordenadas
+          'latitud': latitud,
+          'longitud': longitud,
+          'radio': rangoPermitido, // rangoPermitido → radio
+        },
         'fechaInicio':
             fecha.toIso8601String().split('T')[0], // Solo fecha YYYY-MM-DD
         'fechaFin':
@@ -300,19 +351,9 @@ class EventoService {
             '${horaInicio.hour.toString().padLeft(2, '0')}:${horaInicio.minute.toString().padLeft(2, '0')}', // HH:mm
         'horaFin':
             '${horaFinal.hour.toString().padLeft(2, '0')}:${horaFinal.minute.toString().padLeft(2, '0')}', // HH:mm
-        'lugar': 'UIDE Campus Principal', // NUEVO: lugar requerido
-        'descripcion': descripcion ?? '', // Mantener descripción
-        'coordenadas': {
-          // ubicacion → coordenadas
-          'latitud': latitud,
-          'longitud': longitud,
-          'radio': rangoPermitido, // rangoPermitido → radio
-        },
       };
 
-      // ✅ AGREGADO: Debug del body
-      debugPrint('🚀 Creando evento...');
-      debugPrint('📤 Body enviado al backend: $body');
+      debugPrint('📤 Body corregido enviado al backend: $body');
       debugPrint('🌐 Endpoint usado: ${AppConstants.eventosEndpoint}/crear');
       debugPrint('🔑 Headers enviados: ${AppConstants.getAuthHeaders(token)}');
 
@@ -322,7 +363,6 @@ class EventoService {
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      // ✅ AGREGADO: Debug completo de la respuesta del backend
       debugPrint('📡 Crear evento - Response success: ${response.success}');
       debugPrint('📄 Crear evento - Response data: ${response.data}');
       debugPrint('💬 Crear evento - Response message: ${response.message}');
@@ -332,7 +372,8 @@ class EventoService {
         final eventoData = response.data!['evento'];
         if (eventoData != null) {
           debugPrint('✅ Evento creado exitosamente');
-          final evento = Evento.fromJson(eventoData);
+          final eventoMapeado = _mapBackendToFlutter(eventoData);
+          final evento = Evento.fromJson(eventoMapeado);
           return ApiResponse.success(evento, message: response.message);
         } else {
           debugPrint('❌ No se encontró evento en la respuesta');
@@ -357,31 +398,11 @@ class EventoService {
       }
 
       debugPrint('🔄 Actualizando evento ID: $eventoId');
-      debugPrint('📝 Datos originales: $datosActualizados');
-
-      // Transformar datos al formato del backend antes de enviar
-      final transformedData = <String, dynamic>{};
-      if (datosActualizados.containsKey('titulo')) {
-        transformedData['nombre'] = datosActualizados['titulo'];
-      }
-      if (datosActualizados.containsKey('ubicacion')) {
-        transformedData['coordenadas'] = {
-          'latitud': datosActualizados['ubicacion']['latitud'],
-          'longitud': datosActualizados['ubicacion']['longitud'],
-          'radio': datosActualizados['rangoPermitido'] ?? 100.0,
-        };
-      }
-      // Copiar el resto de campos
-      transformedData.addAll(datosActualizados);
-      transformedData.remove('titulo');
-      transformedData.remove('ubicacion');
-      transformedData.remove('rangoPermitido');
-
-      debugPrint('📤 Datos transformados: $transformedData');
+      debugPrint('📝 Datos a actualizar: $datosActualizados');
 
       final response = await _apiService.put(
         '${AppConstants.eventosEndpoint}/$eventoId',
-        body: transformedData,
+        body: datosActualizados,
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -390,8 +411,9 @@ class EventoService {
 
       if (response.success && response.data != null) {
         final eventoData = response.data!['evento'];
-        if (eventoData != null && _isValidEventData(eventoData)) {
-          final evento = Evento.fromJson(eventoData);
+        if (eventoData != null && _isValidBackendEventData(eventoData)) {
+          final eventoMapeado = _mapBackendToFlutter(eventoData);
+          final evento = Evento.fromJson(eventoMapeado);
           debugPrint('✅ Evento actualizado exitosamente');
           return ApiResponse.success(evento, message: response.message);
         }
