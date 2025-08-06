@@ -310,3 +310,4 @@ metadata/
 !android/local.properties.example
 !lib/config/api_keys.dart.example
 !android/app/src/main/res/values/api_keys.xml.example
+android/app/src/main/AndroidManifest.xml
