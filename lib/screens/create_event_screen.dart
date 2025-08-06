@@ -57,6 +57,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   // Servicios
   final EventoService _eventoService = EventoService();
 
+  // Controladores adicionales para el backend
+  final TextEditingController _tipoController = TextEditingController();
+  final TextEditingController _lugarController = TextEditingController();
+  final TextEditingController _capacidadController = TextEditingController();
+
   // Variables de estado
   bool _isLoading = false;
   bool _isMultiDay = false;
@@ -69,10 +74,28 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   // ✅ NUEVO: Para eventos multi-día con horarios específicos
   List<EventDay> _eventDays = [];
 
-  double _selectedLatitude = -0.1805;
-  double _selectedLongitude = -78.4680;
+  // ✅ CORREGIDO: Variables de ubicación que se pueden cambiar
+  double _selectedLatitude = -0.1805; // Valor inicial, pero modificable
+  double _selectedLongitude = -78.4680; // Valor inicial, pero modificable
   double _selectedRange = 100.0;
   String _selectedLocationName = 'UIDE Campus Principal';
+
+  // ✅ NUEVO: Tipos de evento disponibles
+  final List<String> _tiposEvento = [
+    'clase',
+    'seminario',
+    'conferencia',
+    'taller',
+    'evaluacion'
+  ];
+  String _selectedTipo = 'clase';
+
+  // ✅ NUEVO: Configuraciones de políticas de asistencia
+  int _tiempoGracia = 10; // minutos
+  int _maximoSalidas = 3;
+  int _tiempoLimiteSalida = 15; // minutos
+  bool _verificacionContinua = true;
+  bool _requiereJustificacion = false;
 
   bool get _isEditMode => widget.editEvent != null;
 
@@ -87,7 +110,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       final evento = widget.editEvent!;
       _tituloController.text = evento.titulo;
       _descripcionController.text = evento.descripcion ?? '';
-      _selectedRange = evento.rangoPermitido; // ✅ NUEVO: Cargar rango
+      _selectedRange = evento.rangoPermitido;
+
+      // ✅ NUEVO: Cargar ubicación real del evento
+      _selectedLatitude = evento.ubicacion.latitud;
+      _selectedLongitude = evento.ubicacion.longitud;
+
+      // ✅ NUEVO: Inicializar campos adicionales para edición
+      _tipoController.text = 'clase'; // Valor por defecto si no está disponible
+      _lugarController.text = 'UIDE Campus Principal'; // Valor por defecto
+      _capacidadController.text = '50'; // Valor por defecto
 
       // Determinar si es multi-día
       final fechaInicio = DateTime(
@@ -232,11 +264,22 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   Widget _buildFormFields() {
     return Column(
       children: [
-        // Título del evento
+        // Título del evento (REQUERIDO por backend: nombre)
         CustomTextField(
           hintText: 'Título del evento',
           controller: _tituloController,
           prefixIcon: Icons.title,
+          keyboardType: TextInputType.text,
+        ),
+
+        // ✅ NUEVO: Tipo de evento (REQUERIDO por backend)
+        _buildTipoEventoDropdown(),
+
+        // ✅ NUEVO: Lugar del evento (REQUERIDO por backend)
+        CustomTextField(
+          hintText: 'Lugar del evento (ej: Aula 205, Laboratorio A)',
+          controller: _lugarController,
+          prefixIcon: Icons.location_city,
           keyboardType: TextInputType.text,
         ),
 
@@ -246,6 +289,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           controller: _descripcionController,
           prefixIcon: Icons.description,
           keyboardType: TextInputType.multiline,
+        ),
+
+        // ✅ NUEVO: Capacidad máxima
+        CustomTextField(
+          hintText: 'Capacidad máxima de estudiantes',
+          controller: _capacidadController,
+          prefixIcon: Icons.group,
+          keyboardType: TextInputType.number,
         ),
 
         // Switch para evento multi-día
@@ -272,7 +323,52 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
         // ✅ MEJORADO: Información de ubicación con rango
         _buildLocationInfo(),
+        // ✅ NUEVO: Configuraciones de política de asistencia
+        _buildAttendancePolicyConfig(),
       ],
+    );
+  }
+
+  /// ✅ NUEVO: Dropdown para seleccionar tipo de evento
+  Widget _buildTipoEventoDropdown() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _selectedTipo,
+        decoration: const InputDecoration(
+          prefixIcon: Icon(Icons.category, color: AppColors.textGray),
+          hintText: 'Tipo de evento',
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
+        items: _tiposEvento.map((String tipo) {
+          return DropdownMenuItem<String>(
+            value: tipo,
+            child: Text(
+              tipo.toUpperCase(),
+              style: const TextStyle(fontSize: 16),
+            ),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          if (newValue != null) {
+            setState(() => _selectedTipo = newValue);
+          }
+        },
+        dropdownColor: AppColors.white,
+        style: const TextStyle(color: AppColors.darkGray),
+      ),
     );
   }
 
@@ -712,6 +808,115 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     );
   }
 
+  /// ✅ NUEVO: Configuración de políticas de asistencia
+  Widget _buildAttendancePolicyConfig() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primaryOrange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primaryOrange, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.policy, color: AppColors.primaryOrange),
+              SizedBox(width: 8),
+              Text(
+                'Políticas de Asistencia',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryOrange,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Tiempo de gracia
+          Row(
+            children: [
+              const Expanded(
+                flex: 2,
+                child: Text(
+                  'Tiempo de gracia (min):',
+                  style: TextStyle(fontSize: 14),
+                ),
+              ),
+              Expanded(
+                child: Slider(
+                  value: _tiempoGracia.toDouble(),
+                  min: 5,
+                  max: 30,
+                  divisions: 5,
+                  label: '$_tiempoGracia min',
+                  onChanged: (value) =>
+                      setState(() => _tiempoGracia = value.toInt()),
+                  activeColor: AppColors.primaryOrange,
+                ),
+              ),
+              Text('$_tiempoGracia min'),
+            ],
+          ),
+
+          // Máximo de salidas
+          Row(
+            children: [
+              const Expanded(
+                flex: 2,
+                child: Text(
+                  'Máximo salidas permitidas:',
+                  style: TextStyle(fontSize: 14),
+                ),
+              ),
+              Expanded(
+                child: Slider(
+                  value: _maximoSalidas.toDouble(),
+                  min: 1,
+                  max: 10,
+                  divisions: 9,
+                  label: '$_maximoSalidas',
+                  onChanged: (value) =>
+                      setState(() => _maximoSalidas = value.toInt()),
+                  activeColor: AppColors.primaryOrange,
+                ),
+              ),
+              Text('$_maximoSalidas'),
+            ],
+          ),
+
+          // Switches de configuración
+          SwitchListTile(
+            title: const Text('Verificación continua',
+                style: TextStyle(fontSize: 14)),
+            subtitle: const Text('Monitorear ubicación durante todo el evento',
+                style: TextStyle(fontSize: 12)),
+            value: _verificacionContinua,
+            onChanged: (value) => setState(() => _verificacionContinua = value),
+            activeColor: AppColors.primaryOrange,
+            contentPadding: EdgeInsets.zero,
+          ),
+
+          SwitchListTile(
+            title: const Text('Requiere justificación',
+                style: TextStyle(fontSize: 14)),
+            subtitle: const Text('Los estudiantes pueden justificar ausencias',
+                style: TextStyle(fontSize: 12)),
+            value: _requiereJustificacion,
+            onChanged: (value) =>
+                setState(() => _requiereJustificacion = value),
+            activeColor: AppColors.primaryOrange,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ],
+      ),
+    );
+  }
+
   /// ✅ NUEVO: Método para abrir el selector de ubicación
   Future<void> _openLocationPicker() async {
     final result = await Navigator.of(context).pushNamed(
@@ -929,12 +1134,24 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           descripcion: _descripcionController.text.trim().isEmpty
               ? null
               : _descripcionController.text.trim(),
+          tipo: _selectedTipo, // ✅ NUEVO: Campo requerido por backend
+          lugar: _lugarController.text.trim().isEmpty
+              ? _selectedLocationName
+              : _lugarController.text.trim(), // ✅ NUEVO: Campo requerido
+          capacidadMaxima:
+              int.tryParse(_capacidadController.text.trim()) ?? 50, // ✅ NUEVO
           latitud: _selectedLatitude,
           longitud: _selectedLongitude,
-          fecha: _fechaUnica ?? _eventDays.first.fecha, // Solo fecha base
-          horaInicio: fechaInicio, // Fecha + hora inicio
-          horaFinal: fechaFinal, // Fecha + hora fin
+          fecha: _fechaUnica ?? _eventDays.first.fecha,
+          horaInicio: fechaInicio,
+          horaFinal: fechaFinal,
           rangoPermitido: _selectedRange,
+          // ✅ NUEVO: Políticas de asistencia
+          tiempoGracia: _tiempoGracia,
+          maximoSalidas: _maximoSalidas,
+          tiempoLimiteSalida: _tiempoLimiteSalida,
+          verificacionContinua: _verificacionContinua,
+          requiereJustificacion: _requiereJustificacion,
         );
 
         if (response.success) {
@@ -965,6 +1182,19 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   bool _validateForm() {
     if (_tituloController.text.trim().isEmpty) {
       AppRouter.showSnackBar('El título del evento es requerido',
+          isError: true);
+      return false;
+    }
+
+    if (_lugarController.text.trim().isEmpty) {
+      AppRouter.showSnackBar('El lugar del evento es requerido', isError: true);
+      return false;
+    }
+
+    if (_capacidadController.text.trim().isEmpty ||
+        int.tryParse(_capacidadController.text.trim()) == null ||
+        int.parse(_capacidadController.text.trim()) <= 0) {
+      AppRouter.showSnackBar('La capacidad debe ser un número válido mayor a 0',
           isError: true);
       return false;
     }
@@ -1039,6 +1269,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   void dispose() {
     _tituloController.dispose();
     _descripcionController.dispose();
+    _tipoController.dispose();
+    _lugarController.dispose();
+    _capacidadController.dispose();
     super.dispose();
   }
 }

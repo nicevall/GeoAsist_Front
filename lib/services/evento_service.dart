@@ -318,12 +318,20 @@ class EventoService {
   Future<ApiResponse<Evento>> crearEvento({
     required String titulo,
     String? descripcion,
+    required String tipo,
+    required String lugar,
+    required int capacidadMaxima,
     required double latitud,
     required double longitud,
     required DateTime fecha,
     required DateTime horaInicio,
     required DateTime horaFinal,
     double rangoPermitido = 100.0,
+    int tiempoGracia = 10,
+    int maximoSalidas = 3,
+    int tiempoLimiteSalida = 15,
+    bool verificacionContinua = true,
+    bool requiereJustificacion = false,
   }) async {
     try {
       final token = await _storageService.getToken();
@@ -333,10 +341,11 @@ class EventoService {
 
       // ✅ CORREGIDO: Formato que espera el backend
       final body = {
-        'nombre': titulo, // titulo → nombre
-        'tipo': 'clase', // NUEVO: campo requerido
-        'lugar': 'UIDE Campus Principal', // NUEVO: campo requerido
-        'descripcion': descripcion ?? '', // Mantener descripción
+        'nombre': titulo,
+        'tipo': tipo,
+        'lugar': lugar,
+        'descripcion': descripcion ?? '',
+        'capacidadMaxima': capacidadMaxima,
         'coordenadas': {
           // ubicacion → coordenadas
           'latitud': latitud,
@@ -351,6 +360,13 @@ class EventoService {
             '${horaInicio.hour.toString().padLeft(2, '0')}:${horaInicio.minute.toString().padLeft(2, '0')}', // HH:mm
         'horaFin':
             '${horaFinal.hour.toString().padLeft(2, '0')}:${horaFinal.minute.toString().padLeft(2, '0')}', // HH:mm
+        'politicasAsistencia': {
+          'tiempoGracia': tiempoGracia,
+          'maximoSalidas': maximoSalidas,
+          'tiempoLimiteSalida': tiempoLimiteSalida,
+          'verificacionContinua': verificacionContinua,
+          'requiereJustificacion': requiereJustificacion,
+        },
       };
 
       debugPrint('📤 Body corregido enviado al backend: $body');

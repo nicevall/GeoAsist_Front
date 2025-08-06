@@ -12,3 +12,7 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# ===== ANDROID - EXCLUIR TODA LA CARPETA PARA PROTEGER API KEYS =====
+# ⚠️ DESARROLLADOR ÚNICO: Excluir toda la carpeta android/ por seguridad
+android/
