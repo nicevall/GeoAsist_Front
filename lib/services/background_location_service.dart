@@ -31,7 +31,7 @@ class BackgroundLocationService {
       await Workmanager().registerPeriodicTask(
         taskName,
         taskName,
-        frequency: const Duration(minutes: 15), // Android mínimo
+        frequency: const Duration(seconds: 30), // ✅ OPTIMIZADO PARA A1.1
         initialDelay: const Duration(seconds: 30),
         inputData: {
           'eventoId': eventoId,

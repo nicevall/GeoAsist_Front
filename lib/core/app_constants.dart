@@ -110,6 +110,43 @@ class AppConstants {
   static const String professorDeletedSuccessMessage =
       '¡Docente eliminado exitosamente!';
 
+  // ✅ NUEVAS CONSTANTES FASE A1.1 - TRACKING Y NOTIFICACIONES
+
+  /// Intervalo de tracking optimizado para A1.1 (30 segundos)
+  static const int trackingIntervalSeconds = 30;
+
+  /// Intervalo de tracking en background (2 minutos para conservar batería)
+  static const int backgroundTrackingIntervalSeconds = 120;
+
+  /// IDs de notificaciones específicas
+  static const int eventActiveNotificationId = 1001;
+  static const int geofenceExitNotificationId = 1002;
+  static const int gracePeriodNotificationId = 1003;
+  static const int trackingPausedNotificationId = 1004;
+  static const int attendanceRegisteredNotificationId = 1005;
+
+  /// Configuración de período de gracia por defecto
+  static const int defaultGracePeriodMinutes = 1;
+
+  /// Radio de geofence por defecto
+  static const double defaultGeofenceRadius = 100.0;
+
+  /// Precisión GPS requerida por defecto
+  static const double defaultGpsAccuracy = 10.0;
+
+  /// Tiempo máximo de ausencia por defecto
+  static const int defaultMaxAbsenceMinutes = 10;
+
+  /// Configuración de notificaciones
+  static const String notificationChannelId = 'geo_asist_attendance';
+  static const String notificationChannelName = 'Asistencia Geolocalizada';
+  static const String notificationChannelDescription =
+      'Notificaciones del sistema de asistencia';
+
+  /// Configuración de debugging A1.1
+  static const bool enableDetailedLogging = true;
+  static const bool enablePerformanceMonitoring = true;
+
   // UI Configuration
   static const double borderRadius = 25.0;
   static const double cardElevation = 5.0;

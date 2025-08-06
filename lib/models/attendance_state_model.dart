@@ -1,172 +1,306 @@
 // lib/models/attendance_state_model.dart
-enum AttendanceState {
-  outsideRange, // Fuera del rango del evento
-  insideRange, // Dentro del rango, puede registrar
-  registered, // Ya registró asistencia exitosamente
-  gracePeriod, // En período de gracia (fuera pero con 60s)
-  eventEnded, // Evento terminó, no puede registrar
-  eventNotStarted, // Evento aún no inicia
-  loading, // Verificando estado
-  error, // Error al verificar estado
+// 📊 MODELO DE ESTADOS DE ASISTENCIA FASE A1.1 - Estados unificados
+import 'evento_model.dart';
+import 'usuario_model.dart';
+import 'attendance_policies_model.dart';
+
+// 🎯 ENUM DE ESTADO DE TRACKING
+enum TrackingStatus {
+  initial, // Estado inicial, sin tracking
+  active, // Tracking activo
+  paused, // Pausado durante receso
+  stopped, // Tracking detenido manualmente
+  completed, // Evento completado
+  error, // Error en tracking
 }
 
-class StudentAttendanceStatus {
-  final String eventoId;
-  final AttendanceState state;
-  final bool hasRegistered;
-  final DateTime? registeredAt;
-  final int gracePeriodSeconds;
-  final bool isInsideGeofence;
-  final String? errorMessage;
-  final double? distanceToEvent; // Distancia en metros al evento
+// 🎯 ENUM DE ESTADO DE ASISTENCIA
+enum AttendanceStatus {
+  notStarted, // Evento no ha comenzado
+  canRegister, // Puede registrar asistencia
+  registered, // Asistencia ya registrada
+  outsideGeofence, // Fuera del área permitida
+  gracePeriod, // En período de gracia
+  violation, // Violación de límites
+}
 
-  StudentAttendanceStatus({
-    required this.eventoId,
-    required this.state,
-    this.hasRegistered = false,
-    this.registeredAt,
-    this.gracePeriodSeconds = 60,
-    this.isInsideGeofence = false,
-    this.errorMessage,
-    this.distanceToEvent,
+// 🎯 CLASE PRINCIPAL DE ESTADO DE ASISTENCIA
+class AttendanceState {
+  // 📍 INFORMACIÓN BÁSICA
+  final Usuario? currentUser;
+  final Evento? currentEvent;
+  final AttendancePolicies? policies;
+
+  // 📍 ESTADO DE TRACKING
+  final TrackingStatus trackingStatus;
+  final AttendanceStatus attendanceStatus;
+
+  // 📍 UBICACIÓN Y GEOFENCING
+  final bool isInsideGeofence;
+  final double userLatitude;
+  final double userLongitude;
+  final double distanceToEvent;
+
+  // 📍 PERÍODO DE GRACIA
+  final bool isInGracePeriod;
+  final int gracePeriodRemaining; // En segundos
+
+  // 📍 ASISTENCIA
+  final bool canRegisterAttendance;
+  final bool hasRegisteredAttendance;
+  final bool hasViolatedBoundary;
+
+  // 📍 TIMESTAMPS
+  final DateTime? lastLocationUpdate;
+  final DateTime? trackingStartTime;
+  final DateTime? attendanceRegisteredTime;
+
+  // 📍 ERRORES
+  final String? lastError;
+
+  const AttendanceState({
+    this.currentUser,
+    this.currentEvent,
+    this.policies,
+    required this.trackingStatus,
+    required this.attendanceStatus,
+    required this.isInsideGeofence,
+    required this.userLatitude,
+    required this.userLongitude,
+    required this.distanceToEvent,
+    required this.isInGracePeriod,
+    required this.gracePeriodRemaining,
+    required this.canRegisterAttendance,
+    required this.hasRegisteredAttendance,
+    required this.hasViolatedBoundary,
+    this.lastLocationUpdate,
+    this.trackingStartTime,
+    this.attendanceRegisteredTime,
+    this.lastError,
   });
 
-  // Crear copia con cambios
-  StudentAttendanceStatus copyWith({
-    String? eventoId,
-    AttendanceState? state,
-    bool? hasRegistered,
-    DateTime? registeredAt,
-    int? gracePeriodSeconds,
-    bool? isInsideGeofence,
-    String? errorMessage,
-    double? distanceToEvent,
-  }) {
-    return StudentAttendanceStatus(
-      eventoId: eventoId ?? this.eventoId,
-      state: state ?? this.state,
-      hasRegistered: hasRegistered ?? this.hasRegistered,
-      registeredAt: registeredAt ?? this.registeredAt,
-      gracePeriodSeconds: gracePeriodSeconds ?? this.gracePeriodSeconds,
-      isInsideGeofence: isInsideGeofence ?? this.isInsideGeofence,
-      errorMessage: errorMessage ?? this.errorMessage,
-      distanceToEvent: distanceToEvent ?? this.distanceToEvent,
-    );
-  }
-
-  // Estado inicial para un evento
-  factory StudentAttendanceStatus.initial(String eventoId) {
-    return StudentAttendanceStatus(
-      eventoId: eventoId,
-      state: AttendanceState.loading,
-      hasRegistered: false,
-      gracePeriodSeconds: 60,
+  // 🏭 FACTORY: ESTADO INICIAL
+  factory AttendanceState.initial() {
+    return const AttendanceState(
+      trackingStatus: TrackingStatus.initial,
+      attendanceStatus: AttendanceStatus.notStarted,
       isInsideGeofence: false,
+      userLatitude: 0.0,
+      userLongitude: 0.0,
+      distanceToEvent: 0.0,
+      isInGracePeriod: false,
+      gracePeriodRemaining: 0,
+      canRegisterAttendance: false,
+      hasRegisteredAttendance: false,
+      hasViolatedBoundary: false,
     );
   }
 
-  // Getters de conveniencia
-  bool get canRegisterAttendance =>
-      state == AttendanceState.insideRange && !hasRegistered;
-
-  bool get showAttendanceButton =>
-      state == AttendanceState.insideRange && !hasRegistered;
-
-  bool get showGracePeriodWarning => state == AttendanceState.gracePeriod;
-
-  bool get isInActiveEvent =>
-      state != AttendanceState.eventEnded &&
-      state != AttendanceState.eventNotStarted;
-
-  String get statusMessage {
-    switch (state) {
-      case AttendanceState.outsideRange:
-        return isInsideGeofence
-            ? 'Fuera del área del evento'
-            : 'Dirigiéndose al evento...';
-      case AttendanceState.insideRange:
-        return hasRegistered
-            ? '✅ Asistencia ya registrada'
-            : '✅ En el área del evento';
-      case AttendanceState.registered:
-        return '✅ Asistencia registrada exitosamente';
-      case AttendanceState.gracePeriod:
-        return '⚠️ Período de gracia activo';
-      case AttendanceState.eventEnded:
-        return '🔒 Evento finalizado';
-      case AttendanceState.eventNotStarted:
-        return '⏰ Evento aún no inicia';
-      case AttendanceState.loading:
-        return '🔄 Verificando estado...';
-      case AttendanceState.error:
-        return errorMessage ?? '❌ Error al verificar estado';
-    }
+  // 🏭 FACTORY: ESTADO DE ERROR
+  factory AttendanceState.error(String errorMessage) {
+    return AttendanceState(
+      trackingStatus: TrackingStatus.error,
+      attendanceStatus: AttendanceStatus.notStarted,
+      isInsideGeofence: false,
+      userLatitude: 0.0,
+      userLongitude: 0.0,
+      distanceToEvent: 0.0,
+      isInGracePeriod: false,
+      gracePeriodRemaining: 0,
+      canRegisterAttendance: false,
+      hasRegisteredAttendance: false,
+      hasViolatedBoundary: false,
+      lastError: errorMessage,
+    );
   }
 
-  String get buttonText {
-    switch (state) {
-      case AttendanceState.insideRange:
-        return hasRegistered
-            ? '✅ Asistencia Confirmada'
-            : 'Registrar Mi Asistencia';
-      case AttendanceState.registered:
-        return '✅ Asistencia Confirmada';
-      case AttendanceState.gracePeriod:
-        return 'Regresa al área para registrar';
-      case AttendanceState.eventEnded:
-        return 'Evento finalizado';
-      case AttendanceState.eventNotStarted:
-        return 'Evento no ha iniciado';
-      default:
-        return 'Acércate al evento';
-    }
-  }
-
-  // Convertir respuesta del backend a estado
-  factory StudentAttendanceStatus.fromLocationResponse({
-    required String eventoId,
-    required Map<String, dynamic> locationData,
-    required bool hasRegistered,
-    DateTime? registeredAt,
+  // 🔄 COPYWITH: CREAR COPIA CON CAMBIOS ESPECÍFICOS
+  AttendanceState copyWith({
+    Usuario? currentUser,
+    Evento? currentEvent,
+    AttendancePolicies? policies,
+    TrackingStatus? trackingStatus,
+    AttendanceStatus? attendanceStatus,
+    bool? isInsideGeofence,
+    double? userLatitude,
+    double? userLongitude,
+    double? distanceToEvent,
+    bool? isInGracePeriod,
+    int? gracePeriodRemaining,
+    bool? canRegisterAttendance,
+    bool? hasRegisteredAttendance,
+    bool? hasViolatedBoundary,
+    DateTime? lastLocationUpdate,
+    DateTime? trackingStartTime,
+    DateTime? attendanceRegisteredTime,
+    String? lastError,
   }) {
-    final bool insideGeofence = locationData['insideGeofence'] ?? false;
-    final double? distance = locationData['distance']?.toDouble();
-    final bool eventActive = locationData['eventActive'] ?? true;
-    final bool eventStarted = locationData['eventStarted'] ?? true;
-
-    AttendanceState state;
-
-    if (!eventStarted) {
-      state = AttendanceState.eventNotStarted;
-    } else if (!eventActive) {
-      state = AttendanceState.eventEnded;
-    } else if (hasRegistered) {
-      state = AttendanceState.registered;
-    } else if (insideGeofence) {
-      state = AttendanceState.insideRange;
-    } else {
-      // Si estuvo dentro pero salió, iniciar período de gracia
-      final bool wasInside = locationData['wasInside'] ?? false;
-      state = wasInside
-          ? AttendanceState.gracePeriod
-          : AttendanceState.outsideRange;
-    }
-
-    return StudentAttendanceStatus(
-      eventoId: eventoId,
-      state: state,
-      hasRegistered: hasRegistered,
-      registeredAt: registeredAt,
-      isInsideGeofence: insideGeofence,
-      distanceToEvent: distance,
-      gracePeriodSeconds: state == AttendanceState.gracePeriod ? 60 : 0,
+    return AttendanceState(
+      currentUser: currentUser ?? this.currentUser,
+      currentEvent: currentEvent ?? this.currentEvent,
+      policies: policies ?? this.policies,
+      trackingStatus: trackingStatus ?? this.trackingStatus,
+      attendanceStatus: attendanceStatus ?? this.attendanceStatus,
+      isInsideGeofence: isInsideGeofence ?? this.isInsideGeofence,
+      userLatitude: userLatitude ?? this.userLatitude,
+      userLongitude: userLongitude ?? this.userLongitude,
+      distanceToEvent: distanceToEvent ?? this.distanceToEvent,
+      isInGracePeriod: isInGracePeriod ?? this.isInGracePeriod,
+      gracePeriodRemaining: gracePeriodRemaining ?? this.gracePeriodRemaining,
+      canRegisterAttendance:
+          canRegisterAttendance ?? this.canRegisterAttendance,
+      hasRegisteredAttendance:
+          hasRegisteredAttendance ?? this.hasRegisteredAttendance,
+      hasViolatedBoundary: hasViolatedBoundary ?? this.hasViolatedBoundary,
+      lastLocationUpdate: lastLocationUpdate ?? this.lastLocationUpdate,
+      trackingStartTime: trackingStartTime ?? this.trackingStartTime,
+      attendanceRegisteredTime:
+          attendanceRegisteredTime ?? this.attendanceRegisteredTime,
+      lastError: lastError ?? this.lastError,
     );
   }
+
+  // 🔍 GETTERS COMPUTADOS
+
+  /// Indica si el tracking está actualmente en ejecución
+  bool get isTrackingActive => trackingStatus == TrackingStatus.active;
+
+  /// Indica si el usuario está en una situación crítica
+  bool get isCriticalState =>
+      isInGracePeriod ||
+      hasViolatedBoundary ||
+      trackingStatus == TrackingStatus.error;
+
+  /// Obtiene el texto de estado legible para el usuario
+  String get statusText {
+    if (trackingStatus == TrackingStatus.error) {
+      return 'Error en el sistema';
+    }
+
+    if (trackingStatus == TrackingStatus.paused) {
+      return 'Tracking pausado (receso)';
+    }
+
+    if (!isTrackingActive) {
+      return 'Tracking no activo';
+    }
+
+    if (isInGracePeriod) {
+      final minutes = (gracePeriodRemaining / 60).floor();
+      final seconds = gracePeriodRemaining % 60;
+      return 'Período de gracia: ${minutes}m ${seconds}s';
+    }
+
+    if (hasViolatedBoundary) {
+      return 'Violación de límites detectada';
+    }
+
+    if (isInsideGeofence) {
+      if (canRegisterAttendance && !hasRegisteredAttendance) {
+        return 'Dentro del área - Puede registrar asistencia';
+      }
+      if (hasRegisteredAttendance) {
+        return 'Asistencia registrada - Dentro del área';
+      }
+      return 'Dentro del área del evento';
+    } else {
+      return 'Fuera del área del evento';
+    }
+  }
+
+  /// Obtiene el color de estado para la UI
+  String get statusColor {
+    if (trackingStatus == TrackingStatus.error || hasViolatedBoundary) {
+      return '#FF4444'; // Rojo crítico
+    }
+
+    if (isInGracePeriod) {
+      return '#FF6B35'; // Naranja de advertencia
+    }
+
+    if (isInsideGeofence && canRegisterAttendance) {
+      return '#4ECDC4'; // Teal exitoso
+    }
+
+    if (isInsideGeofence) {
+      return '#4CAF50'; // Verde seguro
+    }
+
+    return '#9E9E9E'; // Gris neutral
+  }
+
+  /// Indica si se debe mostrar información de debugging
+  bool get shouldShowDebugInfo =>
+      trackingStatus == TrackingStatus.error || lastError != null;
+
+  // 🎯 MÉTODOS DE VALIDACIÓN
+
+  /// Verifica si el estado actual permite registrar asistencia
+  bool get canAttemptAttendanceRegistration {
+    return trackingStatus == TrackingStatus.active &&
+        isInsideGeofence &&
+        canRegisterAttendance &&
+        !hasRegisteredAttendance;
+  }
+
+  /// Verifica si el usuario necesita atención inmediata
+  bool get requiresImmediateAttention {
+    return isInGracePeriod && gracePeriodRemaining < 30; // Últimos 30 segundos
+  }
+
+  /// Verifica si el tracking está en un estado estable
+  bool get isStableState {
+    return trackingStatus == TrackingStatus.active &&
+        lastError == null &&
+        !isInGracePeriod;
+  }
+
+  // 🐛 DEBUGGING Y LOGGING
 
   @override
   String toString() {
-    return 'StudentAttendanceStatus(eventoId: $eventoId, state: $state, '
-        'hasRegistered: $hasRegistered, isInsideGeofence: $isInsideGeofence, '
-        'distance: ${distanceToEvent?.toStringAsFixed(1)}m)';
+    return 'AttendanceState('
+        'trackingStatus: $trackingStatus, '
+        'attendanceStatus: $attendanceStatus, '
+        'isInsideGeofence: $isInsideGeofence, '
+        'distance: ${distanceToEvent.toStringAsFixed(1)}m, '
+        'gracePeriod: $isInGracePeriod, '
+        'remaining: ${gracePeriodRemaining}s, '
+        'canRegister: $canRegisterAttendance, '
+        'hasRegistered: $hasRegisteredAttendance, '
+        'hasViolated: $hasViolatedBoundary, '
+        'error: $lastError'
+        ')';
+  }
+
+  /// Información detallada para debugging
+  Map<String, dynamic> toDebugMap() {
+    return {
+      'user': currentUser?.nombre ?? 'No user',
+      'event': currentEvent?.titulo ?? 'No event',
+      'trackingStatus': trackingStatus.toString(),
+      'attendanceStatus': attendanceStatus.toString(),
+      'location': {
+        'isInside': isInsideGeofence,
+        'userLat': userLatitude,
+        'userLng': userLongitude,
+        'distance': distanceToEvent,
+      },
+      'gracePeriod': {
+        'active': isInGracePeriod,
+        'remaining': gracePeriodRemaining,
+      },
+      'attendance': {
+        'canRegister': canRegisterAttendance,
+        'hasRegistered': hasRegisteredAttendance,
+        'hasViolated': hasViolatedBoundary,
+      },
+      'timestamps': {
+        'lastUpdate': lastLocationUpdate?.toIso8601String(),
+        'trackingStart': trackingStartTime?.toIso8601String(),
+        'attendanceRegistered': attendanceRegisteredTime?.toIso8601String(),
+      },
+      'error': lastError,
+    };
   }
 }
