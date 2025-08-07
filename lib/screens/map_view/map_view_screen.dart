@@ -1,22 +1,22 @@
-// lib/screens/map_view/map_view_screen.dart - ARCHIVO CORREGIDO COMPLETO
+// lib/screens/map_view/map_view_screen.dart - FASE A1.2 REFACTORIZADO
+// 🎯 ELIMINACIÓN DE VARIABLES HARDCODEADAS - USA StudentAttendanceManager
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:geolocator/geolocator.dart';
 import '../../services/permission_service.dart';
-import '../../widgets/permission_handler_widget.dart';
+import '../../services/student_attendance_manager.dart';
 import '../../utils/colors.dart';
-import '../../core/app_constants.dart';
 import '../../services/evento_service.dart';
 import '../../services/asistencia_service.dart';
-import '../../services/location_service.dart';
 import '../../services/storage_service.dart';
 import '../../models/evento_model.dart';
 import '../../models/usuario_model.dart';
-import '../../utils/app_router.dart';
-import 'widgets/status_panel.dart';
+import '../../models/attendance_state_model.dart';
+import '../../models/location_response_model.dart';
 import 'widgets/map_area.dart';
 import 'widgets/control_panel.dart';
-import '../../models/attendance_state_model.dart';
+import 'widgets/attendance_status_widget.dart';
+import 'widgets/grace_period_widget.dart';
+import 'widgets/notification_overlay_widget.dart';
 import '../../widgets/attendance_button_widget.dart';
 
 class MapViewScreen extends StatefulWidget {
@@ -39,85 +39,51 @@ class MapViewScreen extends StatefulWidget {
 
 class _MapViewScreenState extends State<MapViewScreen>
     with TickerProviderStateMixin {
-  // Servicios
+  // 🎯 SERVICIOS - StudentAttendanceManager como fuente principal
+  final StudentAttendanceManager _attendanceManager =
+      StudentAttendanceManager();
   final EventoService _eventoService = EventoService();
-  final AsistenciaService _asistenciaService = AsistenciaService();
-  final LocationService _locationService = LocationService();
   final StorageService _storageService = StorageService();
+  final PermissionService _permissionService = PermissionService();
 
-  // Controladores de animación
+  // 🎯 CONTROLADORES DE ANIMACIÓN (mantenidos para compatibilidad)
   late AnimationController _pulseController;
   late AnimationController _graceController;
   late Animation<double> _pulseAnimation;
   late Animation<Color?> _graceColorAnimation;
 
-  // Variables de estado
-  bool _isInsideGeofence = true;
-  bool _isOnBreak = false;
-  bool _isAttendanceActive = true;
-  int _gracePeriodSeconds = 60;
-  int _breakTimeRemaining = 0;
-  bool _isLoading = true;
+  // 🎯 ESTADO REACTIVO - REEMPLAZA VARIABLES HARDCODEADAS
+  AttendanceState _currentAttendanceState = AttendanceState.initial();
+  LocationResponseModel? _currentLocationResponse;
 
-  // Datos
-  Usuario? _currentUser;
+  // 🎯 VARIABLES DE UI (mantenidas para widgets existentes)
+  bool _isLoading = true;
+  bool _hasLocationPermissions = false;
+  bool _isRegisteringAttendance = false;
+
+  // 🎯 DATOS BÁSICOS
   List<Evento> _eventos = [];
   Evento? _currentEvento;
 
-  // Coordenadas del usuario (GPS real)
-  double _userLat = 0.0; // Se actualiza con GPS real
-  double _userLng = 0.0; // Se actualiza con GPS real
-
-  // Coordenadas del evento (del backend)
-  double _eventLat = 0.0; // Coordenadas donde el docente creó el evento
-  double _eventLng = 0.0; // Se cargan desde currentEvento.ubicacion
-  double _eventRange = 100.0; // Rango del evento
-
-  /// Calcula distancia entre estudiante y evento (para debugging)
-  double _calculateDistance() {
-    if (_eventLat == 0.0 ||
-        _eventLng == 0.0 ||
-        _userLat == 0.0 ||
-        _userLng == 0.0) {
-      return 0.0;
-    }
-
-    return Geolocator.distanceBetween(_userLat, _userLng, _eventLat, _eventLng);
-  }
-
-  bool _hasLocationPermissions = false;
-  final PermissionService _permissionService = PermissionService();
-
-  // Variables para modo estudiante
-  StudentAttendanceStatus? _attendanceStatus;
-  bool _isRegisteringAttendance = false;
-  Timer? _locationUpdateTimer;
+  // 🎯 STREAMS SUBSCRIPTIONS
+  StreamSubscription<AttendanceState>? _stateSubscription;
+  StreamSubscription<LocationResponseModel>? _locationSubscription;
 
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-    _initializeData();
-    _initializeStudentMode();
-    _checkLocationPermissions();
-  }
 
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    _graceController.dispose();
-    _locationUpdateTimer?.cancel();
-    super.dispose();
+    // Inicializar controladores de animación
+    _initializeAnimations();
+
+    // Inicializar manager y cargar datos
+    _initializeAttendanceManager();
   }
 
   void _initializeAnimations() {
     _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
-    )..repeat();
-
-    _pulseAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
     _graceController = AnimationController(
@@ -125,274 +91,243 @@ class _MapViewScreenState extends State<MapViewScreen>
       vsync: this,
     );
 
+    _pulseAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    ));
+
     _graceColorAnimation = ColorTween(
-      begin: AppColors.primaryOrange,
+      begin: Colors.orange,
       end: Colors.red,
-    ).animate(_graceController);
+    ).animate(CurvedAnimation(
+      parent: _graceController,
+      curve: Curves.easeInOut,
+    ));
+
+    _pulseController.repeat();
   }
 
-  Future<void> _initializeData() async {
+  Future<void> _initializeAttendanceManager() async {
+    debugPrint('🎯 Inicializando MapViewScreen con StudentAttendanceManager');
+
     try {
-      _currentUser = await _storageService.getUser();
-      _eventos = await _eventoService.obtenerEventos();
-      _findActiveEvent();
-      _startLocationUpdates();
+      // 1. Verificar permisos de ubicación
+      await _checkLocationPermissions();
+
+      // 2. Inicializar el AttendanceManager
+      await _attendanceManager.initialize();
+
+      // 3. Configurar listeners reactivos
+      _setupAttendanceListeners();
+
+      // 4. Cargar datos básicos
+      await _loadInitialData();
+
+      // 5. Si hay eventoId específico, iniciar tracking
+      if (widget.eventoId != null && widget.eventoId!.isNotEmpty) {
+        await _startTrackingForEvent(widget.eventoId!);
+      }
     } catch (e) {
-      debugPrint('Error al inicializar datos: $e');
-    } finally {
+      debugPrint('❌ Error inicializando MapViewScreen: $e');
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+        });
+        _showErrorSnackBar('Error inicializando la pantalla: $e');
       }
     }
   }
 
-  void _findActiveEvent() {
-    final now = DateTime.now();
-    for (final evento in _eventos) {
-      if (evento.isActive ||
-          (now.isAfter(
-                  evento.horaInicio.subtract(const Duration(minutes: 10))) &&
-              now.isBefore(evento.horaFinal))) {
-        _currentEvento = evento;
-        break;
-      }
-    }
+  void _setupAttendanceListeners() {
+    // 🎯 LISTENER PRINCIPAL DE ESTADO - REEMPLAZA VARIABLES HARDCODEADAS
+    _stateSubscription = _attendanceManager.stateStream.listen(
+      (AttendanceState newState) {
+        if (mounted) {
+          setState(() {
+            _currentAttendanceState = newState;
+
+            // Actualizar animaciones basadas en el estado real
+            if (newState.isInGracePeriod) {
+              _graceController.repeat();
+            } else {
+              _graceController.stop();
+            }
+          });
+
+          // Log para debugging
+          debugPrint('🎯 Estado actualizado: ${newState.statusText}');
+        }
+      },
+      onError: (error) {
+        debugPrint('❌ Error en stream de estado: $error');
+        if (mounted) {
+          _showErrorSnackBar('Error en tiempo real: $error');
+        }
+      },
+    );
+
+    // 🎯 LISTENER DE UBICACIÓN - DATOS REALES DEL BACKEND
+    _locationSubscription = _attendanceManager.locationStream.listen(
+      (LocationResponseModel locationResponse) {
+        if (mounted) {
+          setState(() {
+            _currentLocationResponse = locationResponse;
+          });
+
+          debugPrint(
+              '📍 Ubicación actualizada: ${locationResponse.formattedDistance}');
+        }
+      },
+      onError: (error) {
+        debugPrint('❌ Error en stream de ubicación: $error');
+      },
+    );
   }
 
-  void _startLocationUpdates() {
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted && _currentEvento != null) {
-        _checkGeofenceStatus();
-      }
-    });
-  }
-
-  Future<void> _checkGeofenceStatus() async {
-    if (_currentUser == null || _currentEvento == null) return;
-
+  Future<void> _loadInitialData() async {
     try {
-      final response = await _locationService.updateUserLocation(
-        userId: _currentUser!.id,
-        latitude: _userLat,
-        longitude: _userLng,
-        previousState: _isInsideGeofence,
-        eventoId: _currentEvento!.id,
-      );
+      // ✅ SIMPLIFICADO: No necesitamos cargar usuario aquí ya que StudentAttendanceManager lo maneja
 
-      if (response.success && response.data != null) {
-        final newGeofenceStatus =
-            response.data!['insideGeofence'] as bool? ?? true;
+      // ✅ CORREGIDO: EventoService.obtenerEventos() devuelve List<Evento> directamente
+      final eventos = await _eventoService.obtenerEventos();
 
-        if (newGeofenceStatus != _isInsideGeofence) {
-          setState(() => _isInsideGeofence = newGeofenceStatus);
+      setState(() {
+        _eventos = eventos;
+      });
 
-          if (!_isInsideGeofence) {
-            _startGracePeriod();
-          } else {
-            _resetGracePeriod();
-          }
+      // Si hay eventoId específico, buscar el evento
+      if (widget.eventoId != null && widget.eventoId!.isNotEmpty) {
+        final evento = _findEventById(widget.eventoId!);
+        if (evento != null) {
+          setState(() {
+            _currentEvento = evento;
+          });
         }
       }
+
+      // Marcar como cargado
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      debugPrint('Error al verificar geofence: $e');
+      debugPrint('❌ Error cargando datos iniciales: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  void _startGracePeriod() {
-    _graceController.forward();
-    _startGracePeriodCountdown();
-  }
-
-  void _resetGracePeriod() {
-    _graceController.reset();
-    setState(() {
-      _gracePeriodSeconds = 60;
-      _isAttendanceActive = true;
-    });
-  }
-
-  void _startGracePeriodCountdown() {
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted &&
-          _gracePeriodSeconds > 0 &&
-          !_isInsideGeofence &&
-          !_isOnBreak) {
-        setState(() => _gracePeriodSeconds--);
-        _startGracePeriodCountdown();
-      } else if (mounted &&
-          _gracePeriodSeconds == 0 &&
-          !_isInsideGeofence &&
-          !_isOnBreak) {
-        _markAsAbsent();
+  Future<void> _startTrackingForEvent(String eventoId) async {
+    final evento = _findEventById(eventoId);
+    if (evento != null) {
+      try {
+        await _attendanceManager.startEventTracking(evento);
+        debugPrint('✅ Tracking iniciado para evento: ${evento.titulo}');
+      } catch (e) {
+        debugPrint('❌ Error iniciando tracking: $e');
+        _showErrorSnackBar('Error iniciando tracking: $e');
       }
-    });
+    } else {
+      debugPrint('⚠️ Evento no encontrado: $eventoId');
+    }
   }
 
-  void _markAsAbsent() {
-    setState(() => _isAttendanceActive = false);
-    _showAbsentDialog();
+  Evento? _findEventById(String eventoId) {
+    try {
+      return _eventos.firstWhere((evento) => evento.id == eventoId);
+    } catch (e) {
+      return null;
+    }
   }
 
-  void _startBreak(int minutes) {
-    setState(() {
-      _isOnBreak = true;
-      _breakTimeRemaining = minutes * 60;
-    });
-    _startBreakCountdown();
+  Future<void> _checkLocationPermissions() async {
+    // ✅ CORREGIDO: Usar método correcto del PermissionService
+    final hasPermissions = await _permissionService.hasLocationPermissions();
+    if (mounted) {
+      setState(() {
+        _hasLocationPermissions = hasPermissions;
+      });
+    }
   }
 
-  void _startBreakCountdown() {
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted && _breakTimeRemaining > 0) {
-        setState(() => _breakTimeRemaining--);
-        _startBreakCountdown();
-      } else if (mounted && _breakTimeRemaining == 0) {
-        setState(() => _isOnBreak = false);
-        _showBreakEndDialog();
-      }
-    });
+  // 🎯 MÉTODOS DE CONTROL - USANDO ATTENDANCEMANAGER
+
+  Future<void> _startBreak() async {
+    try {
+      await _attendanceManager.pauseTracking();
+      _showSuccessSnackBar('Período de descanso iniciado');
+    } catch (e) {
+      _showErrorSnackBar('Error iniciando descanso: $e');
+    }
   }
 
-  // ✅ CORREGIDO: Agregada verificación mounted
+  Future<void> _endBreak() async {
+    try {
+      await _attendanceManager.resumeTracking();
+      _showSuccessSnackBar('Período de descanso terminado');
+    } catch (e) {
+      _showErrorSnackBar('Error terminando descanso: $e');
+    }
+  }
+
   Future<void> _registerAttendance() async {
-    if (_currentEvento == null || _currentUser == null) return;
+    if (!_currentAttendanceState.canRegisterAttendance) {
+      _showErrorSnackBar('No se puede registrar asistencia en este momento');
+      return;
+    }
+
+    setState(() => _isRegisteringAttendance = true);
 
     try {
-      final response = await _asistenciaService.registrarAsistencia(
-        eventoId: _currentEvento!.id!,
-        latitud: _userLat,
-        longitud: _userLng,
-      );
+      final success = await _attendanceManager.registerAttendance();
 
-      // ✅ Verificar que el widget esté montado antes de usar context
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.message),
-            backgroundColor: response.success ? Colors.green : Colors.red,
-          ),
-        );
+      if (success) {
+        _showSuccessSnackBar('Asistencia registrada exitosamente');
+      } else {
+        _showErrorSnackBar('Error registrando asistencia');
       }
     } catch (e) {
-      debugPrint('Error al registrar asistencia: $e');
+      _showErrorSnackBar('Error registrando asistencia: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isRegisteringAttendance = false);
+      }
     }
   }
 
-  void _simulateReturnToArea() {
-    setState(() {
-      _isInsideGeofence = true;
-      _isAttendanceActive = true;
-      _gracePeriodSeconds = 60;
-    });
-    _graceController.reset();
-
-    if (_currentEvento != null && _currentUser != null) {
-      _registerAttendance();
-    }
+  Future<void> _refreshData() async {
+    setState(() => _isLoading = true);
+    await _loadInitialData();
   }
 
-  void _showAbsentDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('⚠️ Asistencia Perdida'),
-        content: const Text(
-          'Has salido del área permitida y se ha agotado el período de gracia. '
-          'Tu asistencia ha sido marcada como ausente.',
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _simulateReturnToArea();
-            },
-            child: const Text('Reingresar al Área'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showBreakEndDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('⏰ Fin del Descanso'),
-        content: const Text(
-          'Tu período de descanso ha terminado. La asistencia se reanudará automáticamente.',
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Entendido'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showBreakOptions() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('⏰ Duración del Descanso'),
-        content: const Text('Selecciona la duración del período de descanso:'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          ...AppConstants.defaultBreakDurations.map(
-            (minutes) => TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _startBreak(minutes);
-              },
-              child: Text('$minutes min'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ✅ CORREGIDO: Implementado diálogo de configuraciones
   void _showSettingsDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('⚙️ Configuraciones'),
+        title: const Text('Configuraciones'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: const Icon(Icons.location_on),
-              title: const Text('Precisión GPS'),
-              // ignore: prefer_const_constructors
-              subtitle: Text('${AppConstants.defaultLocationAccuracy}m'),
-              onTap: () {
-                // Configuración de precisión GPS
-                Navigator.of(context).pop();
-              },
+              title: const Text('Permisos de ubicación'),
+              trailing: Icon(
+                _hasLocationPermissions ? Icons.check : Icons.close,
+                color: _hasLocationPermissions ? Colors.green : Colors.red,
+              ),
+              onTap: _checkLocationPermissions,
             ),
             ListTile(
-              leading: const Icon(Icons.timer),
-              title: const Text('Período de gracia'),
-              subtitle:
-                  Text('${AppConstants.gracePeriodDuration.inMinutes} min'),
-              onTap: () {
-                // Configuración de período de gracia
-                Navigator.of(context).pop();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Cerrar sesión'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await AppRouter.logout();
-              },
+              leading: const Icon(Icons.info),
+              title: const Text('Estado del tracking'),
+              subtitle: Text(_currentAttendanceState.statusText),
             ),
           ],
         ),
@@ -406,244 +341,44 @@ class _MapViewScreenState extends State<MapViewScreen>
     );
   }
 
-  // ===== MÉTODOS MODO ESTUDIANTE =====
+  // 🎯 MÉTODOS AUXILIARES
 
-  void _initializeStudentMode() {
-    if (widget.isStudentMode && widget.eventoId != null) {
-      _findEventById(widget.eventoId!);
-      _initializeAttendanceStatus();
-      _startLocationTracking();
-    }
-  }
-
-  /// Verifica y solicita permisos de ubicación
-  Future<void> _checkLocationPermissions() async {
-    final hasPermissions = await _permissionService.hasLocationPermissions();
-
-    setState(() => _hasLocationPermissions = hasPermissions);
-
-    if (hasPermissions) {
-      _startRealLocationTracking();
-    } else {
-      // AMBOS roles necesitan GPS - solicitar permisos
-      _showPermissionDialog();
-    }
-  }
-
-  /// Muestra dialog de permisos
-  void _showPermissionDialog() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => PermissionHandlerWidget(
-            onPermissionGranted: () {
-              setState(() => _hasLocationPermissions = true);
-              _startRealLocationTracking();
-            },
-            onPermissionDenied: () {
-              // Continuar con coordenadas simuladas
-              debugPrint('Permisos denegados - usando coordenadas simuladas');
-            },
-          ),
-        );
-      }
-    });
-  }
-
-  /// Inicia tracking con GPS real
-  void _startRealLocationTracking() async {
-    try {
-      final position = await _permissionService.getCurrentLocation();
-      if (position != null && mounted) {
-        setState(() {
-          _userLat = position.latitude;
-          _userLng = position.longitude;
-        });
-        debugPrint('📱 Ubicación estudiante: $_userLat, $_userLng');
-        debugPrint('📍 Ubicación evento: $_eventLat, $_eventLng');
-        debugPrint('📏 Distancia calculada: ${_calculateDistance()}m');
-      }
-
-      // Iniciar stream de ubicación para actualizaciones continuas
-      _permissionService.getLocationStream().listen((position) {
-        if (mounted) {
-          setState(() {
-            _userLat = position.latitude;
-            _userLng = position.longitude;
-          });
-        }
-      });
-    } catch (e) {
-      debugPrint('Error obteniendo ubicación real: $e');
-    }
-  }
-
-  void _findEventById(String eventoId) {
-    try {
-      _currentEvento = _eventos.firstWhere((evento) => evento.id == eventoId);
-
-      // ✅ CARGAR COORDENADAS DEL EVENTO ESPECÍFICO
-      if (_currentEvento != null) {
-        setState(() {
-          _eventLat = _currentEvento!.ubicacion.latitud;
-          _eventLng = _currentEvento!.ubicacion.longitud;
-          _eventRange = _currentEvento!.rangoPermitido;
-        });
-
-        debugPrint('📍 Evento: ${_currentEvento!.titulo}');
-        debugPrint('📍 Ubicación evento: $_eventLat, $_eventLng');
-        debugPrint('📍 Rango evento: ${_eventRange}m');
-      }
-    } catch (e) {
-      debugPrint('Evento no encontrado: $eventoId');
-    }
-  }
-
-  void _initializeAttendanceStatus() {
-    if (widget.eventoId != null) {
-      setState(() {
-        _attendanceStatus = StudentAttendanceStatus.initial(widget.eventoId!);
-      });
-    }
-  }
-
-  void _startLocationTracking() {
-    if (!widget.isStudentMode) return;
-
-    _locationUpdateTimer = Timer.periodic(
-      const Duration(seconds: 5), // Cada 5 segundos
-      (timer) => _updateStudentLocation(),
-    );
-
-    // Primera actualización inmediata
-    _updateStudentLocation();
-  }
-
-  Future<void> _updateStudentLocation() async {
-    if (_currentUser == null || widget.eventoId == null) return;
-
-    try {
-      final response = await _locationService.updateUserLocation(
-        userId: _currentUser!.id,
-        latitude: _userLat, // GPS real del estudiante
-        longitude: _userLng, // GPS real del estudiante
-        eventoId: widget.eventoId,
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✅ $message'),
+          backgroundColor: Colors.green,
+        ),
       );
-
-      if (response.success && response.data != null && mounted) {
-        final newStatus = StudentAttendanceStatus.fromLocationResponse(
-          eventoId: widget.eventoId!,
-          locationData: response.data!,
-          hasRegistered: _attendanceStatus?.hasRegistered ?? false,
-          registeredAt: _attendanceStatus?.registeredAt,
-        );
-
-        setState(() {
-          _attendanceStatus = newStatus;
-          _isInsideGeofence = newStatus.isInsideGeofence;
-        });
-
-        // Manejar período de gracia
-        if (newStatus.state == AttendanceState.gracePeriod) {
-          _startStudentGracePeriod();
-        }
-
-        debugPrint('Estado asistencia actualizado: $newStatus');
-      }
-    } catch (e) {
-      debugPrint('Error actualizando ubicación estudiante: $e');
-      if (mounted) {
-        setState(() {
-          _attendanceStatus = _attendanceStatus?.copyWith(
-            state: AttendanceState.error,
-            errorMessage: 'Error de conexión',
-          );
-        });
-      }
     }
   }
 
-  void _startStudentGracePeriod() {
-    if (_attendanceStatus?.state != AttendanceState.gracePeriod) return;
-
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted || _attendanceStatus?.state != AttendanceState.gracePeriod) {
-        timer.cancel();
-        return;
-      }
-
-      final currentSeconds = _attendanceStatus!.gracePeriodSeconds;
-      if (currentSeconds <= 0) {
-        timer.cancel();
-        setState(() {
-          _attendanceStatus = _attendanceStatus!.copyWith(
-            state: AttendanceState.outsideRange,
-            gracePeriodSeconds: 0,
-          );
-        });
-      } else {
-        setState(() {
-          _attendanceStatus = _attendanceStatus!.copyWith(
-            gracePeriodSeconds: currentSeconds - 1,
-          );
-        });
-      }
-    });
-  }
-
-  Future<void> _registerStudentAttendance() async {
-    if (_attendanceStatus?.canRegisterAttendance != true) return;
-
-    setState(() => _isRegisteringAttendance = true);
-
-    try {
-      final response = await _asistenciaService.registrarAsistencia(
-        eventoId: widget.eventoId!,
-        latitud: _userLat, // GPS real del estudiante
-        longitud: _userLng, // GPS real del estudiante
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ $message'),
+          backgroundColor: Colors.red,
+        ),
       );
-
-      if (mounted) {
-        if (response.success) {
-          setState(() {
-            _attendanceStatus = _attendanceStatus!.copyWith(
-              state: AttendanceState.registered,
-              hasRegistered: true,
-              registeredAt: DateTime.now(),
-            );
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Asistencia registrada exitosamente'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('❌ ${response.error ?? "Error al registrar"}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isRegisteringAttendance = false);
-      }
     }
+  }
+
+  @override
+  void dispose() {
+    // Limpiar controladores de animación
+    _pulseController.dispose();
+    _graceController.dispose();
+
+    // Cancelar subscriptions
+    _stateSubscription?.cancel();
+    _locationSubscription?.cancel();
+
+    // Limpiar AttendanceManager si es necesario
+    // No llamamos dispose() aquí porque puede ser usado por otras pantallas
+
+    super.dispose();
   }
 
   @override
@@ -652,7 +387,14 @@ class _MapViewScreenState extends State<MapViewScreen>
       return const Scaffold(
         backgroundColor: AppColors.lightGray,
         body: Center(
-          child: CircularProgressIndicator(color: AppColors.primaryOrange),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: AppColors.primaryOrange),
+              SizedBox(height: 20),
+              Text('Inicializando sistema de asistencia...'),
+            ],
+          ),
         ),
       );
     }
@@ -669,40 +411,48 @@ class _MapViewScreenState extends State<MapViewScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _initializeData,
+            onPressed: _refreshData,
           ),
-          // ✅ CORREGIDO: Implementada navegación a configuraciones
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () => _showSettingsDialog(),
+            onPressed: _showSettingsDialog,
           ),
         ],
       ),
       body: Column(
         children: [
-          StatusPanel(
+          // 🎯 NUEVO WIDGET DE ESTADO DE ASISTENCIA - DATOS REALES
+          AttendanceStatusWidget(
+            attendanceState: _currentAttendanceState,
+            locationResponse: _currentLocationResponse,
             userName: widget.userName,
-            isAttendanceActive: _isAttendanceActive,
-            isInsideGeofence: _isInsideGeofence,
-            isOnBreak: _isOnBreak,
-            gracePeriodSeconds: _gracePeriodSeconds,
-            breakTimeRemaining: _breakTimeRemaining,
             currentEvento: _currentEvento,
-            graceColorAnimation: _graceColorAnimation,
           ),
+
+          // 🎯 WIDGET DE PERÍODO DE GRACIA - SOLO SI APLICA
+          if (_currentAttendanceState.isInGracePeriod)
+            GracePeriodWidget(
+              gracePeriodSeconds: _currentAttendanceState.gracePeriodRemaining,
+              graceColorAnimation: _graceColorAnimation,
+            ),
+
+          // 🎯 MAPA - USANDO COORDENADAS REALES DEL MANAGER
           Expanded(
             child: MapArea(
+              // Datos reales del evento
               currentEvento: _currentEvento,
-              isOnBreak: _isOnBreak,
-              isInsideGeofence: _isInsideGeofence,
+              // Estados reales del manager
+              isOnBreak: _currentAttendanceState.trackingStatus ==
+                  TrackingStatus.paused,
+              isInsideGeofence: _currentAttendanceState.isInsideGeofence,
               pulseAnimation: _pulseAnimation,
-              userLat: _userLat,
-              userLng: _userLng,
+              // Coordenadas reales del usuario
+              userLat: _currentAttendanceState.userLatitude,
+              userLng: _currentAttendanceState.userLongitude,
             ),
           ),
 
-          // Indicador GPS para TODOS los usuarios
-          // Indicador GPS para TODOS los usuarios
+          // 🎯 INDICADOR GPS - ESTADO REAL
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -733,33 +483,45 @@ class _MapViewScreenState extends State<MapViewScreen>
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                if (_currentLocationResponse != null) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    '• ${_currentLocationResponse!.formattedDistance}',
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                ],
               ],
             ),
           ),
 
-          // 🆕 AGREGAR AQUÍ - Botón de asistencia para estudiantes
-          if (widget.isStudentMode && _attendanceStatus != null)
+          // 🎯 BOTÓN DE ASISTENCIA PARA ESTUDIANTES - ESTADO REAL
+          if (widget.isStudentMode &&
+              _currentAttendanceState.currentEvent != null)
             AttendanceButtonWidget(
-              attendanceStatus: _attendanceStatus!,
+              attendanceState: _currentAttendanceState,
+              locationResponse: _currentLocationResponse,
               isLoading: _isRegisteringAttendance,
-              onPressed: _registerStudentAttendance,
+              onPressed: _registerAttendance,
             ),
 
+          // 🎯 PANEL DE CONTROL - USANDO ESTADOS REALES
           ControlPanel(
             isAdminMode: widget.isAdminMode,
-            isOnBreak: _isOnBreak,
-            isAttendanceActive: _isAttendanceActive,
-            isInsideGeofence: _isInsideGeofence,
+            isOnBreak:
+                _currentAttendanceState.trackingStatus == TrackingStatus.paused,
+            isAttendanceActive:
+                _currentAttendanceState.trackingStatus == TrackingStatus.active,
+            isInsideGeofence: _currentAttendanceState.isInsideGeofence,
             currentEvento: _currentEvento,
-            onStartBreak: _showBreakOptions,
-            onEndBreak: () {
-              setState(() {
-                _isOnBreak = false;
-                _breakTimeRemaining = 0;
-              });
-            },
+            onStartBreak: _startBreak,
+            onEndBreak: _endBreak,
             onRegisterAttendance: _registerAttendance,
-            onRefreshData: _initializeData,
+            onRefreshData: _refreshData,
+          ),
+
+          // 🎯 OVERLAY DE NOTIFICACIONES - NUEVO WIDGET
+          NotificationOverlayWidget(
+            attendanceState: _currentAttendanceState,
           ),
         ],
       ),

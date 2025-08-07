@@ -1,16 +1,20 @@
 // lib/widgets/attendance_button_widget.dart
+// 🎯 ACTUALIZADO PARA FASE A1.2 - Compatible con AttendanceState y LocationResponseModel
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../models/attendance_state_model.dart';
+import '../models/location_response_model.dart';
 
 class AttendanceButtonWidget extends StatefulWidget {
-  final StudentAttendanceStatus attendanceStatus;
+  final AttendanceState attendanceState;
+  final LocationResponseModel? locationResponse;
   final VoidCallback? onPressed;
   final bool isLoading;
 
   const AttendanceButtonWidget({
     super.key,
-    required this.attendanceStatus,
+    required this.attendanceState,
+    this.locationResponse,
     this.onPressed,
     this.isLoading = false,
   });
@@ -45,7 +49,7 @@ class _AttendanceButtonWidgetState extends State<AttendanceButtonWidget>
     ));
 
     // Solo animar cuando puede registrar asistencia
-    if (widget.attendanceStatus.showAttendanceButton) {
+    if (_shouldShowButton()) {
       _pulseController.repeat(reverse: true);
     }
   }
@@ -55,14 +59,22 @@ class _AttendanceButtonWidgetState extends State<AttendanceButtonWidget>
     super.didUpdateWidget(oldWidget);
 
     // Controlar animación según estado
-    if (widget.attendanceStatus.showAttendanceButton &&
-        !oldWidget.attendanceStatus.showAttendanceButton) {
+    if (_shouldShowButton() &&
+        !_shouldShowButtonForState(oldWidget.attendanceState)) {
       _pulseController.repeat(reverse: true);
-    } else if (!widget.attendanceStatus.showAttendanceButton &&
-        oldWidget.attendanceStatus.showAttendanceButton) {
+    } else if (!_shouldShowButton() &&
+        _shouldShowButtonForState(oldWidget.attendanceState)) {
       _pulseController.stop();
       _pulseController.reset();
     }
+  }
+
+  bool _shouldShowButton() {
+    return _shouldShowButtonForState(widget.attendanceState);
+  }
+
+  bool _shouldShowButtonForState(AttendanceState state) {
+    return state.canRegisterAttendance && !state.hasRegisteredAttendance;
   }
 
   @override
@@ -73,6 +85,11 @@ class _AttendanceButtonWidgetState extends State<AttendanceButtonWidget>
 
   @override
   Widget build(BuildContext context) {
+    // No mostrar si no hay evento activo
+    if (widget.attendanceState.currentEvent == null) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       margin: const EdgeInsets.all(16),
       child: Column(
@@ -87,7 +104,7 @@ class _AttendanceButtonWidgetState extends State<AttendanceButtonWidget>
           _buildMainButton(),
 
           // Información adicional
-          if (widget.attendanceStatus.distanceToEvent != null) ...[
+          if (widget.locationResponse != null) ...[
             const SizedBox(height: 8),
             _buildDistanceInfo(),
           ],
@@ -97,8 +114,6 @@ class _AttendanceButtonWidgetState extends State<AttendanceButtonWidget>
   }
 
   Widget _buildStatusInfo() {
-    final status = widget.attendanceStatus;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -122,17 +137,17 @@ class _AttendanceButtonWidgetState extends State<AttendanceButtonWidget>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  status.statusMessage,
+                  widget.attendanceState.statusText,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: _getStatusBackgroundColor(),
                   ),
                 ),
-                if (status.showGracePeriodWarning) ...[
+                if (widget.attendanceState.isInGracePeriod) ...[
                   const SizedBox(height: 4),
                   Text(
-                    'Tiempo restante: ${status.gracePeriodSeconds}s',
+                    'Tiempo restante: ${_formatGracePeriod()}',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textGray,
@@ -148,15 +163,13 @@ class _AttendanceButtonWidgetState extends State<AttendanceButtonWidget>
   }
 
   Widget _buildMainButton() {
-    final status = widget.attendanceStatus;
-    final bool isButtonEnabled =
-        status.showAttendanceButton && !widget.isLoading;
+    final bool isButtonEnabled = _shouldShowButton() && !widget.isLoading;
 
     return AnimatedBuilder(
       animation: _pulseAnimation,
       builder: (context, child) {
         return Transform.scale(
-          scale: status.showAttendanceButton ? _pulseAnimation.value : 1.0,
+          scale: _shouldShowButton() ? _pulseAnimation.value : 1.0,
           child: Container(
             width: double.infinity,
             height: 60,
@@ -202,7 +215,7 @@ class _AttendanceButtonWidgetState extends State<AttendanceButtonWidget>
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          status.buttonText,
+                          _getButtonText(),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -218,7 +231,7 @@ class _AttendanceButtonWidgetState extends State<AttendanceButtonWidget>
   }
 
   Widget _buildDistanceInfo() {
-    final distance = widget.attendanceStatus.distanceToEvent!;
+    final distance = widget.attendanceState.distanceToEvent;
     final distanceText = distance < 1000
         ? '${distance.toStringAsFixed(0)}m del evento'
         : '${(distance / 1000).toStringAsFixed(1)}km del evento';
@@ -246,90 +259,125 @@ class _AttendanceButtonWidgetState extends State<AttendanceButtonWidget>
               fontWeight: FontWeight.w500,
             ),
           ),
+          if (widget.locationResponse != null) ...[
+            const SizedBox(width: 8),
+            Text(
+              '• ${widget.locationResponse!.formattedDistance}',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.secondaryTeal,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
+  // 🎯 MÉTODOS AUXILIARES - ADAPTADOS A AttendanceState
+
   Color _getStatusBackgroundColor() {
-    switch (widget.attendanceStatus.state) {
-      case AttendanceState.insideRange:
+    if (widget.attendanceState.hasRegisteredAttendance) {
+      return Colors.green;
+    }
+
+    switch (widget.attendanceState.attendanceStatus) {
+      case AttendanceStatus.canRegister:
+        return widget.attendanceState.isInsideGeofence
+            ? Colors.green
+            : Colors.orange;
+      case AttendanceStatus.registered:
         return Colors.green;
-      case AttendanceState.registered:
-        return Colors.green;
-      case AttendanceState.gracePeriod:
+      case AttendanceStatus.gracePeriod:
         return Colors.orange;
-      case AttendanceState.outsideRange:
+      case AttendanceStatus.outsideGeofence:
         return AppColors.primaryOrange;
-      case AttendanceState.eventEnded:
-        return AppColors.textGray;
-      case AttendanceState.eventNotStarted:
-        return AppColors.secondaryTeal;
-      case AttendanceState.loading:
-        return AppColors.primaryOrange;
-      case AttendanceState.error:
+      case AttendanceStatus.violation:
         return Colors.red;
+      case AttendanceStatus.notStarted:
+        return AppColors.secondaryTeal;
     }
   }
 
   Color _getButtonColor() {
-    switch (widget.attendanceStatus.state) {
-      case AttendanceState.insideRange:
-        return widget.attendanceStatus.hasRegistered
-            ? Colors.green
-            : AppColors.secondaryTeal;
-      case AttendanceState.registered:
-        return Colors.green;
-      case AttendanceState.gracePeriod:
+    if (widget.attendanceState.hasRegisteredAttendance) {
+      return Colors.green;
+    }
+
+    if (!widget.attendanceState.canRegisterAttendance) {
+      return AppColors.lightGray;
+    }
+
+    switch (widget.attendanceState.attendanceStatus) {
+      case AttendanceStatus.canRegister:
+        return AppColors.secondaryTeal;
+      case AttendanceStatus.gracePeriod:
         return Colors.orange;
-      case AttendanceState.eventEnded:
-        return AppColors.textGray;
-      case AttendanceState.eventNotStarted:
-        return AppColors.textGray;
       default:
         return AppColors.lightGray;
     }
   }
 
   IconData _getStatusIcon() {
-    switch (widget.attendanceStatus.state) {
-      case AttendanceState.insideRange:
-        return widget.attendanceStatus.hasRegistered
-            ? Icons.check_circle
-            : Icons.location_on;
-      case AttendanceState.registered:
+    if (widget.attendanceState.hasRegisteredAttendance) {
+      return Icons.check_circle;
+    }
+
+    switch (widget.attendanceState.attendanceStatus) {
+      case AttendanceStatus.canRegister:
+        return widget.attendanceState.isInsideGeofence
+            ? Icons.location_on
+            : Icons.near_me;
+      case AttendanceStatus.registered:
         return Icons.check_circle;
-      case AttendanceState.gracePeriod:
+      case AttendanceStatus.gracePeriod:
         return Icons.warning_amber;
-      case AttendanceState.outsideRange:
-        return Icons.near_me;
-      case AttendanceState.eventEnded:
-        return Icons.event_busy;
-      case AttendanceState.eventNotStarted:
-        return Icons.schedule;
-      case AttendanceState.loading:
-        return Icons.sync;
-      case AttendanceState.error:
+      case AttendanceStatus.outsideGeofence:
+        return Icons.location_off;
+      case AttendanceStatus.violation:
         return Icons.error;
+      case AttendanceStatus.notStarted:
+        return Icons.schedule;
     }
   }
 
   IconData _getButtonIcon() {
-    switch (widget.attendanceStatus.state) {
-      case AttendanceState.insideRange:
-        return widget.attendanceStatus.hasRegistered
-            ? Icons.check_circle
-            : Icons.how_to_reg;
-      case AttendanceState.registered:
-        return Icons.check_circle;
-      case AttendanceState.gracePeriod:
-        return Icons.directions_run;
-      case AttendanceState.eventEnded:
-        return Icons.event_busy;
-      case AttendanceState.eventNotStarted:
-        return Icons.schedule;
-      default:
-        return Icons.location_searching;
+    if (widget.attendanceState.hasRegisteredAttendance) {
+      return Icons.check_circle;
+    }
+
+    if (widget.attendanceState.isInGracePeriod) {
+      return Icons.directions_run;
+    }
+
+    return Icons.how_to_reg;
+  }
+
+  String _getButtonText() {
+    if (widget.attendanceState.hasRegisteredAttendance) {
+      return 'Asistencia Registrada';
+    }
+
+    if (widget.attendanceState.isInGracePeriod) {
+      return 'Registrar Ahora';
+    }
+
+    if (!widget.attendanceState.canRegisterAttendance) {
+      return 'No Disponible';
+    }
+
+    return 'Registrar Mi Asistencia';
+  }
+
+  String _formatGracePeriod() {
+    final minutes = widget.attendanceState.gracePeriodRemaining ~/ 60;
+    final seconds = widget.attendanceState.gracePeriodRemaining % 60;
+
+    if (minutes > 0) {
+      return '${minutes}m ${seconds}s';
+    } else {
+      return '${seconds}s';
     }
   }
 }
