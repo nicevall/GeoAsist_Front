@@ -93,7 +93,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   // ✅ NUEVO: Configuraciones de políticas de asistencia
   int _tiempoGracia = 10; // minutos
   int _maximoSalidas = 3;
-  int _tiempoLimiteSalida = 15; // minutos
+  final int _tiempoLimiteSalida = 15; // minutos
   bool _verificacionContinua = true;
   bool _requiereJustificacion = false;
 
@@ -1100,21 +1100,28 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       }
 
       if (_isEditMode) {
-        final response = await _eventoService.actualizarEvento(
-          widget.editEvent!.id!,
-          {
-            'titulo': _tituloController.text.trim(),
-            'descripcion': _descripcionController.text.trim(),
-            'ubicacion': {
-              'latitud': _selectedLatitude,
-              'longitud': _selectedLongitude,
-            },
-            // ✅ CORREGIDO: Usar nombres del backend original
-            'fecha': fechaInicio.toIso8601String(),
-            'horaInicio': fechaInicio.toIso8601String(),
-            'horaFinal': fechaFinal.toIso8601String(),
-            'rangoPermitido': _selectedRange,
-          },
+        final response = await _eventoService.editarEvento(
+          eventoId: widget.editEvent!.id!,
+          titulo: _tituloController.text.trim(),
+          descripcion: _descripcionController.text.trim().isEmpty
+              ? null
+              : _descripcionController.text.trim(),
+          tipo: _selectedTipo,
+          lugar: _lugarController.text.trim().isEmpty
+              ? _selectedLocationName
+              : _lugarController.text.trim(),
+          capacidadMaxima: int.tryParse(_capacidadController.text.trim()) ?? 50,
+          latitud: _selectedLatitude,
+          longitud: _selectedLongitude,
+          fecha: _fechaUnica ?? _eventDays.first.fecha,
+          horaInicio: fechaInicio,
+          horaFinal: fechaFinal,
+          rangoPermitido: _selectedRange,
+          tiempoGracia: _tiempoGracia,
+          maximoSalidas: _maximoSalidas,
+          tiempoLimiteSalida: _tiempoLimiteSalida,
+          verificacionContinua: _verificacionContinua,
+          requiereJustificacion: _requiereJustificacion,
         );
 
         if (response.success) {

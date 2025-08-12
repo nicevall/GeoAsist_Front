@@ -27,7 +27,7 @@ class PerformanceOptimizer {
       lineLength: 120,
       colors: true,
       printEmojis: true,
-      printTime: true,
+      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
     ),
   );
 
@@ -41,7 +41,7 @@ class PerformanceOptimizer {
   // 🎯 Thresholds configurables según dispositivo
   double _targetFps = 60.0;
   double _lagThreshold = 16.67; // 60 FPS = 16.67ms por frame
-  int _frameTimingHistoryLimit = 120; // 2 segundos a 60fps
+  final int _frameTimingHistoryLimit = 100;
 
   // 🔧 Gestores especializados
   late BatteryManager _batteryManager;
@@ -209,13 +209,13 @@ class PerformanceOptimizer {
     // Criterios para degradar performance
     if (batteryStatus['level'] < 15 ||
         batteryStatus['isLowPowerMode'] == true) {
-      newLevel = PerformanceLevel.battery_saver;
+      newLevel = PerformanceLevel.batterySaver;
     } else if (memoryStatus['usagePercentage'] > 80) {
-      newLevel = PerformanceLevel.memory_optimized;
+      newLevel = PerformanceLevel.memoryOptimized;
     } else if (_averageFps < 30) {
-      newLevel = PerformanceLevel.performance_optimized;
+      newLevel = PerformanceLevel.performanceOptimized;
     } else if (connectivityStatus['isConnected'] == false) {
-      newLevel = PerformanceLevel.offline_optimized;
+      newLevel = PerformanceLevel.offlineOptimized;
     }
 
     // Aplicar nuevo nivel si es diferente
@@ -234,16 +234,16 @@ class PerformanceOptimizer {
       case PerformanceLevel.optimal:
         _applyOptimalSettings();
         break;
-      case PerformanceLevel.battery_saver:
+      case PerformanceLevel.batterySaver:
         _applyBatterySaverSettings();
         break;
-      case PerformanceLevel.memory_optimized:
+      case PerformanceLevel.memoryOptimized:
         _applyMemoryOptimizedSettings();
         break;
-      case PerformanceLevel.performance_optimized:
+      case PerformanceLevel.performanceOptimized:
         _applyPerformanceOptimizedSettings();
         break;
-      case PerformanceLevel.offline_optimized:
+      case PerformanceLevel.offlineOptimized:
         _applyOfflineOptimizedSettings();
         break;
     }
@@ -378,8 +378,8 @@ class PerformanceOptimizer {
 /// 📊 Niveles de performance
 enum PerformanceLevel {
   optimal, // Rendimiento máximo
-  battery_saver, // Ahorro de batería
-  memory_optimized, // Optimizado para memoria
-  performance_optimized, // Optimizado para performance
-  offline_optimized, // Optimizado para modo offline
+  batterySaver, // Ahorro de batería
+  memoryOptimized, // Optimizado para memoria
+  performanceOptimized, // Optimizado para performance
+  offlineOptimized, // Optimizado para modo offline
 }

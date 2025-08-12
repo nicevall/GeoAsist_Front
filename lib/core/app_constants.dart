@@ -174,8 +174,22 @@ class AppConstants {
         'Accept': 'application/json',
       };
 
-  static Map<String, String> getAuthHeaders(String token) => {
-        ...defaultHeaders,
-        'Authorization': 'Bearer $token',
-      };
+  // API Endpoints - Eventos expandidos
+  static const String eventosEditar = '/eventos'; // Para PUT /{id}
+  static const String eventosEliminar = '/eventos'; // Para DELETE /{id}
+  static const String eventosMis = '/eventos/mis';
+
+  // API Endpoints - Dashboard expandido
+  static const String dashboardEventMetrics =
+      '/dashboard/metrics/event'; // Para /{id}
+  static const String dashboardOverview = '/dashboard/overview';
+
+  // Headers con autenticación
+  static Map<String, String> getAuthHeaders(String token) {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+    };
+  }
 }

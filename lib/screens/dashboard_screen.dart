@@ -13,6 +13,7 @@ import '../widgets/admin_dashboard_widgets.dart';
 import '../widgets/professor_dashboard_widgets.dart';
 import '../widgets/loading_skeleton.dart';
 import '../core/app_constants.dart';
+import '../widgets/detailed_stats_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userName;
@@ -298,6 +299,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           // Espacio extra al final para scroll
           const SizedBox(height: 80),
+
+          // Estadísticas detalladas (solo si hay eventos)
+          if (!_isLoadingEvents && _userEvents.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            DetailedStatsWidget(
+              isDocente: true,
+              eventoId: _userEvents.isNotEmpty ? _userEvents.first.id : null,
+            ),
+          ],
         ],
       ),
     );

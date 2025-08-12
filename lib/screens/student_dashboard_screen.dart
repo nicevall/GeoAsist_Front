@@ -29,37 +29,41 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   // - Historial personal de asistencias del estudiante
   // - Estadísticas individuales (% asistencia, eventos totales)
   // - Integración con endpoints: PUT /api/usuarios/{id}, GET /api/usuarios/perfil/{id}
-  Usuario? _currentUser;
-  List<Evento> _upcomingEvents = [];
-  bool _isLoadingEvents = true;
+  Usuario? _currentUser; // ✅ AHORA SE USA EN _buildWelcomeHeader()
+  List<Evento> _availableEvents = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
-    _loadUpcomingEvents();
+    _loadAvailableEvents();
   }
 
   Future<void> _loadUserData() async {
     final user = await _storageService.getUser();
-    setState(() => _currentUser = user);
+    if (mounted) {
+      setState(() => _currentUser = user);
+    }
   }
 
-  Future<void> _loadUpcomingEvents() async {
-    setState(() => _isLoadingEvents = true);
+  Future<void> _loadAvailableEvents() async {
     try {
       final eventos = await _eventoService.obtenerEventos();
-      final now = DateTime.now();
-      final upcoming = eventos
-          .where((evento) => evento.fecha.isAfter(now) || evento.isActive)
-          .take(3)
-          .toList();
-      setState(() {
-        _upcomingEvents = upcoming;
-        _isLoadingEvents = false;
-      });
+      if (mounted) {
+        setState(() {
+          _availableEvents = eventos;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() => _isLoadingEvents = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        // ✅ CORREGIDO - BuildContext con mounted check
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error cargando eventos: $e')),
+        );
+      }
     }
   }
 
@@ -77,7 +81,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       body: RefreshIndicator(
         onRefresh: () async {
           await _loadUserData();
-          await _loadUpcomingEvents();
+          await _loadAvailableEvents();
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -138,16 +142,18 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Hola, ${widget.userName}',
+            // ✅ CORREGIDO - Usar _currentUser.nombre (propiedad real del modelo)
+            'Hola, ${_currentUser?.nombre ?? widget.userName}',
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          const Text(
-            'Estudiante',
-            style: TextStyle(
+          Text(
+            // ✅ CORREGIDO - Usar rol del usuario cuando está disponible
+            _currentUser?.rol ?? 'Estudiante',
+            style: const TextStyle(
               fontSize: 16,
               color: Colors.white,
               fontWeight: FontWeight.w500,
@@ -298,9 +304,9 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        if (_isLoadingEvents)
+        if (_isLoading)
           const Center(child: CircularProgressIndicator())
-        else if (_upcomingEvents.isEmpty)
+        else if (_availableEvents.isEmpty)
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -318,7 +324,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
             ),
           )
         else
-          ..._upcomingEvents.map((evento) => _buildEventCard(evento)),
+          ..._availableEvents.map((evento) => _buildEventCard(evento)),
       ],
     );
   }

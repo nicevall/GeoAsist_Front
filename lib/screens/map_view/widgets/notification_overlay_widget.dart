@@ -105,16 +105,20 @@ class _NotificationOverlayWidgetState extends State<NotificationOverlayWidget>
     if (oldState.isInGracePeriod != newState.isInGracePeriod) return true;
 
     // Cambio en registro de asistencia
-    if (oldState.hasRegisteredAttendance != newState.hasRegisteredAttendance)
+    if (oldState.hasRegisteredAttendance != newState.hasRegisteredAttendance) {
       return true;
+    }
 
     // Cambio en violación de límites
-    if (oldState.hasViolatedBoundary != newState.hasViolatedBoundary)
+    if (oldState.hasViolatedBoundary != newState.hasViolatedBoundary) {
       return true;
+    }
 
     // Nuevo error
-    if (oldState.lastError != newState.lastError && newState.lastError != null)
+    if (oldState.lastError != newState.lastError &&
+        newState.lastError != null) {
       return true;
+    }
 
     return false;
   }

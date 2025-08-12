@@ -10,16 +10,16 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # HTTP requests - Actualizado
-  http: ^1.4.0
+  # ✅ ACTUALIZADO: HTTP requests 
+  http: ^1.5.0                    # Era: ^1.4.0
 
-  # Local storage - Actualizado
+  # Local storage - Mantenido
   shared_preferences: ^2.5.3
 
-  # JSON serialization - Actualizado
+  # JSON serialization - Mantenido
   json_annotation: ^4.9.0
 
-  # State management
+  # State management - Mantenido
   provider: ^6.1.5
 
   # Background processing - CRÍTICO para tracking continuo
@@ -29,36 +29,33 @@ dependencies:
       path: workmanager
       ref: main
 
-  # Location services - ACTUALIZACIONES IMPORTANTES
-  geolocator: ^14.0.1 # ✅ ACTUALIZADO: Mejor precisión GPS
-  permission_handler: ^12.0.0+1 # ✅ ACTUALIZADO: Permisos mejorados
+  # ✅ ACTUALIZADO: Location services - ACTUALIZACIONES CRÍTICAS
+  geolocator: ^14.0.2             # Era: ^14.0.1 - Mejor precisión GPS
+  permission_handler: ^12.0.1     # Era: ^12.0.0+1 - Permisos mejorados
 
-  # Maps (for future integration)
+  # Maps (for future integration) - Mantenido
   google_maps_flutter: ^2.12.3
 
-  # Utils - Actualizado
-  intl: ^0.20.2 # ✅ ACTUALIZADO: Mejor localización
+  # Utils - Mantenido
+  intl: ^0.20.2
+
+  # ✅ ACTUALIZADO: Notificaciones push reales - CRÍTICO
+  flutter_local_notifications: ^19.4.0  # Era: ^17.2.3 - 2 versiones más nueva
   
-  # Notificaciones push reales
-  flutter_local_notifications: ^17.2.3
+  # Manejo de zonas horarias para notificaciones - Mantenido
+  timezone: ^0.10.1
   
-  # Manejo de zonas horarias para notificaciones
-  timezone: ^0.9.4
+  # ✅ ACTUALIZADO: Optimización de performance - VERSIONES ESTABLES
+  battery_plus: ^6.2.2           # MANTENER - Funciona correctamente
+  connectivity_plus: ^6.1.5      # Era: ^6.0.5 - Actualizados bugs de conectividad
+  device_info_plus: ^10.1.2      # MANTENER - NO actualizar (breaking changes en 11.x)
+  package_info_plus: ^8.0.2      # Mantenido
   
-  # Optimización de performance (Bloque 2) - VERSIONES COMPATIBLES
-  battery_plus: ^6.2.2           # Monitoreo de batería
-  connectivity_plus: ^6.0.5      # Estado de conectividad
-  device_info_plus: ^10.1.2      # Información del dispositivo
-  package_info_plus: ^8.0.2      # Información de la app
+  # Logging avanzado - Mantenido
+  logger: ^2.4.0
   
-  # Logging avanzado
-  logger: ^2.4.0                 # Logging optimizado
-  
-  # Acceso a directorios del sistema
-  path_provider: ^2.1.4          # Almacenamiento local
-  
-  # Seguridad y hashing (ya existe en tu proyecto)
-  # crypto: ^3.0.6               # Ya disponible como dependencia transitiva
+  # Acceso a directorios del sistema - Mantenido
+  path_provider: ^2.1.4
 
 dev_dependencies:
   flutter_test:
@@ -66,32 +63,39 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
-  # Lints - ACTUALIZADO
-  flutter_lints: ^6.0.0 # ✅ ACTUALIZADO: Reglas modernas
+  # ✅ ACTUALIZADO: Lints - Reglas modernas 
+  flutter_lints: ^6.0.0          # Mantenido - Ya actualizado
 
-  # JSON code generation - Actualizado
+  # JSON code generation - Mantenido
   build_runner: ^2.5.4
   json_serializable: ^6.9.5
   
-  # 🧪 TESTING DEPENDENCIES - BLOQUE 3 A1.3
-  mockito: ^5.4.4                 # ✅ AÑADIDO: Para unit tests con mocks
+  # 🧪 TESTING DEPENDENCIES - Para Fase B.4
+  mockito: ^5.4.4                 # MANTENER - Para unit tests con mocks
 
 flutter:
   uses-material-design: true
 
-  # ✅ REMOVIDO: Assets que no existen
+  # ✅ ASSETS: Preparado para futuro uso
   # assets:
   #   - assets/images/
   #   - assets/icons/
-
-  # ✅ AGREGADO: Instrucciones para crear assets cuando sea necesario
-  # Para agregar assets:
-  # 1. Crear las carpetas assets/images/ y assets/icons/
-  # 2. Descomentar las líneas de assets arriba
+  # Para habilitar assets:
+  # 1. Crear carpetas assets/images/ y assets/icons/
+  # 2. Descomentar líneas arriba  
   # 3. Ejecutar flutter pub get
 
-  # Fonts (if needed)
+  # ✅ FONTS: Preparado para tipografía personalizada
   # fonts:
-  #   - family: CustomFont
+  #   - family: Roboto
   #     fonts:
-  #       - asset: fonts/CustomFont-Regular.ttf
+  #       - asset: fonts/Roboto-Regular.ttf
+  #       - asset: fonts/Roboto-Bold.ttf
+  #         weight: 700
+
+# ✅ CONFIGURACIÓN ADICIONAL PARA ANDROID
+# flutter:
+#   android:
+#     min_sdk_version: 21    # Android 5.0+ requerido para geolocalización
+#     compile_sdk_version: 34
+#     target_sdk_version: 34

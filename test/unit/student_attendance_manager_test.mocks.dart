@@ -159,6 +159,43 @@ class MockAsistenciaService extends _i1.Mock implements _i7.AsistenciaService {
           ),
         )),
       ) as _i4.Future<_i2.ApiResponse<_i8.Asistencia>>);
+
+  @override
+  _i4.Future<_i2.ApiResponse<Map<String, dynamic>>> obtenerMetricasEvento(
+          String? eventoId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #obtenerMetricasEvento,
+          [eventoId],
+        ),
+        returnValue: _i4.Future<_i2.ApiResponse<Map<String, dynamic>>>.value(
+            _FakeApiResponse_0<Map<String, dynamic>>(
+          this,
+          Invocation.method(
+            #obtenerMetricasEvento,
+            [eventoId],
+          ),
+        )),
+      ) as _i4.Future<_i2.ApiResponse<Map<String, dynamic>>>);
+
+  @override
+  _i4.Future<_i2.ApiResponse<Map<String, dynamic>>>
+      obtenerEstadisticasEstudiante(String? estudianteId) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #obtenerEstadisticasEstudiante,
+              [estudianteId],
+            ),
+            returnValue:
+                _i4.Future<_i2.ApiResponse<Map<String, dynamic>>>.value(
+                    _FakeApiResponse_0<Map<String, dynamic>>(
+              this,
+              Invocation.method(
+                #obtenerEstadisticasEstudiante,
+                [estudianteId],
+              ),
+            )),
+          ) as _i4.Future<_i2.ApiResponse<Map<String, dynamic>>>);
 }
 
 /// A class which mocks [EventoService].
@@ -285,13 +322,104 @@ class MockEventoService extends _i1.Mock implements _i9.EventoService {
       ) as _i4.Future<_i2.ApiResponse<_i10.Evento>>);
 
   @override
-  _i4.Future<bool> eliminarEvento(String? eventoId) => (super.noSuchMethod(
+  _i4.Future<_i2.ApiResponse<_i10.Evento>> editarEvento({
+    required String? eventoId,
+    required String? titulo,
+    String? descripcion,
+    required String? tipo,
+    required String? lugar,
+    required int? capacidadMaxima,
+    required double? latitud,
+    required double? longitud,
+    required DateTime? fecha,
+    required DateTime? horaInicio,
+    required DateTime? horaFinal,
+    double? rangoPermitido = 100.0,
+    int? tiempoGracia = 1,
+    int? maximoSalidas = 3,
+    int? tiempoLimiteSalida = 30,
+    bool? verificacionContinua = true,
+    bool? requiereJustificacion = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #editarEvento,
+          [],
+          {
+            #eventoId: eventoId,
+            #titulo: titulo,
+            #descripcion: descripcion,
+            #tipo: tipo,
+            #lugar: lugar,
+            #capacidadMaxima: capacidadMaxima,
+            #latitud: latitud,
+            #longitud: longitud,
+            #fecha: fecha,
+            #horaInicio: horaInicio,
+            #horaFinal: horaFinal,
+            #rangoPermitido: rangoPermitido,
+            #tiempoGracia: tiempoGracia,
+            #maximoSalidas: maximoSalidas,
+            #tiempoLimiteSalida: tiempoLimiteSalida,
+            #verificacionContinua: verificacionContinua,
+            #requiereJustificacion: requiereJustificacion,
+          },
+        ),
+        returnValue: _i4.Future<_i2.ApiResponse<_i10.Evento>>.value(
+            _FakeApiResponse_0<_i10.Evento>(
+          this,
+          Invocation.method(
+            #editarEvento,
+            [],
+            {
+              #eventoId: eventoId,
+              #titulo: titulo,
+              #descripcion: descripcion,
+              #tipo: tipo,
+              #lugar: lugar,
+              #capacidadMaxima: capacidadMaxima,
+              #latitud: latitud,
+              #longitud: longitud,
+              #fecha: fecha,
+              #horaInicio: horaInicio,
+              #horaFinal: horaFinal,
+              #rangoPermitido: rangoPermitido,
+              #tiempoGracia: tiempoGracia,
+              #maximoSalidas: maximoSalidas,
+              #tiempoLimiteSalida: tiempoLimiteSalida,
+              #verificacionContinua: verificacionContinua,
+              #requiereJustificacion: requiereJustificacion,
+            },
+          ),
+        )),
+      ) as _i4.Future<_i2.ApiResponse<_i10.Evento>>);
+
+  @override
+  _i4.Future<_i2.ApiResponse<bool>> eliminarEvento(String? eventoId) =>
+      (super.noSuchMethod(
         Invocation.method(
           #eliminarEvento,
           [eventoId],
         ),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
+        returnValue:
+            _i4.Future<_i2.ApiResponse<bool>>.value(_FakeApiResponse_0<bool>(
+          this,
+          Invocation.method(
+            #eliminarEvento,
+            [eventoId],
+          ),
+        )),
+      ) as _i4.Future<_i2.ApiResponse<bool>>);
+
+  @override
+  _i4.Future<List<_i10.Evento>> obtenerEventosDocente(String? docenteId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #obtenerEventosDocente,
+          [docenteId],
+        ),
+        returnValue: _i4.Future<List<_i10.Evento>>.value(<_i10.Evento>[]),
+      ) as _i4.Future<List<_i10.Evento>>);
 }
 
 /// A class which mocks [NotificationService].
@@ -438,24 +566,6 @@ class MockNotificationService extends _i1.Mock
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
-
-  @override
-  _i4.Future<bool> areNotificationsEnabled() => (super.noSuchMethod(
-        Invocation.method(
-          #areNotificationsEnabled,
-          [],
-        ),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
-
-  @override
-  _i4.Future<bool> requestNotificationPermissions() => (super.noSuchMethod(
-        Invocation.method(
-          #requestNotificationPermissions,
-          [],
-        ),
-        returnValue: _i4.Future<bool>.value(false),
-      ) as _i4.Future<bool>);
 
   @override
   void dispose() => super.noSuchMethod(

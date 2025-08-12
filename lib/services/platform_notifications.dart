@@ -206,10 +206,9 @@ class PlatformNotifications {
         body,
         scheduledDate,
         platformChannelSpecifics,
-        payload: payload,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,
+        payload: payload,
       );
 
       debugPrint('📢 Notificación programada: $title para $scheduledTime');
@@ -354,6 +353,8 @@ class PlatformNotifications {
         body,
         repeatInterval,
         platformChannelSpecifics,
+        androidScheduleMode:
+            AndroidScheduleMode.exactAllowWhileIdle, // ✅ AGREGADO
         payload: payload,
       );
 

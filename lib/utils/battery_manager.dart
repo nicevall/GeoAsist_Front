@@ -361,15 +361,25 @@ class BatteryManager {
     int? criticalBatteryThreshold,
     int? veryLowBatteryThreshold,
   }) {
-    if (lowBatteryThreshold != null) _lowBatteryThreshold = lowBatteryThreshold;
-    if (criticalBatteryThreshold != null)
-      _criticalBatteryThreshold = criticalBatteryThreshold;
-    if (veryLowBatteryThreshold != null)
-      _veryLowBatteryThreshold = veryLowBatteryThreshold;
+    // ✅ CAMBIO LÍNEA 366:
+    if (lowBatteryThreshold != null) {
+      _lowBatteryThreshold = lowBatteryThreshold;
+    }
 
-    _logger.i(
-        '🎯 Thresholds de batería configurados: Low=$_lowBatteryThreshold%, '
-        'Critical=$_criticalBatteryThreshold%, VeryLow=$_veryLowBatteryThreshold%');
+    // ✅ CAMBIO LÍNEA 368:
+    if (criticalBatteryThreshold != null) {
+      _criticalBatteryThreshold = criticalBatteryThreshold;
+    }
+
+    // Si hay más líneas similares en el método, aplicar el mismo patrón:
+    if (veryLowBatteryThreshold != null) {
+      _veryLowBatteryThreshold = veryLowBatteryThreshold;
+    }
+
+    _logger.i('🎯 Thresholds de batería configurados: '
+        'Low=$_lowBatteryThreshold%, '
+        'Critical=$_criticalBatteryThreshold%, '
+        'VeryLow=$_veryLowBatteryThreshold%');
   }
 
   /// 📞 Registrar callbacks de eventos

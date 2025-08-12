@@ -6,10 +6,7 @@ import '../../services/permission_service.dart';
 import '../../services/student_attendance_manager.dart';
 import '../../utils/colors.dart';
 import '../../services/evento_service.dart';
-import '../../services/asistencia_service.dart';
-import '../../services/storage_service.dart';
 import '../../models/evento_model.dart';
-import '../../models/usuario_model.dart';
 import '../../models/attendance_state_model.dart';
 import '../../models/location_response_model.dart';
 import 'widgets/map_area.dart';
@@ -43,7 +40,6 @@ class _MapViewScreenState extends State<MapViewScreen>
   final StudentAttendanceManager _attendanceManager =
       StudentAttendanceManager();
   final EventoService _eventoService = EventoService();
-  final StorageService _storageService = StorageService();
   final PermissionService _permissionService = PermissionService();
 
   // 🎯 CONTROLADORES DE ANIMACIÓN (mantenidos para compatibilidad)

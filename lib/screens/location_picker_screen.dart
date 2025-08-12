@@ -199,7 +199,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           circleId: const CircleId('range_circle'),
           center: markerPosition,
           radius: _selectedRange,
-          fillColor: AppColors.primaryOrange.withOpacity(0.2),
+          fillColor:
+              const Color.fromARGB(250, 250, 107, 53).withValues(alpha: 0.46),
           strokeColor: AppColors.primaryOrange,
           strokeWidth: 2,
         ),

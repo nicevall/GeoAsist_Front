@@ -356,4 +356,11 @@ class AppRouter {
       showSnackBar('Error al cerrar sesión', isError: true);
     }
   }
+
+  static void navigateTo(String route, {Map<String, dynamic>? arguments}) {
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      route,
+      arguments: arguments,
+    );
+  }
 }

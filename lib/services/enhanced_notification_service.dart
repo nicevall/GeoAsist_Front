@@ -540,9 +540,9 @@ class EnhancedNotificationService {
     }
 
     try {
-      final List<ActiveNotification>? activeNotifications =
+      final List<ActiveNotification> activeNotifications =
           await _flutterLocalNotificationsPlugin.getActiveNotifications();
-      return activeNotifications ?? [];
+      return activeNotifications;
     } catch (e) {
       debugPrint('❌ Error obteniendo notificaciones activas: $e');
       return [];

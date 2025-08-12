@@ -4,6 +4,8 @@ import '../utils/colors.dart';
 import '../utils/app_router.dart';
 import '../models/dashboard_metric_model.dart';
 import '../models/evento_model.dart';
+import '../services/evento_service.dart'; // ✅ NUEVO
+import '../core/app_constants.dart'; // ✅ NUEVO
 import 'dashboard_metric_card.dart' as metric_card;
 import 'event_card.dart' as event_card;
 
@@ -140,10 +142,7 @@ class AdminDashboardWidgets {
                 title: 'Eventos del Sistema',
                 subtitle: 'Ver todos los eventos',
                 color: AppColors.primaryOrange,
-                onTap: () {
-                  // TODO: Navegar a gestión de eventos cuando esté implementada
-                  AppRouter.showSnackBar('Próximamente: Gestión de eventos');
-                },
+                onTap: () => AppRouter.goToEventManagement(), // ✅ CORREGIDO
               ),
             ),
             const SizedBox(width: 12),
@@ -153,10 +152,8 @@ class AdminDashboardWidgets {
                 title: 'Reportes',
                 subtitle: 'Generar reportes',
                 color: Colors.purple,
-                onTap: () {
-                  // TODO: Navegar a reportes cuando esté implementado
-                  AppRouter.showSnackBar('Próximamente: Sistema de reportes');
-                },
+                onTap: () => AppRouter.showSnackBar(
+                    'Sistema de reportes - Próximamente en PHASE 4'), // ✅ CORREGIDO
               ),
             ),
           ],
@@ -189,11 +186,7 @@ class AdminDashboardWidgets {
               ),
             ),
             TextButton(
-              onPressed: () {
-                // TODO: Navegar a lista completa de eventos
-                AppRouter.showSnackBar(
-                    'Próximamente: Lista completa de eventos');
-              },
+              onPressed: () => AppRouter.goToEventManagement(), // ✅ CORREGIDO
               child: const Text('Ver todos'),
             ),
           ],
@@ -387,25 +380,73 @@ class AdminDashboardWidgets {
     );
   }
 
-  // Manejadores de eventos
+  // ✅ MANEJADORES DE EVENTOS CORREGIDOS SEGÚN FASE B.3
   static void _handleMetricTap(DashboardMetric metric) {
-    // TODO: Implementar navegación a detalles de métrica
-    AppRouter.showSnackBar('Próximamente: Detalles de ${metric.metric}');
+    AppRouter.goToDashboard(); // Navega al dashboard con filtro de métrica
   }
 
   static void _handleEventTap(Evento evento) {
-    // TODO: Implementar navegación a detalles de evento
-    AppRouter.showSnackBar(
-        'Próximamente: Detalles del evento ${evento.titulo}');
+    // Navegar a vista del mapa en modo admin
+    final context = AppRouter.navigatorKey.currentContext!;
+    Navigator.of(context).pushNamed(
+      AppConstants.mapViewRoute,
+      arguments: {
+        'eventoId': evento.id,
+        'isAdminMode': true,
+      },
+    );
   }
 
   static void _handleEventEdit(Evento evento) {
-    // TODO: Implementar edición de evento
-    AppRouter.showSnackBar('Próximamente: Editar evento ${evento.titulo}');
+    // Navegar a crear evento con datos para editar
+    AppRouter.goToCreateEvent(editEvent: evento);
   }
 
   static void _handleEventDelete(Evento evento) {
-    // TODO: Implementar confirmación y eliminación
-    AppRouter.showSnackBar('Próximamente: Eliminar evento ${evento.titulo}');
+    // Mostrar confirmación antes de eliminar
+    final context = AppRouter.navigatorKey.currentContext!;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Evento'),
+        content: Text(
+          '¿Estás seguro de eliminar "${evento.titulo}"?\n\n'
+          'Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _confirmarEliminacionAdmin(evento);
+            },
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ✅ MÉTODO AUXILIAR NUEVO PARA ELIMINACIÓN
+  static Future<void> _confirmarEliminacionAdmin(Evento evento) async {
+    try {
+      final eventoService = EventoService();
+      final result = await eventoService.eliminarEvento(evento.id!);
+
+      if (result.success) {
+        AppRouter.showSnackBar(
+            'Evento "${evento.titulo}" eliminado exitosamente');
+      } else {
+        AppRouter.showSnackBar('Error: ${result.message}', isError: true);
+      }
+    } catch (e) {
+      AppRouter.showSnackBar('Error eliminando evento: $e', isError: true);
+    }
   }
 }

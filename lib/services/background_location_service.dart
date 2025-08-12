@@ -18,7 +18,6 @@ class BackgroundLocationService {
   Future<void> initialize() async {
     await Workmanager().initialize(
       callbackDispatcher,
-      isInDebugMode: kDebugMode,
     );
   }
 

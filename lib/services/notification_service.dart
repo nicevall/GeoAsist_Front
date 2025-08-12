@@ -13,14 +13,11 @@ class NotificationService {
   bool _isInitialized = false;
   final Map<String, DateTime> _lastNotificationTimes = {};
 
-  // TODO: En futuras versiones integrar con flutter_local_notifications
-
   /// Inicializar el servicio de notificaciones
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      // TODO: Configurar flutter_local_notifications cuando sea necesario
       _isInitialized = true;
       debugPrint('📢 NotificationService inicializado');
     } catch (e) {
@@ -39,7 +36,6 @@ class NotificationService {
       // Vibración háptica suave para evento iniciado
       await _triggerHapticFeedback('light');
 
-      // TODO: Mostrar notificación persistente
       _logNotification(
           'event_active', 'Evento $eventName iniciado - Tracking activo');
     } catch (e) {
@@ -59,7 +55,6 @@ class NotificationService {
       // Vibración háptica de éxito
       await _triggerHapticFeedback('medium');
 
-      // TODO: Notificación con sonido personalizado
       _logNotification('geofence_entered', '✅ Llegaste al área de $eventName');
     } catch (e) {
       debugPrint('❌ Error en showGeofenceEnteredNotification: $e');
@@ -176,7 +171,6 @@ class NotificationService {
   /// Limpiar todas las notificaciones al finalizar evento
   Future<void> clearAllNotifications() async {
     try {
-      // TODO: Implementar cancelación de todas las notificaciones
       debugPrint('🧹 Limpiando todas las notificaciones');
       _lastNotificationTimes.clear();
     } catch (e) {
@@ -187,7 +181,6 @@ class NotificationService {
   /// Cancelar notificación específica por ID
   Future<void> cancelNotification(String notificationId) async {
     try {
-      // TODO: Integrar con flutter_local_notifications
       debugPrint('🗑️ Cancelando notificación: $notificationId');
       _lastNotificationTimes.remove(notificationId);
     } catch (e) {
@@ -242,23 +235,6 @@ class NotificationService {
     } catch (e) {
       debugPrint('❌ Error en vibración háptica: $e');
     }
-  }
-
-  /// Configurar tipos de notificación personalizados
-  Future<void> _setupNotificationChannels() async {
-    // TODO: Implementar canales de notificación cuando se integre flutter_local_notifications
-  }
-
-  /// Verificar si las notificaciones están habilitadas
-  Future<bool> areNotificationsEnabled() async {
-    // TODO: Verificar permisos cuando se integre flutter_local_notifications
-    return true;
-  }
-
-  /// Solicitar permisos de notificación
-  Future<bool> requestNotificationPermissions() async {
-    // TODO: Solicitar permisos cuando se integre flutter_local_notifications
-    return true;
   }
 
   /// Dispose de recursos

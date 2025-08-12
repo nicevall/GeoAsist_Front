@@ -83,4 +83,46 @@ class DashboardService {
       return false;
     }
   }
+
+  // 🎯 MÉTODO 1: Métricas específicas por evento
+  Future<Map<String, dynamic>?> getEventMetrics(String eventId) async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) return null;
+
+      final response = await _apiService.get(
+        '/dashboard/metrics/event/$eventId',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success && response.data != null) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error obteniendo métricas del evento: $e');
+      return null;
+    }
+  }
+
+  // 🎯 MÉTODO 2: Vista general del dashboard
+  Future<Map<String, dynamic>?> getDashboardOverview() async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) return null;
+
+      final response = await _apiService.get(
+        '/dashboard/overview',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success && response.data != null) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error obteniendo overview del dashboard: $e');
+      return null;
+    }
+  }
 }
