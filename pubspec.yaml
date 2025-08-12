@@ -38,6 +38,27 @@ dependencies:
 
   # Utils - Actualizado
   intl: ^0.20.2 # ✅ ACTUALIZADO: Mejor localización
+  
+  # Notificaciones push reales
+  flutter_local_notifications: ^17.2.3
+  
+  # Manejo de zonas horarias para notificaciones
+  timezone: ^0.9.4
+  
+  # Optimización de performance (Bloque 2) - VERSIONES COMPATIBLES
+  battery_plus: ^6.2.2           # Monitoreo de batería
+  connectivity_plus: ^6.0.5      # Estado de conectividad
+  device_info_plus: ^10.1.2      # Información del dispositivo
+  package_info_plus: ^8.0.2      # Información de la app
+  
+  # Logging avanzado
+  logger: ^2.4.0                 # Logging optimizado
+  
+  # Acceso a directorios del sistema
+  path_provider: ^2.1.4          # Almacenamiento local
+  
+  # Seguridad y hashing (ya existe en tu proyecto)
+  # crypto: ^3.0.6               # Ya disponible como dependencia transitiva
 
 dev_dependencies:
   flutter_test:

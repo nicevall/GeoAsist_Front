@@ -1,7 +1,6 @@
 // lib/screens/map_view/widgets/grace_period_widget.dart
 // 🎯 WIDGET ESPECIALIZADO FASE A1.2 - Período de gracia con countdown
 import 'package:flutter/material.dart';
-import '../../../utils/colors.dart';
 
 class GracePeriodWidget extends StatefulWidget {
   final int gracePeriodSeconds;
