@@ -1,10 +1,11 @@
-// lib/services/evento_service.dart - VERSIÓN COMPLETA FASE B
-import 'package:flutter/material.dart';
+// lib/services/evento_service.dart
 import '../models/evento_model.dart';
 import '../models/api_response_model.dart';
 import '../core/app_constants.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
 
 class EventoService {
   static final EventoService _instance = EventoService._internal();
@@ -16,28 +17,33 @@ class EventoService {
 
   Future<List<Evento>> obtenerEventos() async {
     try {
+      debugPrint('📋 Loading events from backend');
+
       final response = await _apiService.get(AppConstants.eventosEndpoint);
+
+      debugPrint('📡 Events response success: ${response.success}');
+      debugPrint('📄 Events response data available: ${response.data != null}');
 
       if (response.success && response.data != null) {
         final dynamic responseData = response.data;
 
-        debugPrint('🔍 Estructura completa de respuesta: $responseData');
-        debugPrint('🔍 Tipo de responseData: ${responseData.runtimeType}');
+        debugPrint('🔍 Full response structure: $responseData');
+        debugPrint('🔍 Response data type: ${responseData.runtimeType}');
 
         List<dynamic> eventosList = <dynamic>[];
 
-        // ✅ CORREGIDO: Manejo correcto de tipos sin errores
+        // Handle different response structures
         if (responseData is Map<String, dynamic>) {
-          // Caso 1: Respuesta es un objeto con array interno
+          // Case 1: Response is an object with internal array
           if (responseData.containsKey('data')) {
             final dataField = responseData['data'];
             if (dataField is List<dynamic>) {
               eventosList = dataField;
               debugPrint(
-                  '✅ Encontrado array en "data": ${eventosList.length} eventos');
+                  '✅ Found array in "data": ${eventosList.length} events');
             } else {
               debugPrint(
-                  '❌ El campo "data" no es un array: ${dataField.runtimeType}');
+                  '❌ Field "data" is not an array: ${dataField.runtimeType}');
               return <Evento>[];
             }
           } else if (responseData.containsKey('eventos')) {
@@ -45,231 +51,89 @@ class EventoService {
             if (eventosField is List<dynamic>) {
               eventosList = eventosField;
               debugPrint(
-                  '✅ Encontrado array en "eventos": ${eventosList.length} eventos');
+                  '✅ Found array in "eventos": ${eventosList.length} events');
             } else {
               debugPrint(
-                  '❌ El campo "eventos" no es un array: ${eventosField.runtimeType}');
+                  '❌ Field "eventos" is not an array: ${eventosField.runtimeType}');
               return <Evento>[];
             }
           } else {
             debugPrint(
-                '❌ Respuesta es objeto pero no contiene "data" ni "eventos"');
-            debugPrint('🔍 Claves disponibles: ${responseData.keys.toList()}');
+                '❌ Response is object but contains neither "data" nor "eventos"');
+            debugPrint('🔍 Available keys: ${responseData.keys.toList()}');
             return <Evento>[];
           }
         } else if (responseData is List<dynamic>) {
-          // Caso 2: Respuesta es directamente un array
+          // Case 2: Response is directly an array
           eventosList = responseData;
           debugPrint(
-              '✅ Respuesta es array directo: ${eventosList.length} eventos');
+              '✅ Response is direct array: ${eventosList.length} events');
         } else {
           debugPrint(
-              '❌ Tipo de respuesta no soportado: ${responseData.runtimeType}');
+              '❌ Unsupported response type: ${responseData.runtimeType}');
           return <Evento>[];
         }
 
-        // Procesar la lista de eventos
+        // Process event list
         final eventos = <Evento>[];
         for (int i = 0; i < eventosList.length; i++) {
           final eventoData = eventosList[i];
-          debugPrint('🔍 Procesando evento $i: $eventoData');
+          debugPrint('🔍 Processing event $i: ${eventoData.runtimeType}');
 
-          if (eventoData is Map<String, dynamic>) {
-            if (_isValidBackendEventData(eventoData)) {
-              try {
-                final eventoMapeado = _mapBackendToFlutter(eventoData);
-                final evento = Evento.fromJson(eventoMapeado);
-                eventos.add(evento);
-                debugPrint('✅ Evento $i parseado: ${evento.titulo}');
-              } catch (e) {
-                debugPrint('⚠️ Error parseando evento $i: $e');
-                debugPrint('📄 Datos del evento problemático: $eventoData');
-              }
-            } else {
-              debugPrint('⚠️ Evento $i no tiene datos válidos');
+          if (eventoData is Map<String, dynamic> &&
+              _isValidBackendEventData(eventoData)) {
+            try {
+              final eventoMapeado = _mapBackendToFlutter(eventoData);
+              final evento = Evento.fromJson(eventoMapeado);
+              eventos.add(evento);
+              debugPrint('✅ Event mapped successfully: ${evento.titulo}');
+            } catch (e) {
+              debugPrint('❌ Error mapping event $i: $e');
+              debugPrint('🔍 Event data: $eventoData');
             }
           } else {
-            debugPrint(
-                '⚠️ Evento $i no es un objeto válido: ${eventoData.runtimeType}');
+            debugPrint('❌ Invalid event data at index $i: $eventoData');
           }
         }
 
-        debugPrint('✅ Total eventos parseados exitosamente: ${eventos.length}');
+        debugPrint('✅ Total events loaded: ${eventos.length}');
         return eventos;
-      } else {
-        debugPrint('❌ Error en respuesta: ${response.error}');
-        return <Evento>[];
       }
-    } catch (e) {
-      debugPrint('💥 Error crítico obteniendo eventos: $e');
+
+      debugPrint('❌ Failed to load events: ${response.error}');
       return <Evento>[];
-    }
-  }
-
-  bool _isValidBackendEventData(Map<String, dynamic> data) {
-    return data.containsKey('_id') &&
-        (data.containsKey('titulo') || data.containsKey('nombre'));
-  }
-
-  Map<String, dynamic> _mapBackendToFlutter(Map<String, dynamic> backendData) {
-    try {
-      debugPrint(
-          '🔄 Mapeando evento: ${backendData['titulo'] ?? backendData['nombre']}');
-
-      // Coordenadas/ubicación
-      final coordenadas =
-          backendData['coordenadas'] ?? backendData['ubicacion'];
-      double latitud = -0.1805; // Default UIDE
-      double longitud = -78.4680; // Default UIDE
-
-      if (coordenadas is Map<String, dynamic>) {
-        latitud = (coordenadas['latitud'] ?? coordenadas['lat'])?.toDouble() ??
-            latitud;
-        longitud =
-            (coordenadas['longitud'] ?? coordenadas['lng'])?.toDouble() ??
-                longitud;
-      }
-
-      // Fechas y horas
-      DateTime fechaInicio = DateTime.now().add(const Duration(days: 1));
-      DateTime fechaFinal =
-          DateTime.now().add(const Duration(days: 1, hours: 2));
-
-      // Procesar fechas del backend
-      if (backendData.containsKey('fechaInicio') &&
-          backendData['fechaInicio'] != null) {
-        try {
-          fechaInicio = DateTime.parse(backendData['fechaInicio'].toString());
-        } catch (e) {
-          debugPrint('⚠️ Error parseando fechaInicio: $e');
-        }
-      }
-
-      if (backendData.containsKey('fechaFin') &&
-          backendData['fechaFin'] != null) {
-        try {
-          fechaFinal = DateTime.parse(backendData['fechaFin'].toString());
-        } catch (e) {
-          debugPrint('⚠️ Error parseando fechaFin: $e');
-        }
-      }
-
-      // Combinar fecha con hora si están separadas
-      if (backendData.containsKey('horaInicio') &&
-          backendData['horaInicio'] != null) {
-        try {
-          final horaInicio = backendData['horaInicio'].toString();
-          final parts = horaInicio.split(':');
-          if (parts.length >= 2) {
-            final hour = int.parse(parts[0]);
-            final minute = int.parse(parts[1]);
-            fechaInicio = DateTime(
-              fechaInicio.year,
-              fechaInicio.month,
-              fechaInicio.day,
-              hour,
-              minute,
-            );
-          }
-        } catch (e) {
-          debugPrint('⚠️ Error parseando horaInicio: $e');
-        }
-      }
-
-      if (backendData.containsKey('horaFin') &&
-          backendData['horaFin'] != null) {
-        try {
-          final horaFin = backendData['horaFin'].toString();
-          final parts = horaFin.split(':');
-          if (parts.length >= 2) {
-            final hour = int.parse(parts[0]);
-            final minute = int.parse(parts[1]);
-            fechaFinal = DateTime(
-              fechaFinal.year,
-              fechaFinal.month,
-              fechaFinal.day,
-              hour,
-              minute,
-            );
-          }
-        } catch (e) {
-          debugPrint('⚠️ Error parseando horaFin: $e');
-        }
-      }
-
-      final eventoMapeado = {
-        '_id': backendData['_id'] ?? backendData['id'] ?? '',
-        'titulo': backendData['titulo'] ??
-            backendData['nombre'] ??
-            'Evento sin título',
-        'descripcion': backendData['descripcion'] ?? '',
-        'ubicacion': {
-          'latitud': latitud,
-          'longitud': longitud,
-        },
-        'fecha': fechaInicio.toIso8601String(),
-        'horaInicio': fechaInicio.toIso8601String(),
-        'horaFinal': fechaFinal.toIso8601String(),
-        'rangoPermitido':
-            (coordenadas?['radio'] ?? backendData['rangoPermitido'] ?? 100.0)
-                .toDouble(),
-        'creadoPor': backendData['creadorId'] ?? backendData['creadoPor'] ?? '',
-        'createdAt': backendData['createdAt'],
-        'updatedAt': backendData['updatedAt'],
-      };
-
-      debugPrint('📤 Evento mapeado exitosamente: ${eventoMapeado['titulo']}');
-      return eventoMapeado;
     } catch (e) {
-      debugPrint('❌ Error en mapeo: $e');
-      // Devolver estructura mínima válida
-      return {
-        '_id': backendData['_id'] ?? backendData['id'] ?? '',
-        'titulo': backendData['titulo'] ??
-            backendData['nombre'] ??
-            'Evento sin título',
-        'descripcion': backendData['descripcion'] ?? '',
-        'ubicacion': {
-          'latitud': -0.1805,
-          'longitud': -78.4680,
-        },
-        'fecha': DateTime.now().add(const Duration(days: 1)).toIso8601String(),
-        'horaInicio':
-            DateTime.now().add(const Duration(days: 1)).toIso8601String(),
-        'horaFinal': DateTime.now()
-            .add(const Duration(days: 1, hours: 2))
-            .toIso8601String(),
-        'rangoPermitido': 100.0,
-        'creadoPor': '',
-        'createdAt': null,
-        'updatedAt': null,
-      };
+      debugPrint('❌ Exception loading events: $e');
+      return <Evento>[];
     }
   }
 
   Future<Evento?> obtenerEventoPorId(String eventoId) async {
     try {
-      debugPrint('🔍 Obteniendo evento por ID: $eventoId');
+      debugPrint('🔍 Loading event by ID: $eventoId');
+
       final response =
           await _apiService.get('${AppConstants.eventosEndpoint}/$eventoId');
 
-      debugPrint('📡 Evento por ID - Success: ${response.success}');
-      debugPrint('📄 Evento por ID - Data: ${response.data}');
+      debugPrint('📡 Event by ID response success: ${response.success}');
 
       if (response.success && response.data != null) {
-        if (_isValidBackendEventData(response.data!)) {
-          final eventoMapeado = _mapBackendToFlutter(response.data!);
+        final eventoData = response.data!['evento'];
+        if (eventoData != null && _isValidBackendEventData(eventoData)) {
+          final eventoMapeado = _mapBackendToFlutter(eventoData);
           final evento = Evento.fromJson(eventoMapeado);
-          debugPrint('✅ Evento individual parseado: ${evento.titulo}');
+          debugPrint('✅ Individual event parsed: ${evento.titulo}');
           return evento;
         } else {
-          debugPrint('❌ Datos de evento inválidos para ID: $eventoId');
+          debugPrint('❌ Invalid event data for ID: $eventoId');
           return null;
         }
       }
+
+      debugPrint('❌ Failed to load event: ${response.error}');
       return null;
     } catch (e) {
-      debugPrint('💥 Error al obtener evento: $e');
+      debugPrint('❌ Exception loading event: $e');
       return null;
     }
   }
@@ -293,12 +157,21 @@ class EventoService {
     bool requiereJustificacion = false,
   }) async {
     try {
+      debugPrint('📝 Creating new event: $titulo');
+      debugPrint('📍 Location: $lugar ($latitud, $longitud)');
+      debugPrint('📅 Date: ${fecha.toIso8601String().split('T')[0]}');
+      debugPrint(
+          '⏰ Time: ${horaInicio.hour}:${horaInicio.minute} - ${horaFinal.hour}:${horaFinal.minute}');
+
       final token = await _storageService.getToken();
       if (token == null) {
+        debugPrint('❌ No session for event creation');
         return ApiResponse.error('No hay sesión activa');
       }
 
-      // ✅ CORREGIDO: Formato que espera el backend
+      debugPrint('🎫 Token found, proceeding with event creation');
+
+      // Backend expected format
       final body = {
         'nombre': titulo,
         'tipo': tipo,
@@ -306,19 +179,16 @@ class EventoService {
         'descripcion': descripcion ?? '',
         'capacidadMaxima': capacidadMaxima,
         'coordenadas': {
-          // ubicacion → coordenadas
           'latitud': latitud,
           'longitud': longitud,
-          'radio': rangoPermitido, // rangoPermitido → radio
+          'radio': rangoPermitido,
         },
-        'fechaInicio':
-            fecha.toIso8601String().split('T')[0], // Solo fecha YYYY-MM-DD
-        'fechaFin':
-            fecha.toIso8601String().split('T')[0], // Solo fecha YYYY-MM-DD
+        'fechaInicio': fecha.toIso8601String().split('T')[0],
+        'fechaFin': fecha.toIso8601String().split('T')[0],
         'horaInicio':
-            '${horaInicio.hour.toString().padLeft(2, '0')}:${horaInicio.minute.toString().padLeft(2, '0')}', // HH:mm
+            '${horaInicio.hour.toString().padLeft(2, '0')}:${horaInicio.minute.toString().padLeft(2, '0')}',
         'horaFin':
-            '${horaFinal.hour.toString().padLeft(2, '0')}:${horaFinal.minute.toString().padLeft(2, '0')}', // HH:mm
+            '${horaFinal.hour.toString().padLeft(2, '0')}:${horaFinal.minute.toString().padLeft(2, '0')}',
         'politicasAsistencia': {
           'tiempoGracia': tiempoGracia,
           'maximoSalidas': maximoSalidas,
@@ -328,8 +198,8 @@ class EventoService {
         },
       };
 
-      debugPrint('📤 Body corregido enviado al backend: $body');
-      debugPrint('🌐 Endpoint usado: ${AppConstants.eventosEndpoint}/crear');
+      debugPrint('📦 Event creation payload: ${jsonEncode(body)}');
+      debugPrint('🌐 Endpoint: ${AppConstants.eventosEndpoint}/crear');
 
       final response = await _apiService.post(
         '${AppConstants.eventosEndpoint}/crear',
@@ -337,26 +207,27 @@ class EventoService {
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Crear evento - Response success: ${response.success}');
-      debugPrint('📄 Crear evento - Response data: ${response.data}');
-      debugPrint('💬 Crear evento - Response message: ${response.message}');
-      debugPrint('❌ Crear evento - Response error: ${response.error}');
+      debugPrint('📡 Create event response success: ${response.success}');
+      debugPrint('📄 Create event response data: ${response.data}');
+      debugPrint('💬 Create event response message: ${response.message}');
+      debugPrint('❌ Create event response error: ${response.error}');
 
       if (response.success && response.data != null) {
         final eventoData = response.data!['evento'];
         if (eventoData != null) {
-          debugPrint('✅ Evento creado exitosamente');
+          debugPrint('✅ Event created successfully');
           final eventoMapeado = _mapBackendToFlutter(eventoData);
           final evento = Evento.fromJson(eventoMapeado);
           return ApiResponse.success(evento, message: response.message);
         } else {
-          debugPrint('❌ No se encontró evento en la respuesta');
+          debugPrint('❌ No event data in creation response');
         }
       }
 
+      debugPrint('❌ Event creation failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error al crear evento');
     } catch (e) {
-      debugPrint('💥 Error de conexión creando evento: $e');
+      debugPrint('❌ Event creation exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -366,13 +237,16 @@ class EventoService {
     Map<String, dynamic> datosActualizados,
   ) async {
     try {
+      debugPrint('🔄 Updating event ID: $eventoId');
+      debugPrint('📝 Update data: $datosActualizados');
+
       final token = await _storageService.getToken();
       if (token == null) {
+        debugPrint('❌ No session for event update');
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint('🔄 Actualizando evento ID: $eventoId');
-      debugPrint('📝 Datos a actualizar: $datosActualizados');
+      debugPrint('🎫 Token found, proceeding with event update');
 
       final response = await _apiService.put(
         '${AppConstants.eventosEndpoint}/$eventoId',
@@ -380,22 +254,25 @@ class EventoService {
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Actualizar - Response success: ${response.success}');
-      debugPrint('📄 Actualizar - Response data: ${response.data}');
+      debugPrint('📡 Update event response success: ${response.success}');
+      debugPrint('📄 Update event response data: ${response.data}');
 
       if (response.success && response.data != null) {
         final eventoData = response.data!['evento'];
         if (eventoData != null && _isValidBackendEventData(eventoData)) {
           final eventoMapeado = _mapBackendToFlutter(eventoData);
           final evento = Evento.fromJson(eventoMapeado);
-          debugPrint('✅ Evento actualizado exitosamente');
+          debugPrint('✅ Event updated successfully: ${evento.titulo}');
           return ApiResponse.success(evento, message: response.message);
+        } else {
+          debugPrint('❌ Invalid event data in update response');
         }
       }
 
+      debugPrint('❌ Event update failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error al actualizar evento');
     } catch (e) {
-      debugPrint('💥 Error actualizando evento: $e');
+      debugPrint('❌ Event update exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -421,10 +298,17 @@ class EventoService {
     bool requiereJustificacion = false,
   }) async {
     try {
+      debugPrint('📝 Editing event: $eventoId');
+      debugPrint('📝 New title: $titulo');
+      debugPrint('📍 New location: $lugar ($latitud, $longitud)');
+
       final token = await _storageService.getToken();
       if (token == null) {
+        debugPrint('❌ No session for event edit');
         return ApiResponse.error('No hay sesión activa');
       }
+
+      debugPrint('🎫 Token found, proceeding with edit');
 
       final body = {
         'nombre': titulo,
@@ -452,23 +336,33 @@ class EventoService {
         },
       };
 
+      debugPrint('📦 Edit event payload: ${jsonEncode(body)}');
+      debugPrint('🌐 Edit endpoint: /eventos/$eventoId');
+
       final response = await _apiService.put(
         '/eventos/$eventoId',
         body: body,
         headers: AppConstants.getAuthHeaders(token),
       );
 
+      debugPrint('📡 Edit response success: ${response.success}');
+
       if (response.success && response.data != null) {
         final eventoData = response.data!['evento'];
         if (eventoData != null) {
           final eventoMapeado = _mapBackendToFlutter(eventoData);
           final evento = Evento.fromJson(eventoMapeado);
+          debugPrint('✅ Event edited successfully: ${evento.titulo}');
           return ApiResponse.success(evento, message: response.message);
+        } else {
+          debugPrint('❌ No event data in edit response');
         }
       }
 
+      debugPrint('❌ Event edit failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error editando evento');
     } catch (e) {
+      debugPrint('❌ Event edit exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -476,23 +370,33 @@ class EventoService {
   // 🎯 MÉTODO 2: Eliminar evento - FASE B
   Future<ApiResponse<bool>> eliminarEvento(String eventoId) async {
     try {
+      debugPrint('🗑️ Deleting event: $eventoId');
+
       final token = await _storageService.getToken();
       if (token == null) {
+        debugPrint('❌ No session for event deletion');
         return ApiResponse.error('No hay sesión activa');
       }
+
+      debugPrint('🎫 Token found, proceeding with deletion');
 
       final response = await _apiService.delete(
         '/eventos/$eventoId',
         headers: AppConstants.getAuthHeaders(token),
       );
 
+      debugPrint('📡 Delete response success: ${response.success}');
+
       if (response.success) {
+        debugPrint('✅ Event deleted successfully: $eventoId');
         return ApiResponse.success(true,
             message: 'Evento eliminado exitosamente');
       }
 
+      debugPrint('❌ Event deletion failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error eliminando evento');
     } catch (e) {
+      debugPrint('❌ Event deletion exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -500,55 +404,96 @@ class EventoService {
   // 🎯 MÉTODO 3: Obtener eventos específicos del docente - FASE B
   Future<List<Evento>> obtenerEventosDocente(String docenteId) async {
     try {
+      debugPrint('👨‍🏫 Loading events for teacher: $docenteId');
+
       final token = await _storageService.getToken();
-      if (token == null) return [];
+      if (token == null) {
+        debugPrint('❌ No session for teacher events');
+        return [];
+      }
+
+      debugPrint('🎫 Token found, loading teacher events');
 
       final response = await _apiService.get(
         '/eventos/mis',
         headers: AppConstants.getAuthHeaders(token),
       );
 
+      debugPrint('📡 Teacher events response success: ${response.success}');
+
       if (response.success && response.data != null) {
-        // Procesar respuesta similar a obtenerEventos()
         final eventos = await _procesarEventosResponse(response.data!);
-        return eventos.where((e) => e.creadoPor == docenteId).toList();
+        final eventosDocente =
+            eventos.where((e) => e.creadoPor == docenteId).toList();
+        debugPrint('✅ Teacher events loaded: ${eventosDocente.length} events');
+        return eventosDocente;
       }
 
+      debugPrint('❌ Failed to load teacher events: ${response.error}');
       return [];
     } catch (e) {
-      debugPrint('Error obteniendo eventos del docente: $e');
+      debugPrint('❌ Teacher events exception: $e');
       return [];
     }
   }
 
-  // Método auxiliar reutilizable - FASE B
+  // 🎯 MÉTODO 4: Finalizar evento y generar reporte
+  Future<ApiResponse<String>> finalizarEvento(String eventoId) async {
+    try {
+      debugPrint('🏁 Finalizing event: $eventoId');
+
+      final token = await _storageService.getToken();
+      if (token == null) {
+        debugPrint('❌ No session for event finalization');
+        return ApiResponse.error('No hay sesión activa');
+      }
+
+      debugPrint('🎫 Token found, proceeding with finalization');
+
+      final response = await _apiService.post(
+        '/eventos/$eventoId/finalizar',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      debugPrint('📡 Finalize event response success: ${response.success}');
+
+      if (response.success && response.data != null) {
+        final reportUrl =
+            response.data!['reporteUrl'] ?? response.data!['pdfUrl'];
+        debugPrint('✅ Event finalized, report generated: $reportUrl');
+        return ApiResponse.success(reportUrl, message: response.message);
+      }
+
+      debugPrint('❌ Event finalization failed: ${response.error}');
+      return ApiResponse.error(response.error ?? 'Error finalizando evento');
+    } catch (e) {
+      debugPrint('❌ Event finalization exception: $e');
+      return ApiResponse.error('Error de conexión: $e');
+    }
+  }
+
+  // Método auxiliar reutilizable para procesar respuestas de eventos
   Future<List<Evento>> _procesarEventosResponse(
       Map<String, dynamic> data) async {
     try {
+      debugPrint('🔄 Processing events response data');
+
       List<dynamic> eventosList = <dynamic>[];
 
-      // ✅ CORREGIDO: Verificación de tipos adecuada
       if (data.containsKey('data')) {
         final dataField = data['data'];
         if (dataField is List<dynamic>) {
           eventosList = dataField;
         } else {
-          debugPrint(
-              '❌ Campo "data" no es una lista: ${dataField.runtimeType}');
+          debugPrint('❌ Field "data" is not a List');
         }
       } else if (data.containsKey('eventos')) {
         final eventosField = data['eventos'];
         if (eventosField is List<dynamic>) {
           eventosList = eventosField;
         } else {
-          debugPrint(
-              '❌ Campo "eventos" no es una lista: ${eventosField.runtimeType}');
+          debugPrint('❌ Field "eventos" is not a List');
         }
-      } else {
-        // ✅ CORREGIDO: No intentar asignar directamente data a eventosList
-        debugPrint('❌ Respuesta no contiene "data" ni "eventos"');
-        debugPrint('🔍 Claves disponibles: ${data.keys.toList()}');
-        return <Evento>[];
       }
 
       final eventos = <Evento>[];
@@ -560,15 +505,79 @@ class EventoService {
             final evento = Evento.fromJson(eventoMapeado);
             eventos.add(evento);
           } catch (e) {
-            debugPrint('⚠️ Error parseando evento: $e');
+            debugPrint('❌ Error processing event: $e');
           }
         }
       }
 
+      debugPrint('✅ Processed ${eventos.length} events successfully');
       return eventos;
     } catch (e) {
-      debugPrint('❌ Error procesando respuesta de eventos: $e');
-      return <Evento>[];
+      debugPrint('❌ Exception processing events response: $e');
+      return [];
+    }
+  }
+
+  // Validación de datos de evento del backend
+  bool _isValidBackendEventData(Map<String, dynamic> data) {
+    final requiredFields = ['id', 'nombre', 'coordenadas'];
+    for (final field in requiredFields) {
+      if (!data.containsKey(field) || data[field] == null) {
+        debugPrint('❌ Missing required field: $field');
+        return false;
+      }
+    }
+
+    // Validar coordenadas
+    final coordenadas = data['coordenadas'];
+    if (coordenadas is! Map<String, dynamic> ||
+        !coordenadas.containsKey('latitud') ||
+        !coordenadas.containsKey('longitud')) {
+      debugPrint('❌ Invalid coordinates structure');
+      return false;
+    }
+
+    return true;
+  }
+
+  // Mapeo de estructura backend a estructura Flutter
+  Map<String, dynamic> _mapBackendToFlutter(Map<String, dynamic> backendData) {
+    try {
+      final coordenadas = backendData['coordenadas'] as Map<String, dynamic>;
+
+      return {
+        'id': backendData['id'],
+        'titulo':
+            backendData['nombre'] ?? backendData['titulo'] ?? 'Sin título',
+        'descripcion': backendData['descripcion'] ?? '',
+        'tipo': backendData['tipo'] ?? 'clase',
+        'lugar': backendData['lugar'] ?? 'Sin ubicación',
+        'capacidadMaxima': backendData['capacidadMaxima'] ?? 30,
+        'rangoPermitido': coordenadas['radio']?.toDouble() ?? 100.0,
+        'ubicacion': {
+          'latitud': coordenadas['latitud']?.toDouble() ?? 0.0,
+          'longitud': coordenadas['longitud']?.toDouble() ?? 0.0,
+        },
+        'fecha': backendData['fechaInicio'] ??
+            DateTime.now().toIso8601String().split('T')[0],
+        'horaInicio': backendData['horaInicio'] ?? '08:00',
+        'horaFinal':
+            backendData['horaFin'] ?? backendData['horaFinal'] ?? '10:00',
+        'estado': backendData['estado'] ?? 'programado',
+        'creadoPor': backendData['creadoPor'] ?? backendData['docente'] ?? '',
+        'creadoEn': backendData['creadoEn'] ?? DateTime.now().toIso8601String(),
+        'politicasAsistencia': backendData['politicasAsistencia'] ??
+            {
+              'tiempoGracia': 10,
+              'maximoSalidas': 3,
+              'tiempoLimiteSalida': 30,
+              'verificacionContinua': true,
+              'requiereJustificacion': false,
+            },
+      };
+    } catch (e) {
+      debugPrint('❌ Error mapping backend data: $e');
+      rethrow;
     }
   }
 }

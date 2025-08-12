@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../core/app_constants.dart';
 import '../models/api_response_model.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -16,6 +17,12 @@ class ApiService {
     String endpoint, {
     Map<String, String>? headers,
   }) async {
+    final stopwatch = Stopwatch()..start();
+
+    // 🔍 DEBUG REQUEST
+    debugPrint('🌐 API GET: $endpoint');
+    debugPrint('📋 Headers: ${headers ?? 'Default headers'}');
+
     try {
       final uri = Uri.parse('${AppConstants.baseUrl}$endpoint');
       final response = await _client
@@ -25,8 +32,18 @@ class ApiService {
           )
           .timeout(AppConstants.apiTimeout);
 
+      stopwatch.stop();
+
+      // 🔍 DEBUG RESPONSE
+      debugPrint('⏱️ GET Response Time: ${stopwatch.elapsedMilliseconds}ms');
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      debugPrint(
+          '✅ Response Body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...[TRUNCATED]' : response.body}');
+
       return _handleResponse(response);
     } catch (e) {
+      stopwatch.stop();
+      debugPrint('❌ GET Error after ${stopwatch.elapsedMilliseconds}ms: $e');
       return ApiResponse.error(_handleError(e));
     }
   }
@@ -36,6 +53,13 @@ class ApiService {
     Map<String, dynamic>? body,
     Map<String, String>? headers,
   }) async {
+    final stopwatch = Stopwatch()..start();
+
+    // 🔍 DEBUG REQUEST
+    debugPrint('🌐 API POST: $endpoint');
+    debugPrint('📦 Body: ${body != null ? jsonEncode(body) : 'No body'}');
+    debugPrint('📋 Headers: ${headers ?? 'Default headers'}');
+
     try {
       final uri = Uri.parse('${AppConstants.baseUrl}$endpoint');
       final response = await _client
@@ -46,8 +70,18 @@ class ApiService {
           )
           .timeout(AppConstants.apiTimeout);
 
+      stopwatch.stop();
+
+      // 🔍 DEBUG RESPONSE
+      debugPrint('⏱️ POST Response Time: ${stopwatch.elapsedMilliseconds}ms');
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      debugPrint(
+          '✅ Response Body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...[TRUNCATED]' : response.body}');
+
       return _handleResponse(response);
     } catch (e) {
+      stopwatch.stop();
+      debugPrint('❌ POST Error after ${stopwatch.elapsedMilliseconds}ms: $e');
       return ApiResponse.error(_handleError(e));
     }
   }
@@ -57,6 +91,13 @@ class ApiService {
     Map<String, dynamic>? body,
     Map<String, String>? headers,
   }) async {
+    final stopwatch = Stopwatch()..start();
+
+    // 🔍 DEBUG REQUEST
+    debugPrint('🌐 API PUT: $endpoint');
+    debugPrint('📦 Body: ${body != null ? jsonEncode(body) : 'No body'}');
+    debugPrint('📋 Headers: ${headers ?? 'Default headers'}');
+
     try {
       final uri = Uri.parse('${AppConstants.baseUrl}$endpoint');
       final response = await _client
@@ -67,8 +108,18 @@ class ApiService {
           )
           .timeout(AppConstants.apiTimeout);
 
+      stopwatch.stop();
+
+      // 🔍 DEBUG RESPONSE
+      debugPrint('⏱️ PUT Response Time: ${stopwatch.elapsedMilliseconds}ms');
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      debugPrint(
+          '✅ Response Body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...[TRUNCATED]' : response.body}');
+
       return _handleResponse(response);
     } catch (e) {
+      stopwatch.stop();
+      debugPrint('❌ PUT Error after ${stopwatch.elapsedMilliseconds}ms: $e');
       return ApiResponse.error(_handleError(e));
     }
   }
@@ -77,6 +128,12 @@ class ApiService {
     String endpoint, {
     Map<String, String>? headers,
   }) async {
+    final stopwatch = Stopwatch()..start();
+
+    // 🔍 DEBUG REQUEST
+    debugPrint('🌐 API DELETE: $endpoint');
+    debugPrint('📋 Headers: ${headers ?? 'Default headers'}');
+
     try {
       final uri = Uri.parse('${AppConstants.baseUrl}$endpoint');
       final response = await _client
@@ -86,8 +143,18 @@ class ApiService {
           )
           .timeout(AppConstants.apiTimeout);
 
+      stopwatch.stop();
+
+      // 🔍 DEBUG RESPONSE
+      debugPrint('⏱️ DELETE Response Time: ${stopwatch.elapsedMilliseconds}ms');
+      debugPrint('📊 Status Code: ${response.statusCode}');
+      debugPrint(
+          '✅ Response Body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...[TRUNCATED]' : response.body}');
+
       return _handleResponse(response);
     } catch (e) {
+      stopwatch.stop();
+      debugPrint('❌ DELETE Error after ${stopwatch.elapsedMilliseconds}ms: $e');
       return ApiResponse.error(_handleError(e));
     }
   }
