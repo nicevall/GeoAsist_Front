@@ -63,6 +63,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
 
   # Lints - ACTUALIZADO
   flutter_lints: ^6.0.0 # ✅ ACTUALIZADO: Reglas modernas
@@ -70,6 +72,9 @@ dev_dependencies:
   # JSON code generation - Actualizado
   build_runner: ^2.5.4
   json_serializable: ^6.9.5
+  
+  # 🧪 TESTING DEPENDENCIES - BLOQUE 3 A1.3
+  mockito: ^5.4.4                 # ✅ AÑADIDO: Para unit tests con mocks
 
 flutter:
   uses-material-design: true
