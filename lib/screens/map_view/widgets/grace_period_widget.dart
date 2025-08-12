@@ -181,7 +181,7 @@ class _GracePeriodWidgetState extends State<GracePeriodWidget>
                     ),
                     child: Column(
                       children: [
-                        // Tiempo restante grande
+                        // Tiempo restante - USANDO las variables calculadas
                         Text(
                           minutes > 0
                               ? '$minutes:${seconds.toString().padLeft(2, '0')}'
@@ -194,7 +194,7 @@ class _GracePeriodWidgetState extends State<GracePeriodWidget>
                           ),
                         ),
 
-                        // Label del tiempo
+                        // Label del tiempo - USANDO las variables calculadas
                         Text(
                           minutes > 0
                               ? 'minutos restantes'
