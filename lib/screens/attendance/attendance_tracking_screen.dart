@@ -605,7 +605,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
 
       if (response.success && response.data != null) {
         setState(() {
-          _attendanceHistory.insert(0, response.data!);
+          _attendanceHistory.insert(0, response.data! as Asistencia);
         });
 
         HapticFeedback.selectionClick();

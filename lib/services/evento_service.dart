@@ -17,6 +17,10 @@ class EventoService {
   final StorageService _storageService = StorageService();
   final NotificationManager _notificationManager = NotificationManager();
 
+  Future<void> notifyEventCreated() async {
+    await _notificationManager.showEventStartedNotification('Evento creado');
+  }
+
   Future<List<Evento>> obtenerEventos() async {
     try {
       debugPrint('📋 Loading events from backend');

@@ -31,7 +31,7 @@ class StudentNotificationFactory {
     int? breakDurationMinutes,
   }) {
     final durationText =
-        breakDurationMinutes != null ? ' (${breakDurationMinutes} min)' : '';
+        breakDurationMinutes != null ? ' ($breakDurationMinutes min)' : '';
 
     return StudentNotification.local(
       type: StudentNotificationType.breakStarted,

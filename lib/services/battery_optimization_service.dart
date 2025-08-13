@@ -1,7 +1,6 @@
 // lib/services/battery_optimization_service.dart
 // 🔋 SERVICIO ESPECIALIZADO PARA EXENCIÓN DE OPTIMIZACIÓN DE BATERÍA
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; // ✅ CORRECCIÓN: Removido foundation.dart
 import 'package:flutter/material.dart';
 import 'notifications/notification_manager.dart';
 
@@ -85,9 +84,12 @@ class BatteryOptimizationService {
       debugPrint('⚠️ App NO está exenta - Solicitando exención OBLIGATORIA');
 
       if (showDialogIfNeeded) {
+        // ✅ CORRECCIÓN LÍNEA 87: Verificar context antes de usar
+        if (!context.mounted) return false;
         final userAccepted = await _showBatteryOptimizationDialog(context);
         if (!userAccepted) {
-          // Si el usuario rechaza, mostrar que es obligatorio
+          // ✅ CORRECCIÓN LÍNEA 90: Verificar context antes de usar
+          if (!context.mounted) return false;
           await _showMandatoryExemptionDialog(context);
           return false;
         }
@@ -130,6 +132,9 @@ class BatteryOptimizationService {
 
   /// Mostrar diálogo educativo sobre battery optimization
   Future<bool> _showBatteryOptimizationDialog(BuildContext context) async {
+    // ✅ CORRECCIÓN: Verificar context montado
+    if (!context.mounted) return false;
+
     return await showDialog<bool>(
           context: context,
           barrierDismissible: false, // No se puede cerrar sin responder
@@ -174,11 +179,21 @@ class BatteryOptimizationService {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
+                onPressed: () {
+                  // ✅ CORRECCIÓN: Verificar context antes de usar Navigator
+                  if (context.mounted) {
+                    Navigator.of(context).pop(false);
+                  }
+                },
                 child: const Text('No Permitir'),
               ),
               ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
+                onPressed: () {
+                  // ✅ CORRECCIÓN: Verificar context antes de usar Navigator
+                  if (context.mounted) {
+                    Navigator.of(context).pop(true);
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
@@ -193,6 +208,9 @@ class BatteryOptimizationService {
 
   /// Diálogo obligatorio si el usuario rechaza la exención
   Future<void> _showMandatoryExemptionDialog(BuildContext context) async {
+    // ✅ CORRECCIÓN: Verificar context montado
+    if (!context.mounted) return;
+
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -232,7 +250,12 @@ class BatteryOptimizationService {
         ),
         actions: [
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              // ✅ CORRECCIÓN: Verificar context antes de usar Navigator
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
@@ -266,12 +289,18 @@ class BatteryOptimizationService {
       // Si no está exenta, solicitar OBLIGATORIAMENTE
       debugPrint('⚠️ Validation failed - Solicitando exención obligatoria');
 
+      // ✅ CORRECCIÓN: Verificar context antes de usar después de await
+      if (!context.mounted) return false;
+
       final exemptionGranted = await ensureBatteryOptimizationExemption(
         context: context,
         showDialogIfNeeded: true,
       );
 
       if (!exemptionGranted) {
+        // ✅ CORRECCIÓN: Verificar context antes de usar después de await
+        if (!context.mounted) return false;
+
         // Mostrar mensaje de error crítico
         await _showTrackingBlockedDialog(context);
         return false;
@@ -286,6 +315,9 @@ class BatteryOptimizationService {
 
   /// Diálogo cuando el tracking está bloqueado por battery optimization
   Future<void> _showTrackingBlockedDialog(BuildContext context) async {
+    // ✅ CORRECCIÓN LÍNEA 287: Verificar context antes de showDialog
+    if (!context.mounted) return;
+
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -302,7 +334,7 @@ class BatteryOptimizationService {
           children: [
             Text(
               'No puedes unirte al evento sin configurar la exención de battery optimization.',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 16),
             Text(
@@ -317,13 +349,21 @@ class BatteryOptimizationService {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              // ✅ CORRECCIÓN LÍNEA 293: Verificar context antes de Navigator
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
             child: const Text('Volver'),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              // Volver a intentar la configuración
+              // ✅ CORRECCIÓN: Verificar context antes de Navigator
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                // Volver a intentar la configuración
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange,

@@ -20,7 +20,7 @@ class BackgroundService {
   int _totalHeartbeatFailures = 0;
   DateTime? _lastSuccessfulHeartbeat;
   bool _isHeartbeatCriticalFailure = false;
-  bool _isAppInForeground = true;
+  final bool _isAppInForeground = true;
   static const int _maxConsecutiveFailures = 3;
 
   // 🔥 METHODCHANNEL PARA COMUNICACIÓN NATIVA

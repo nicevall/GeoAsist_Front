@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
-import '../core/app_constants.dart';
 import '../services/notifications/notification_manager.dart';
 import '../services/storage_service.dart';
 import '../models/student_notification_model.dart';

@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/student_notification_model.dart';
 import '../services/websocket_student_service.dart';
 import '../services/notifications/notification_manager.dart';
@@ -20,19 +19,27 @@ class StudentNotificationService {
   // 🎯 SERVICIOS DEPENDIENTES
   final WebSocketStudentService _webSocketService = WebSocketStudentService();
   final NotificationManager _notificationManager = NotificationManager();
-  final StorageService _storageService = StorageService();
+  final StorageService _storageService = StorageService(); // ✅ AHORA SE USA
 
   // 🎯 ESTADO DEL SERVICIO
   bool _isInitialized = false;
   bool _isListening = false;
   String? _currentEventId;
-  String? _currentUserId;
+  String? _currentUserId; // ✅ YA SE USABA
 
   // 🎯 ALMACENAMIENTO DE NOTIFICACIONES
   final List<StudentNotification> _notifications = [];
   final List<StudentNotification> _activeNotifications = [];
   static const int _maxStoredNotifications = 50;
+
+  // ✅ NUEVAS CONSTANTES PARA STORAGE KEYS
   static const String _notificationsKey = 'student_notifications';
+  static const String _configNotificationsEnabledKey = 'notifications_enabled';
+  static const String _configSoundEnabledKey = 'sound_enabled';
+  static const String _configVibrationEnabledKey = 'vibration_enabled';
+  static const String _configPersistentEnabledKey =
+      'persistent_notifications_enabled';
+  static const String _userPreferencesKey = 'user_notification_preferences';
 
   // 🎯 CONTROLLERS PARA STREAMS
   final StreamController<List<StudentNotification>> _notificationsController =
@@ -74,6 +81,9 @@ class StudentNotificationService {
   /// Evento actual
   String? get currentEventId => _currentEventId;
 
+  /// Usuario actual
+  String? get currentUserId => _currentUserId;
+
   /// Inicializar el servicio
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -85,11 +95,11 @@ class StudentNotificationService {
       await _webSocketService.initialize();
       await _notificationManager.initialize();
 
-      // Cargar configuración
-      await _loadConfiguration();
+      // ✅ USAR STORAGESERVICE: Cargar configuración
+      await _loadConfigurationFromStorage();
 
-      // Cargar notificaciones almacenadas
-      await _loadStoredNotifications();
+      // ✅ USAR STORAGESERVICE: Cargar notificaciones almacenadas
+      await _loadStoredNotificationsFromStorage();
 
       // Configurar listeners
       _setupWebSocketListener();
@@ -99,6 +109,70 @@ class StudentNotificationService {
     } catch (e) {
       debugPrint('❌ Error inicializando StudentNotificationService: $e');
       rethrow;
+    }
+  }
+
+  /// ✅ NUEVA IMPLEMENTACIÓN: Configurar usuario actual
+  Future<void> setCurrentUser(String userId) async {
+    if (_currentUserId != userId) {
+      debugPrint('👤 Configurando usuario actual: $userId');
+      _currentUserId = userId;
+
+      // Cargar preferencias específicas del usuario
+      await _loadUserSpecificPreferences(userId);
+
+      // Guardar en storage para persistencia
+      await _storageService.saveData('current_notification_user_id', userId);
+    }
+  }
+
+  /// ✅ NUEVA IMPLEMENTACIÓN: Cargar preferencias específicas del usuario
+  Future<void> _loadUserSpecificPreferences(String userId) async {
+    try {
+      debugPrint('📋 Cargando preferencias específicas para usuario: $userId');
+
+      final userPrefsKey = '${_userPreferencesKey}_$userId';
+      final userPrefsJson = await _storageService.getData(userPrefsKey);
+
+      if (userPrefsJson != null) {
+        final userPrefs = jsonDecode(userPrefsJson);
+
+        _notificationsEnabled = userPrefs['notificationsEnabled'] ?? true;
+        _soundEnabled = userPrefs['soundEnabled'] ?? true;
+        _vibrationEnabled = userPrefs['vibrationEnabled'] ?? true;
+        _persistentNotificationsEnabled =
+            userPrefs['persistentEnabled'] ?? true;
+
+        debugPrint('✅ Preferencias de usuario cargadas para: $userId');
+      } else {
+        debugPrint('ℹ️ No hay preferencias específicas para usuario: $userId');
+      }
+    } catch (e) {
+      debugPrint('❌ Error cargando preferencias de usuario: $e');
+    }
+  }
+
+  /// ✅ NUEVA IMPLEMENTACIÓN: Guardar preferencias específicas del usuario
+  Future<void> _saveUserSpecificPreferences() async {
+    if (_currentUserId == null) return;
+
+    try {
+      debugPrint(
+          '💾 Guardando preferencias específicas para usuario: $_currentUserId');
+
+      final userPrefsKey = '${_userPreferencesKey}_$_currentUserId';
+      final userPrefs = {
+        'notificationsEnabled': _notificationsEnabled,
+        'soundEnabled': _soundEnabled,
+        'vibrationEnabled': _vibrationEnabled,
+        'persistentEnabled': _persistentNotificationsEnabled,
+        'lastUpdated': DateTime.now().toIso8601String(),
+      };
+
+      await _storageService.saveData(userPrefsKey, jsonEncode(userPrefs));
+      debugPrint('✅ Preferencias de usuario guardadas');
+    } catch (e) {
+      debugPrint('❌ Error guardando preferencias de usuario: $e');
     }
   }
 
@@ -115,7 +189,7 @@ class StudentNotificationService {
       debugPrint('👂 Iniciando escucha para evento: $eventId');
 
       _currentEventId = eventId;
-      _currentUserId = userId;
+      await setCurrentUser(userId); // ✅ USAR MÉTODO QUE USA STORAGESERVICE
 
       // Conectar WebSocket
       await _webSocketService.connectToEvent(
@@ -181,8 +255,8 @@ class StudentNotificationService {
     // Emitir en stream para listeners
     _newNotificationController.add(notification);
 
-    // Guardar notificaciones actualizadas
-    _saveNotifications();
+    // ✅ USAR STORAGESERVICE: Guardar notificaciones actualizadas
+    _saveNotificationsToStorage();
   }
 
   /// Manejar error del WebSocket
@@ -215,10 +289,8 @@ class StudentNotificationService {
         }
         break;
       case WebSocketConnectionState.reconnecting:
-        // No hacer nada especial durante reconexión
-        break;
       case WebSocketConnectionState.connecting:
-        // No hacer nada especial durante conexión inicial
+        // No hacer nada especial durante conexión/reconexión
         break;
     }
   }
@@ -337,7 +409,7 @@ class StudentNotificationService {
       _activeNotifications.removeWhere((n) => n.id == notificationId);
 
       _notificationsController.add(List.unmodifiable(_notifications));
-      await _saveNotifications();
+      await _saveNotificationsToStorage(); // ✅ USAR STORAGESERVICE
 
       debugPrint('✅ Notificación marcada como leída: $notificationId');
     }
@@ -351,7 +423,7 @@ class StudentNotificationService {
 
     _activeNotifications.clear();
     _notificationsController.add(List.unmodifiable(_notifications));
-    await _saveNotifications();
+    await _saveNotificationsToStorage(); // ✅ USAR STORAGESERVICE
 
     debugPrint('✅ Todas las notificaciones marcadas como leídas');
   }
@@ -362,7 +434,7 @@ class StudentNotificationService {
     _activeNotifications.removeWhere((n) => n.id == notificationId);
 
     _notificationsController.add(List.unmodifiable(_notifications));
-    await _saveNotifications();
+    await _saveNotificationsToStorage(); // ✅ USAR STORAGESERVICE
 
     debugPrint('🗑️ Notificación eliminada: $notificationId');
   }
@@ -373,7 +445,7 @@ class StudentNotificationService {
     _activeNotifications.clear();
 
     _notificationsController.add(List.unmodifiable(_notifications));
-    await _saveNotifications();
+    await _saveNotificationsToStorage(); // ✅ USAR STORAGESERVICE
 
     debugPrint('🧹 Todas las notificaciones eliminadas');
   }
@@ -389,12 +461,28 @@ class StudentNotificationService {
     return _notifications.where((n) => n.eventId == eventId).toList();
   }
 
-  /// Configuración de notificaciones
+  /// ✅ NUEVA IMPLEMENTACIÓN: Obtener notificaciones por usuario
+  List<StudentNotification> getNotificationsByUser(String userId) {
+    // Filtrar notificaciones que sean relevantes para este usuario
+    return _notifications
+        .where((n) =>
+                n.eventId != null || // Notificaciones de eventos
+                n.type ==
+                    StudentNotificationType
+                        .connectivityLost || // Errores de conectividad
+                n.type ==
+                    StudentNotificationType.appClosedWarning // Warnings de app
+            )
+        .toList();
+  }
+
+  // 🎯 CONFIGURACIÓN DE NOTIFICACIONES CON STORAGESERVICE
 
   /// Habilitar/deshabilitar notificaciones
   Future<void> setNotificationsEnabled(bool enabled) async {
     _notificationsEnabled = enabled;
-    await _saveConfiguration();
+    await _saveConfigurationToStorage(); // ✅ USAR STORAGESERVICE
+    await _saveUserSpecificPreferences(); // ✅ PREFERENCIAS POR USUARIO
     debugPrint(
         '🔔 Notificaciones ${enabled ? 'habilitadas' : 'deshabilitadas'}');
   }
@@ -402,15 +490,55 @@ class StudentNotificationService {
   /// Habilitar/deshabilitar sonido
   Future<void> setSoundEnabled(bool enabled) async {
     _soundEnabled = enabled;
-    await _saveConfiguration();
+    await _saveConfigurationToStorage(); // ✅ USAR STORAGESERVICE
+    await _saveUserSpecificPreferences(); // ✅ PREFERENCIAS POR USUARIO
     debugPrint('🔊 Sonido ${enabled ? 'habilitado' : 'deshabilitado'}');
   }
 
   /// Habilitar/deshabilitar vibración
   Future<void> setVibrationEnabled(bool enabled) async {
     _vibrationEnabled = enabled;
-    await _saveConfiguration();
+    await _saveConfigurationToStorage(); // ✅ USAR STORAGESERVICE
+    await _saveUserSpecificPreferences(); // ✅ PREFERENCIAS POR USUARIO
     debugPrint('📳 Vibración ${enabled ? 'habilitada' : 'deshabilitada'}');
+  }
+
+  /// ✅ NUEVA FUNCIONALIDAD: Configurar todas las preferencias a la vez
+  Future<void> updateAllPreferences({
+    bool? notificationsEnabled,
+    bool? soundEnabled,
+    bool? vibrationEnabled,
+    bool? persistentEnabled,
+  }) async {
+    bool changed = false;
+
+    if (notificationsEnabled != null &&
+        _notificationsEnabled != notificationsEnabled) {
+      _notificationsEnabled = notificationsEnabled;
+      changed = true;
+    }
+
+    if (soundEnabled != null && _soundEnabled != soundEnabled) {
+      _soundEnabled = soundEnabled;
+      changed = true;
+    }
+
+    if (vibrationEnabled != null && _vibrationEnabled != vibrationEnabled) {
+      _vibrationEnabled = vibrationEnabled;
+      changed = true;
+    }
+
+    if (persistentEnabled != null &&
+        _persistentNotificationsEnabled != persistentEnabled) {
+      _persistentNotificationsEnabled = persistentEnabled;
+      changed = true;
+    }
+
+    if (changed) {
+      await _saveConfigurationToStorage();
+      await _saveUserSpecificPreferences();
+      debugPrint('✅ Preferencias actualizadas en lote');
+    }
   }
 
   /// Obtener configuración actual
@@ -423,45 +551,94 @@ class StudentNotificationService {
     };
   }
 
-  /// Cargar configuración guardada
-  Future<void> _loadConfiguration() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
+  // 🎯 MÉTODOS REFACTORIZADOS PARA USAR STORAGESERVICE
 
-      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
-      _soundEnabled = prefs.getBool('sound_enabled') ?? true;
-      _vibrationEnabled = prefs.getBool('vibration_enabled') ?? true;
+  /// ✅ REFACTORIZADO: Cargar configuración usando StorageService
+  Future<void> _loadConfigurationFromStorage() async {
+    try {
+      debugPrint('📋 Cargando configuración desde StorageService');
+
+      // Cargar configuración global
+      final notificationsEnabledStr =
+          await _storageService.getData(_configNotificationsEnabledKey);
+      final soundEnabledStr =
+          await _storageService.getData(_configSoundEnabledKey);
+      final vibrationEnabledStr =
+          await _storageService.getData(_configVibrationEnabledKey);
+      final persistentEnabledStr =
+          await _storageService.getData(_configPersistentEnabledKey);
+
+      _notificationsEnabled = notificationsEnabledStr?.toLowerCase() == 'true'
+          ? true
+          : notificationsEnabledStr?.toLowerCase() == 'false'
+              ? false
+              : true;
+
+      _soundEnabled = soundEnabledStr?.toLowerCase() == 'true'
+          ? true
+          : soundEnabledStr?.toLowerCase() == 'false'
+              ? false
+              : true;
+
+      _vibrationEnabled = vibrationEnabledStr?.toLowerCase() == 'true'
+          ? true
+          : vibrationEnabledStr?.toLowerCase() == 'false'
+              ? false
+              : true;
+
       _persistentNotificationsEnabled =
-          prefs.getBool('persistent_notifications_enabled') ?? true;
+          persistentEnabledStr?.toLowerCase() == 'true'
+              ? true
+              : persistentEnabledStr?.toLowerCase() == 'false'
+                  ? false
+                  : true;
 
-      debugPrint('✅ Configuración cargada');
+      // Cargar usuario actual si existe
+      final currentUserId =
+          await _storageService.getData('current_notification_user_id');
+      if (currentUserId != null) {
+        _currentUserId = currentUserId;
+        await _loadUserSpecificPreferences(currentUserId);
+      }
+
+      debugPrint('✅ Configuración cargada desde StorageService');
     } catch (e) {
-      debugPrint('❌ Error cargando configuración: $e');
+      debugPrint('❌ Error cargando configuración desde StorageService: $e');
+      // Usar valores por defecto
+      _notificationsEnabled = true;
+      _soundEnabled = true;
+      _vibrationEnabled = true;
+      _persistentNotificationsEnabled = true;
     }
   }
 
-  /// Guardar configuración
-  Future<void> _saveConfiguration() async {
+  /// ✅ REFACTORIZADO: Guardar configuración usando StorageService
+  Future<void> _saveConfigurationToStorage() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      debugPrint('💾 Guardando configuración en StorageService');
 
-      await prefs.setBool('notifications_enabled', _notificationsEnabled);
-      await prefs.setBool('sound_enabled', _soundEnabled);
-      await prefs.setBool('vibration_enabled', _vibrationEnabled);
-      await prefs.setBool(
-          'persistent_notifications_enabled', _persistentNotificationsEnabled);
+      await _storageService.saveData(
+          _configNotificationsEnabledKey, _notificationsEnabled.toString());
+      await _storageService.saveData(
+          _configSoundEnabledKey, _soundEnabled.toString());
+      await _storageService.saveData(
+          _configVibrationEnabledKey, _vibrationEnabled.toString());
+      await _storageService.saveData(_configPersistentEnabledKey,
+          _persistentNotificationsEnabled.toString());
 
-      debugPrint('✅ Configuración guardada');
+      debugPrint('✅ Configuración guardada en StorageService');
     } catch (e) {
-      debugPrint('❌ Error guardando configuración: $e');
+      debugPrint('❌ Error guardando configuración en StorageService: $e');
     }
   }
 
-  /// Cargar notificaciones almacenadas
-  Future<void> _loadStoredNotifications() async {
+  /// ✅ REFACTORIZADO: Cargar notificaciones usando StorageService
+  Future<void> _loadStoredNotificationsFromStorage() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final notificationsJson = prefs.getString(_notificationsKey);
+      debugPrint('📋 Cargando notificaciones desde StorageService');
+
+      final notificationsJson =
+          await _storageService.getData(_notificationsKey);
 
       if (notificationsJson != null) {
         final List<dynamic> notificationsList = jsonDecode(notificationsJson);
@@ -480,26 +657,65 @@ class StudentNotificationService {
         }
 
         _notificationsController.add(List.unmodifiable(_notifications));
-        debugPrint('✅ ${_notifications.length} notificaciones cargadas');
+        debugPrint(
+            '✅ ${_notifications.length} notificaciones cargadas desde StorageService');
+      } else {
+        debugPrint('ℹ️ No hay notificaciones almacenadas en StorageService');
       }
     } catch (e) {
-      debugPrint('❌ Error cargando notificaciones: $e');
+      debugPrint('❌ Error cargando notificaciones desde StorageService: $e');
     }
   }
 
-  /// Guardar notificaciones
-  Future<void> _saveNotifications() async {
+  /// ✅ REFACTORIZADO: Guardar notificaciones usando StorageService
+  Future<void> _saveNotificationsToStorage() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      debugPrint('💾 Guardando notificaciones en StorageService');
 
       final notificationsJson = jsonEncode(
         _notifications.map((n) => n.toJson()).toList(),
       );
 
-      await prefs.setString(_notificationsKey, notificationsJson);
-      debugPrint('✅ Notificaciones guardadas');
+      await _storageService.saveData(_notificationsKey, notificationsJson);
+      debugPrint('✅ Notificaciones guardadas en StorageService');
     } catch (e) {
-      debugPrint('❌ Error guardando notificaciones: $e');
+      debugPrint('❌ Error guardando notificaciones en StorageService: $e');
+    }
+  }
+
+  /// ✅ NUEVA FUNCIONALIDAD: Exportar configuración para backup
+  Future<Map<String, dynamic>> exportConfiguration() async {
+    return {
+      'configuration': getConfiguration(),
+      'userSpecificPreferences': _currentUserId != null
+          ? {
+              'userId': _currentUserId,
+              'preferences': getConfiguration(),
+            }
+          : null,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+  }
+
+  /// ✅ NUEVA FUNCIONALIDAD: Importar configuración desde backup
+  Future<void> importConfiguration(Map<String, dynamic> config) async {
+    try {
+      debugPrint('📥 Importando configuración desde backup');
+
+      final configuration = config['configuration'] as Map<String, dynamic>?;
+      if (configuration != null) {
+        await updateAllPreferences(
+          notificationsEnabled: configuration['notificationsEnabled'] as bool?,
+          soundEnabled: configuration['soundEnabled'] as bool?,
+          vibrationEnabled: configuration['vibrationEnabled'] as bool?,
+          persistentEnabled:
+              configuration['persistentNotificationsEnabled'] as bool?,
+        );
+      }
+
+      debugPrint('✅ Configuración importada exitosamente');
+    } catch (e) {
+      debugPrint('❌ Error importando configuración: $e');
     }
   }
 
@@ -519,8 +735,44 @@ class StudentNotificationService {
       'byType': typeCount,
       'isListening': _isListening,
       'currentEventId': _currentEventId,
+      'currentUserId': _currentUserId, // ✅ AGREGAR USUARIO ACTUAL
       'webSocketConnected': _webSocketService.isConnected,
+      'configuration': getConfiguration(),
+      'storageKeys': {
+        'notifications': _notificationsKey,
+        'configEnabled': _configNotificationsEnabledKey,
+        'userPreferences': _currentUserId != null
+            ? '${_userPreferencesKey}_$_currentUserId'
+            : null,
+      },
     };
+  }
+
+  /// ✅ NUEVA FUNCIONALIDAD: Limpiar datos específicos del usuario
+  Future<void> clearUserData(String userId) async {
+    try {
+      debugPrint('🧹 Limpiando datos del usuario: $userId');
+
+      // Remover preferencias específicas del usuario
+      final userPrefsKey = '${_userPreferencesKey}_$userId';
+      await _storageService.removeData(userPrefsKey);
+
+      // Si es el usuario actual, resetear configuración
+      if (_currentUserId == userId) {
+        _currentUserId = null;
+        await _storageService.removeData('current_notification_user_id');
+
+        // Resetear a configuración por defecto
+        _notificationsEnabled = true;
+        _soundEnabled = true;
+        _vibrationEnabled = true;
+        _persistentNotificationsEnabled = true;
+      }
+
+      debugPrint('✅ Datos del usuario limpiados: $userId');
+    } catch (e) {
+      debugPrint('❌ Error limpiando datos del usuario: $e');
+    }
   }
 
   /// Limpiar recursos y cerrar streams

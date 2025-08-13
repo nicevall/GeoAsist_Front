@@ -1383,7 +1383,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     _loadRealtimeMetrics();
   }
 
-  void _handleWebSocketError(error) {
+  void _handleWebSocketError(dynamic error) {
     debugPrint('❌ Error en WebSocket: $error');
 
     if (mounted) {
