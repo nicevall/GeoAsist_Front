@@ -18,70 +18,6 @@ class AsistenciaService {
   static String? _sessionId;
   static int _heartbeatSequence = 0;
 
-  // 🎯 MÉTODO 1: Registrar asistencia en el backend real
-  Future<ApiResponse<Asistencia>> registrarAsistencia({
-    required String eventoId,
-    required String usuarioId,
-    required double latitud,
-    required double longitud,
-    required String estado, // 'presente', 'ausente', 'tarde', 'receso'
-    String? observaciones,
-  }) async {
-    try {
-      debugPrint('✅ Registrando asistencia en backend real');
-      debugPrint('📍 Evento: $eventoId, Usuario: $usuarioId');
-      debugPrint('🌍 Ubicación: ($latitud, $longitud)');
-      debugPrint('📊 Estado: $estado');
-
-      final token = await _storageService.getToken();
-      if (token == null) {
-        debugPrint('❌ No hay sesión activa para registrar asistencia');
-        return ApiResponse.error('No hay sesión activa');
-      }
-
-      final requestData = {
-        'eventoId': eventoId,
-        'usuarioId': usuarioId,
-        'latitud': latitud,
-        'longitud': longitud,
-        'estado': estado,
-        'fecha': DateTime.now().toIso8601String().split('T')[0], // YYYY-MM-DD
-        'hora': DateTime.now()
-            .toIso8601String()
-            .split('T')[1]
-            .split('.')[0], // HH:MM:SS
-        if (observaciones != null) 'observaciones': observaciones,
-      };
-
-      debugPrint('📦 Request data: $requestData');
-
-      // ✅ CORREGIDO: Usar body en lugar de data
-      final response = await _apiService.post(
-        '/asistencia/registrar',
-        body: requestData,
-        headers: AppConstants.getAuthHeaders(token),
-      );
-
-      debugPrint('📡 Response success: ${response.success}');
-
-      if (response.success && response.data != null) {
-        final asistenciaData = response.data!['asistencia'] ?? response.data!;
-        final asistencia = Asistencia.fromJson(asistenciaData);
-
-        debugPrint('✅ Asistencia registrada exitosamente: ${asistencia.id}');
-        return ApiResponse.success(asistencia,
-            message: 'Asistencia registrada exitosamente');
-      }
-
-      debugPrint('❌ Error registrando asistencia: ${response.error}');
-      return ApiResponse.error(
-          response.error ?? 'Error registrando asistencia');
-    } catch (e) {
-      debugPrint('❌ Excepción registrando asistencia: $e');
-      return ApiResponse.error('Error de conexión: $e');
-    }
-  }
-
   // 🎯 MÉTODO 2: Actualizar ubicación en tiempo real
   Future<ApiResponse<bool>> actualizarUbicacion({
     required String usuarioId,
@@ -422,73 +358,128 @@ class AsistenciaService {
   Future<ApiResponse<Map<String, dynamic>>> enviarHeartbeat({
     required String usuarioId,
     required String eventoId,
-    double? latitud,
-    double? longitud,
-    bool? appActive,
-    int? batteryLevel,
-    int? signalStrength,
+    required bool isAppActive,
+    required bool isInGracePeriod,
+    required int gracePeriodRemaining,
   }) async {
     try {
-      debugPrint('💓 Enviando heartbeat mejorado (#${_heartbeatSequence++})');
-      debugPrint('👤 Usuario: $usuarioId, Evento: $eventoId');
-      debugPrint('📱 App activa: ${appActive ?? true}');
-
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No hay token para heartbeat');
         return ApiResponse.error('No hay sesión activa');
       }
 
-      // ✅ MEJORADO: Payload más completo
-      final heartbeatData = {
-        'usuarioId': usuarioId,
-        'eventoId': eventoId,
-        'timestamp': DateTime.now().toIso8601String(),
-        'appStatus': appActive == true ? 'active' : 'background',
-        'platform': Platform.operatingSystem,
-
-        // ✅ NUEVO: Datos adicionales del dispositivo
-        'sessionId': _getOrCreateSessionId(),
-        'sequence': _heartbeatSequence,
-        'appVersion': '1.0.0',
-
-        // ✅ NUEVO: Ubicación si está disponible
-        if (latitud != null) 'latitud': latitud,
-        if (longitud != null) 'longitud': longitud,
-
-        // ✅ NUEVO: Información del dispositivo
-        'deviceInfo': {
-          if (batteryLevel != null) 'batteryLevel': batteryLevel,
-          if (signalStrength != null) 'signalStrength': signalStrength,
-          'platform': Platform.operatingSystem,
-          'heartbeatVersion': '2.0',
-        },
-      };
-
-      debugPrint('📦 Heartbeat data keys: ${heartbeatData.keys}');
+      debugPrint('💓 Enviando heartbeat mejorado con estado de app');
 
       final response = await _apiService.post(
-        '/heartbeat', // Mantener tu endpoint existente
-        body: heartbeatData,
+        AppConstants.heartbeatEndpoint, // '/asistencia/heartbeat'
+        body: {
+          'usuarioId': usuarioId,
+          'eventoId': eventoId,
+          'timestamp': DateTime.now().toIso8601String(),
+          'appStatus': isAppActive ? 'foreground' : 'background',
+          'isInGracePeriod': isInGracePeriod,
+          'gracePeriodRemaining': gracePeriodRemaining,
+          'platform': Platform.operatingSystem,
+          'appVersion': AppConstants.appVersion,
+          'connectionType': 'mobile', // Podría ser wifi, mobile, etc.
+        },
         headers: AppConstants.getAuthHeaders(token),
       );
 
       if (response.success) {
-        debugPrint('💓 Enviando heartbeat mejorado (#$_heartbeatSequence)');
-        _heartbeatSequence++;
+        debugPrint('💓 Heartbeat enviado exitosamente');
 
-        // ✅ NUEVO: Retornar datos del backend si están disponibles
-        return ApiResponse.success(
-          response.data ?? {'status': 'ok'},
-          message: 'Heartbeat enviado exitosamente',
-        );
+        // El backend puede devolver comandos o información adicional
+        return ApiResponse.success(response.data ?? {});
       }
 
-      debugPrint('❌ Backend rechazó heartbeat: ${response.error}');
+      debugPrint('❌ Error en heartbeat: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error en heartbeat');
     } catch (e) {
-      debugPrint('❌ Excepción en heartbeat mejorado: $e');
+      debugPrint('❌ Excepción en heartbeat: $e');
       return ApiResponse.error('Error de conexión: $e');
+    }
+  }
+
+  // ✅ NUEVO DÍA 4: Registrar recovery exitoso cuando app vuelve en grace period
+  Future<ApiResponse<bool>> registrarRecoveryExitoso({
+    required String usuarioId,
+    required String eventoId,
+    required int downtimeSeconds,
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) {
+        return ApiResponse.error('No hay sesión activa');
+      }
+
+      debugPrint(
+          '✅ Registrando recovery exitoso - downtime: ${downtimeSeconds}s');
+
+      final response = await _apiService.post(
+        AppConstants.recoveryEndpoint, // '/asistencia/recovery'
+        body: {
+          'usuarioId': usuarioId,
+          'eventoId': eventoId,
+          'downtimeSeconds': downtimeSeconds,
+          'recoveryTimestamp': DateTime.now().toIso8601String(),
+          'gracePeriodUsed': downtimeSeconds,
+          'platform': Platform.operatingSystem,
+        },
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success) {
+        debugPrint('✅ Recovery exitoso registrado en backend');
+        return ApiResponse.success(true);
+      }
+
+      return ApiResponse.error(response.error ?? 'Error registrando recovery');
+    } catch (e) {
+      debugPrint('❌ Error registrando recovery: $e');
+      return ApiResponse.error('Error: $e');
+    }
+  }
+
+  // ✅ NUEVO DÍA 4: Marcar estado de background tracking (SIN penalización)
+  Future<ApiResponse<bool>> marcarEstadoBackgroundTracking({
+    required String usuarioId,
+    required String eventoId,
+    required String
+        status, // 'background_started', 'background_active', 'background_ended'
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) {
+        return ApiResponse.error('No hay sesión activa');
+      }
+
+      debugPrint('📱 Marcando estado background: $status');
+
+      final response = await _apiService.post(
+        AppConstants
+            .backgroundStatusEndpoint, // '/asistencia/background-status'
+        body: {
+          'usuarioId': usuarioId,
+          'eventoId': eventoId,
+          'status': status,
+          'timestamp': DateTime.now().toIso8601String(),
+          'tracking_type': 'background_normal', // No es grace period
+          'platform': Platform.operatingSystem,
+        },
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success) {
+        debugPrint('✅ Estado background registrado: $status');
+        return ApiResponse.success(true);
+      }
+
+      return ApiResponse.error(
+          response.error ?? 'Error marcando estado background');
+    } catch (e) {
+      debugPrint('❌ Error marcando estado background: $e');
+      return ApiResponse.error('Error: $e');
     }
   }
 
@@ -520,9 +511,9 @@ class AsistenciaService {
         final heartbeatResponse = await enviarHeartbeat(
           usuarioId: usuarioId,
           eventoId: eventoId,
-          latitud: latitud,
-          longitud: longitud,
-          appActive: appActive,
+          isAppActive: appActive ?? true, // ✅ Parámetro correcto
+          isInGracePeriod: false, // ✅ Parámetro requerido
+          gracePeriodRemaining: 0, // ✅ Parámetro requerido
         );
 
         // 3. ✅ Si es exitoso, retornar inmediatamente
@@ -731,46 +722,208 @@ class AsistenciaService {
   Future<ApiResponse<bool>> marcarAusentePorCierreApp({
     required String usuarioId,
     required String eventoId,
-    String? motivoAdicional,
+    String? razonEspecifica,
   }) async {
     try {
-      debugPrint('🚨 Marcando ausente por cierre de app - MEJORADO');
+      debugPrint('🚨 Marcando ausente por cierre de app');
 
-      // ✅ NUEVO: Intentar heartbeat de emergencia primero
-      await enviarHeartbeatEmergencia(
-        usuarioId: usuarioId,
-        eventoId: eventoId,
-        tipoEmergencia: 'app_closing',
-      );
+      final token = await _storageService.getToken();
+      if (token == null) {
+        return ApiResponse.error('No hay sesión activa');
+      }
 
-      // ✅ Usar tu lógica existente pero mejorada
-      final response = await registrarAsistencia(
-        eventoId: eventoId,
-        usuarioId: usuarioId,
-        latitud: 0.0,
-        longitud: 0.0,
-        estado: 'ausente',
-        observaciones: jsonEncode({
-          'tipo': 'ausencia_automatica',
-          'motivo': 'Aplicación cerrada durante tracking',
-          'motivoAdicional': motivoAdicional,
+      final response = await _apiService.post(
+        AppConstants.marcarAusenteEndpoint, // '/asistencia/marcar-ausente'
+        body: {
+          'usuarioId': usuarioId,
+          'eventoId': eventoId,
+          'razon': 'app_closed_30s',
+          'detalles':
+              razonEspecifica ?? 'Aplicación cerrada por más de 30 segundos',
           'timestamp': DateTime.now().toIso8601String(),
+          'gracePeriodExpired': true,
           'platform': Platform.operatingSystem,
-          'sessionId': _getOrCreateSessionId(),
-          'heartbeatSequence': _heartbeatSequence,
-        }),
+          'automatico': true,
+        },
+        headers: AppConstants.getAuthHeaders(token),
       );
 
       if (response.success) {
-        debugPrint('✅ Marcado como ausente por cierre de app (MEJORADO)');
-        resetSession(); // ✅ Limpiar session después de marcar ausente
+        debugPrint('✅ Marcado como ausente por cierre de app');
         return ApiResponse.success(true);
       }
 
       return ApiResponse.error(response.error ?? 'Error marcando ausente');
     } catch (e) {
-      debugPrint('❌ Excepción marcando ausente (MEJORADO): $e');
+      debugPrint('❌ Excepción marcando ausente: $e');
       return ApiResponse.error('Error: $e');
+    }
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> validarEstadoTracking({
+    required String usuarioId,
+    required String eventoId,
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) {
+        return ApiResponse.error('No hay sesión activa');
+      }
+
+      debugPrint('🔍 Validando estado de tracking en backend');
+
+      final response = await _apiService.get(
+        '/asistencia/estado-tracking/$eventoId/$usuarioId',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success) {
+        final data = response.data ?? {};
+
+        debugPrint('✅ Estado de tracking obtenido del backend');
+        debugPrint('📊 Estado: ${data['tracking_status']}');
+        debugPrint('📊 Último heartbeat: ${data['last_heartbeat']}');
+
+        return ApiResponse.success(data);
+      }
+
+      return ApiResponse.error(response.error ?? 'Error validando estado');
+    } catch (e) {
+      debugPrint('❌ Error validando estado: $e');
+      return ApiResponse.error('Error: $e');
+    }
+  }
+
+  Future<ApiResponse<List<Map<String, dynamic>>>> obtenerComandosPendientes({
+    required String usuarioId,
+    required String eventoId,
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) {
+        return ApiResponse.error('No hay sesión activa');
+      }
+
+      final response = await _apiService.get(
+        '/asistencia/comandos-pendientes/$eventoId/$usuarioId',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success) {
+        final comandos = (response.data?['comandos'] as List?)
+                ?.map((e) => e as Map<String, dynamic>)
+                .toList() ??
+            [];
+
+        debugPrint('📡 Comandos pendientes obtenidos: ${comandos.length}');
+        return ApiResponse.success(comandos);
+      }
+
+      return ApiResponse.error(response.error ?? 'Error obteniendo comandos');
+    } catch (e) {
+      debugPrint('❌ Error obteniendo comandos: $e');
+      return ApiResponse.error('Error: $e');
+    }
+  }
+
+  Future<ApiResponse<bool>> actualizarUbicacionConEstado({
+    required String usuarioId,
+    required String eventoId,
+    required double latitud,
+    required double longitud,
+    required bool isAppActive,
+    bool isInGracePeriod = false,
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) {
+        return ApiResponse.error('No hay sesión activa');
+      }
+
+      debugPrint('🌍 Actualizando ubicación con estado de app');
+
+      final response = await _apiService.post(
+        AppConstants.locationEndpoint, // '/location/update'
+        body: {
+          'usuarioId': usuarioId,
+          'eventoId': eventoId,
+          'latitud': latitud,
+          'longitud': longitud,
+          'timestamp': DateTime.now().toIso8601String(),
+          'appStatus': isAppActive ? 'foreground' : 'background',
+          'isInGracePeriod': isInGracePeriod,
+          'accuracy': 5.0, // GPS preciso
+          'altitude': 0.0,
+          'speed': 0.0,
+          'heading': 0.0,
+          'platform': Platform.operatingSystem,
+        },
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success) {
+        debugPrint('✅ Ubicación actualizada con estado de app');
+        return ApiResponse.success(true);
+      }
+
+      return ApiResponse.error(
+          response.error ?? 'Error actualizando ubicación');
+    } catch (e) {
+      debugPrint('❌ Error actualizando ubicación: $e');
+      return ApiResponse.error('Error: $e');
+    }
+  }
+
+  Future<ApiResponse<bool>> registrarAsistencia({
+    required String eventoId,
+    required String usuarioId,
+    required double latitud,
+    required double longitud,
+    String estado = 'presente',
+    String? observaciones,
+    bool validateAppState = true, // ✅ NUEVO: Validar estado de app
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) {
+        return ApiResponse.error('No hay sesión activa');
+      }
+
+      debugPrint('📝 Registrando asistencia con validaciones DÍA 4');
+
+      // ✅ NUEVO: Información adicional para el registro
+      final registroCompleto = {
+        'eventoId': eventoId,
+        'usuarioId': usuarioId,
+        'latitud': latitud,
+        'longitud': longitud,
+        'estado': estado,
+        'observaciones': observaciones,
+        'timestamp': DateTime.now().toIso8601String(),
+        'platform': Platform.operatingSystem,
+        'appVersion': AppConstants.appVersion,
+        'registroTipo': 'manual', // manual vs automático
+        'gpsAccuracy': 5.0, // Precisión GPS
+        'validatedAppState': validateAppState,
+      };
+
+      final response = await _apiService.post(
+        AppConstants.asistenciaEndpoint,
+        body: registroCompleto,
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success) {
+        debugPrint('✅ Asistencia registrada exitosamente');
+        return ApiResponse.success(true);
+      }
+
+      debugPrint('❌ Error registrando asistencia: ${response.error}');
+      return ApiResponse.error(
+          response.error ?? 'Error registrando asistencia');
+    } catch (e) {
+      debugPrint('❌ Excepción registrando asistencia: $e');
+      return ApiResponse.error('Error de conexión: $e');
     }
   }
 

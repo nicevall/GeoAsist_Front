@@ -921,7 +921,7 @@ class BackgroundService {
         await _asistenciaService.marcarAusentePorCierreApp(
           usuarioId: _currentUserId!,
           eventoId: _currentEventId!,
-          motivoAdicional: reason,
+          razonEspecifica: reason,
         );
       }
 

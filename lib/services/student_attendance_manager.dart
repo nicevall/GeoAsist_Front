@@ -307,10 +307,54 @@ class StudentAttendanceManager {
 
   // 🎯 CANCELAR PERÍODO DE GRACIA
   void _cancelGracePeriod() {
+    if (!_currentState.isInGracePeriod) return;
+
+    debugPrint('✅ GRACE PERIOD CANCELADO - App reactivada exitosamente');
+
     _gracePeriodTimer?.cancel();
     _gracePeriodTimer = null;
 
-    debugPrint('✅ Período de gracia cancelado');
+    _updateState(_currentState.copyWith(
+      isInGracePeriod: false,
+      gracePeriodRemaining: 0,
+    ));
+
+    // Limpiar notificaciones de warning
+    _notificationManager.clearAllNotifications();
+
+    // Registrar recovery exitoso en backend
+    _registerRecoveryInBackend();
+  }
+
+  /// ✅ NUEVO DÍA 4: Continuar heartbeat en background (sin interrumpir)
+  void _continueBackgroundHeartbeat() {
+    debugPrint('💓 Continuando heartbeat en background');
+
+    // El heartbeat sigue funcionando normalmente en background
+    // No se interrumpe por estar en background
+    if (_heartbeatTimer?.isActive == true) {
+      debugPrint('✅ Heartbeat activo en background - sin cambios');
+    }
+  }
+
+  /// ✅ NUEVO DÍA 4: Registrar recovery exitoso en backend
+  Future<void> _registerRecoveryInBackend() async {
+    if (_currentState.currentEvent == null ||
+        _currentState.currentUser == null) {
+      return;
+    }
+
+    try {
+      await _asistenciaService.registrarRecoveryExitoso(
+        usuarioId: _currentState.currentUser!.id,
+        eventoId: _currentState.currentEvent!.id!,
+        downtimeSeconds: _gracePeriodSeconds,
+      );
+
+      debugPrint('✅ Recovery exitoso registrado en backend');
+    } catch (e) {
+      debugPrint('❌ Error registrando recovery: $e');
+    }
   }
 
   // 🎯 MANEJAR EXPIRACIÓN DEL PERÍODO DE GRACIA
@@ -553,52 +597,118 @@ class StudentAttendanceManager {
       case AppLifecycleState.resumed:
         _isAppInForeground = true;
         debugPrint('✅ App en foreground - tracking normal');
+
+        // ✅ NUEVO: Cancelar grace period si estaba activo
+        if (_currentState.isInGracePeriod) {
+          _cancelGracePeriod();
+          _notificationManager.showTrackingResumedNotification();
+        }
         break;
 
       case AppLifecycleState.paused:
         _isAppInForeground = false;
-        debugPrint('⚠️ App pausada - iniciando grace period');
-        _startAppClosedGracePeriod();
+        debugPrint('📱 App en background - tracking continúa normalmente');
+        // ✅ CORREGIDO: NO iniciar grace period para 'paused' - solo background tracking normal
+        _updateBackgroundTrackingStatus();
         break;
 
       case AppLifecycleState.detached:
-        debugPrint('🚨 App DESCONECTADA - PÉRDIDA AUTOMÁTICA DE ASISTENCIA');
-        _triggerAutomaticAttendanceLoss('Aplicación cerrada/eliminada');
+        debugPrint('🚨 App CERRADA COMPLETAMENTE - Iniciando grace period 30s');
+        // ✅ CORREGIDO: SOLO 'detached' inicia grace period de 30 segundos
+        _startAppClosedGracePeriod();
         break;
 
       case AppLifecycleState.inactive:
-        debugPrint('⏸️ App inactiva temporalmente');
+        debugPrint('⏸️ App inactiva temporalmente - sin cambios');
         break;
 
       case AppLifecycleState.hidden:
         _isAppInForeground = false;
-        debugPrint('🙈 App hidden - modo background');
+        debugPrint('🙈 App hidden - background tracking normal');
+        // ✅ CORREGIDO: NO grace period para hidden - solo background tracking
+        _updateBackgroundTrackingStatus();
         break;
     }
   }
 
-  /// Heartbeat crítico al backend
+  /// ✅ NUEVO DÍA 4: Actualizar estado de background tracking (sin penalización)
+  void _updateBackgroundTrackingStatus() {
+    if (_currentState.trackingStatus != TrackingStatus.active) return;
+
+    debugPrint('📱 Actualizando a background tracking - SIN penalización');
+
+    // Mostrar notificación informativa (no warning)
+    _notificationManager.showBackgroundTrackingNotification();
+
+    // Actualizar estado interno sin grace period
+    _updateState(_currentState.copyWith(
+      isInGracePeriod: false,
+      gracePeriodRemaining: 0,
+    ));
+
+    // Continuar heartbeat en background
+    _continueBackgroundHeartbeat();
+  }
+
+  /// ✅ MODIFICADO DÍA 4: Heartbeat crítico mejorado
   Future<void> sendHeartbeatToBackend() async {
     if (_currentState.currentEvent == null ||
-        _currentState.currentUser == null) {
+        _currentState.currentUser == null ||
+        _currentState.trackingStatus != TrackingStatus.active) {
       return;
     }
 
     try {
+      debugPrint('💓 Enviando heartbeat crítico al backend');
+
       final response = await _asistenciaService.enviarHeartbeat(
         usuarioId: _currentState.currentUser!.id,
         eventoId: _currentState.currentEvent!.id!,
+        isAppActive: _isAppInForeground,
+        isInGracePeriod: _currentState.isInGracePeriod,
+        gracePeriodRemaining: _currentState.gracePeriodRemaining,
       );
 
-      if (!response.success) {
-        debugPrint('⚠️ Heartbeat falló: ${response.error}');
-        _handleHeartbeatFailure();
+      if (response.success) {
+        // Procesar comandos del backend si los hay
+        if (response.data != null && response.data!.containsKey('command')) {
+          await _processBackendCommand(response.data!['command']);
+        }
+
+        debugPrint('✅ Heartbeat enviado exitosamente');
       } else {
-        debugPrint('💓 Heartbeat enviado exitosamente');
+        debugPrint('⚠️ Heartbeat falló - intentando reconectar');
+        _handleHeartbeatFailure();
       }
     } catch (e) {
-      debugPrint('❌ Error en heartbeat crítico: $e');
+      debugPrint('❌ Error enviando heartbeat: $e');
       _handleHeartbeatFailure();
+    }
+  }
+
+  Future<void> _processBackendCommand(String command) async {
+    debugPrint('📡 Procesando comando del backend: $command');
+
+    switch (command) {
+      case 'force_attendance_loss':
+        await _triggerAutomaticAttendanceLoss('Comando del backend');
+        break;
+      case 'extend_grace_period':
+        if (_currentState.isInGracePeriod) {
+          // Extender grace period por 15 segundos adicionales
+          _updateState(_currentState.copyWith(
+            gracePeriodRemaining: _currentState.gracePeriodRemaining + 15,
+          ));
+        }
+        break;
+      case 'start_break':
+        await pauseTracking();
+        break;
+      case 'end_break':
+        await resumeTracking();
+        break;
+      default:
+        debugPrint('⚠️ Comando desconocido: $command');
     }
   }
 
@@ -679,16 +789,44 @@ class StudentAttendanceManager {
 
   /// Grace period crítico por cierre de app
   void _startAppClosedGracePeriod() {
-    debugPrint('⏰ Iniciando grace period crítico de 30 segundos');
+    if (_currentState.trackingStatus != TrackingStatus.active) return;
 
+    debugPrint('⏰ INICIANDO GRACE PERIOD CRÍTICO - App cerrada completamente');
+
+    // Actualizar estado con grace period activo
+    _updateState(_currentState.copyWith(
+      isInGracePeriod: true,
+      gracePeriodRemaining: _gracePeriodSeconds,
+    ));
+
+    // Mostrar notificación crítica con countdown
     _notificationManager.showAppClosedWarningNotification(_gracePeriodSeconds);
 
-    Timer(Duration(seconds: _gracePeriodSeconds), () {
-      if (!_isAppInForeground &&
-          _currentState.trackingStatus == TrackingStatus.active) {
-        _triggerAutomaticAttendanceLoss('App cerrada por más de 30 segundos');
-      }
-    });
+    // Iniciar timer de grace period con countdown
+    _gracePeriodTimer?.cancel();
+    _gracePeriodTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
+        final remaining = _currentState.gracePeriodRemaining - 1;
+
+        _updateState(_currentState.copyWith(
+          gracePeriodRemaining: remaining,
+        ));
+
+        // Actualizar notificación cada 5 segundos o cuando quedan ≤ 10s
+        if (remaining % 5 == 0 || remaining <= 10) {
+          _notificationManager.showAppClosedWarningNotification(remaining);
+        }
+
+        debugPrint('⏰ Grace period: ${remaining}s restantes');
+
+        // Si se acaba el tiempo → pérdida automática
+        if (remaining <= 0) {
+          timer.cancel();
+          _triggerAutomaticAttendanceLoss('App cerrada por más de 30 segundos');
+        }
+      },
+    );
   }
 
   /// Manejar app en background

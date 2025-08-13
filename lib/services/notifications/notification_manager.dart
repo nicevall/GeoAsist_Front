@@ -29,6 +29,8 @@ class NotificationManager {
   static const int _connectionErrorId = 1009;
   static const int _attendanceLostId = 1010;
   static const int _eventEndedId = 1011;
+  static const int _backgroundTrackingId = 1012;
+  static const int _trackingResumedId = 1013;
 
   // 🎯 PLUGIN DE NOTIFICACIONES
   late FlutterLocalNotificationsPlugin _notifications;
@@ -224,18 +226,61 @@ class NotificationManager {
     }
   }
 
+  // ✅ NUEVO DÍA 4: Notificación de background tracking normal (SIN penalización)
+  Future<void> showBackgroundTrackingNotification() async {
+    try {
+      debugPrint('📱 Mostrando notificación - Background tracking normal');
+
+      await _showAlertNotification(
+        _backgroundTrackingId,
+        '📱 Tracking en Background',
+        'Tu asistencia sigue activa. Usa tu teléfono normalmente.',
+        'info',
+        autoCloseAfter: 3000, // Auto-close en 3 segundos
+      );
+
+      // Vibración suave para confirmar
+      await HapticFeedback.selectionClick();
+    } catch (e) {
+      debugPrint('❌ Error notificación background tracking: $e');
+    }
+  }
+
+  // ✅ NUEVO DÍA 4: Notificación cuando se reanuda después de grace period
+  Future<void> showTrackingResumedNotification() async {
+    try {
+      debugPrint('✅ Mostrando notificación - Tracking reanudado');
+
+      await _showAlertNotification(
+        _trackingResumedId,
+        '✅ Tracking Reactivado',
+        'Tu asistencia se mantiene segura. ¡Bien hecho!',
+        'success',
+        autoCloseAfter: 4000, // Auto-close en 4 segundos
+      );
+
+      // Vibración de confirmación (doble)
+      await HapticFeedback.selectionClick();
+      await Future.delayed(const Duration(milliseconds: 100));
+      await HapticFeedback.selectionClick();
+    } catch (e) {
+      debugPrint('❌ Error notificación tracking reanudado: $e');
+    }
+  }
+
   // 🎯 NOTIFICACIONES DE GEOFENCE
 
   /// Notificación al entrar al geofence
   Future<void> showGeofenceEnteredNotification(String eventName) async {
     try {
-      debugPrint('✅ Mostrando notificación - Entró al área');
+      debugPrint('✅ Mostrando notificación - Entraste al área');
 
       await _showAlertNotification(
         _geofenceEnteredId,
-        'Entraste al Área',
-        'Ahora estás dentro del área del evento: $eventName',
+        '✅ Entraste al Área',
+        'Área de "$eventName" detectada. Ya puedes registrar asistencia.',
         'success',
+        autoCloseAfter: 5000,
       );
 
       // Vibración de éxito
@@ -248,56 +293,44 @@ class NotificationManager {
   /// Notificación al salir del geofence
   Future<void> showGeofenceExitedNotification(String eventName) async {
     try {
-      debugPrint('⚠️ Mostrando notificación - Salió del área');
+      debugPrint('⚠️ Mostrando notificación - Saliste del área');
 
       await _showAlertNotification(
         _geofenceExitedId,
-        'Saliste del Área',
-        'Tienes 1 minuto para regresar al área del evento: $eventName',
+        '⚠️ Saliste del Área',
+        'Has salido del área de "$eventName". ¡Regresa pronto!',
         'warning',
+        autoCloseAfter: 0, // No auto-close, importante que lo vean
       );
 
-      // Vibración de advertencia
-      await HapticFeedback.heavyImpact();
+      // Vibración de warning
+      await HapticFeedback.mediumImpact();
     } catch (e) {
       debugPrint('❌ Error notificación geofence salida: $e');
     }
   }
 
-  // 🎯 NOTIFICACIONES DE EVENTOS
-
-  /// Notificación cuando el profesor inicia un evento
-  Future<void> showEventStartedNotification(String eventId) async {
+  // ✅ NUEVO DÍA 4: Notificación de evento iniciado
+  Future<void> showEventStartedNotification(String eventName) async {
     try {
-      debugPrint('📢 Mostrando notificación: Evento Iniciado');
+      debugPrint('🎯 Mostrando notificación - Evento iniciado');
 
-      await _notifications.show(
+      await _showAlertNotification(
         _eventStartedId,
         '🎯 Evento Iniciado',
-        'El evento está ahora activo. Los estudiantes pueden unirse.',
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'alerts',
-            'Alertas Críticas',
-            channelDescription: 'Notificaciones importantes del sistema',
-            importance: Importance.high,
-            priority: Priority.high,
-            showWhen: true,
-            enableVibration: true,
-            vibrationPattern: Int64List.fromList([0, 250, 250, 250]),
-            playSound: true,
-          ),
-        ),
+        '"$eventName" ha comenzado. Únete ahora para registrar asistencia.',
+        'info',
+        autoCloseAfter: 8000,
       );
 
-      // Vibración háptica diferenciada
-      HapticFeedback.mediumImpact();
-
-      debugPrint('✅ Notificación "Evento Iniciado" mostrada');
+      // Vibración informativa
+      await HapticFeedback.selectionClick();
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación evento iniciado: $e');
+      debugPrint('❌ Error notificación evento iniciado: $e');
     }
   }
+
+  // 🎯 NOTIFICACIONES DE EVENTOS
 
   /// ✅ NUEVO: Notificación de evento finalizado
   Future<void> showEventEndedNotification(String eventId) async {
@@ -424,44 +457,103 @@ class NotificationManager {
   /// Advertencia crítica cuando la app se cierra
   Future<void> showAppClosedWarningNotification(int secondsRemaining) async {
     try {
-      debugPrint('🚨 Mostrando advertencia crítica - App cerrada');
+      debugPrint(
+          '🚨 Mostrando advertencia crítica - App cerrada ($secondsRemaining s)');
 
-      const androidDetails = AndroidNotificationDetails(
-        _alertsChannelId,
-        'Alertas de Asistencia',
-        importance: Importance.max,
-        priority: Priority.max,
-        ongoing: false,
-        autoCancel: false,
-        playSound: true,
-        enableVibration: true,
-        fullScreenIntent: true, // Mostrar sobre otras apps
-        category: AndroidNotificationCategory.alarm,
-      );
+      // Diferentes niveles de urgencia según el tiempo restante
+      final bool isUrgent = secondsRemaining <= 10;
+      final bool isCritical = secondsRemaining <= 5;
+
+      String title;
+      String body;
+      AndroidNotificationDetails androidDetails;
+
+      if (isCritical) {
+        title = '🚨 CRÍTICO - ${secondsRemaining}s';
+        body = '¡REABRE GEOASIST AHORA O PERDERÁS TU ASISTENCIA!';
+        androidDetails = const AndroidNotificationDetails(
+          _alertsChannelId,
+          'Alertas Críticas',
+          importance: Importance.max,
+          priority: Priority.max,
+          ongoing: false,
+          autoCancel: false,
+          playSound: true,
+          enableVibration: true,
+          fullScreenIntent: true,
+          category: AndroidNotificationCategory.alarm,
+          ticker: 'CRÍTICO: Reabre la app YA',
+          sound: RawResourceAndroidNotificationSound('alarm_critical'),
+        );
+      } else if (isUrgent) {
+        title = '⚠️ URGENTE - ${secondsRemaining}s';
+        body =
+            'Reabre GeoAsist en $secondsRemaining segundos o perderás tu asistencia';
+        androidDetails = const AndroidNotificationDetails(
+          _alertsChannelId,
+          'Alertas Urgentes',
+          importance: Importance.high,
+          priority: Priority.high,
+          ongoing: false,
+          autoCancel: false,
+          playSound: true,
+          enableVibration: true,
+          category: AndroidNotificationCategory.reminder,
+          ticker: 'Reabre la app urgente',
+        );
+      } else {
+        title = '📱 Reabre GeoAsist - ${secondsRemaining}s';
+        body = 'Tienes $secondsRemaining segundos para reabrir la app';
+        androidDetails = const AndroidNotificationDetails(
+          _alertsChannelId,
+          'Alertas de App',
+          importance: Importance.high,
+          priority: Priority.high,
+          ongoing: false,
+          autoCancel: false,
+          playSound: true,
+          enableVibration: true,
+          category: AndroidNotificationCategory.reminder,
+        );
+      }
 
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
         interruptionLevel: InterruptionLevel.critical,
+        sound: 'alarm_critical.aiff',
       );
 
-      const details = NotificationDetails(
+      final details = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
 
       await _notifications.show(
         _appClosedWarningId,
-        '🚨 REABRE GEOASIST YA',
-        'Tienes ${secondsRemaining}s para reabrir la app o perderás tu asistencia',
+        title,
+        body,
         details,
       );
 
-      // Vibración intensa de emergencia
-      await HapticFeedback.heavyImpact();
-      await Future.delayed(const Duration(milliseconds: 100));
-      await HapticFeedback.heavyImpact();
+      // Vibración escalada según urgencia
+      if (isCritical) {
+        // Vibración crítica intensa (3 veces)
+        await HapticFeedback.heavyImpact();
+        await Future.delayed(const Duration(milliseconds: 100));
+        await HapticFeedback.heavyImpact();
+        await Future.delayed(const Duration(milliseconds: 100));
+        await HapticFeedback.heavyImpact();
+      } else if (isUrgent) {
+        // Vibración urgente (2 veces)
+        await HapticFeedback.heavyImpact();
+        await Future.delayed(const Duration(milliseconds: 100));
+        await HapticFeedback.heavyImpact();
+      } else {
+        // Vibración normal de warning
+        await HapticFeedback.mediumImpact();
+      }
     } catch (e) {
       debugPrint('❌ Error notificación app cerrada: $e');
     }
@@ -485,33 +577,99 @@ class NotificationManager {
 
   // 🎯 MÉTODO AUXILIAR PARA ALERTAS
 
+  // ✅ MEJORADO DÍA 4: Método helper para mostrar alertas con auto-close
   Future<void> _showAlertNotification(
     int id,
     String title,
     String body,
-    String type, // 'success', 'warning', 'info', 'critical'
-  ) async {
+    String type, {
+    int autoCloseAfter =
+        0, // 0 = no auto-close, >0 = milliseconds to auto-close
+  }) async {
     try {
-      // Configurar según el tipo de alerta
-      final config = _getAlertConfig(type);
+      // Configuración según tipo
+      AndroidNotificationDetails androidDetails;
+      Color? notificationColor;
+      DarwinNotificationDetails iosDetails;
 
-      final androidDetails = AndroidNotificationDetails(
-        _alertsChannelId,
-        'Alertas de Asistencia',
-        importance: config['importance'],
-        priority: config['priority'],
-        playSound: config['playSound'],
-        enableVibration: config['enableVibration'],
-        autoCancel: true,
-        icon: config['icon'],
-      );
+      switch (type) {
+        case 'success':
+          notificationColor = const Color(0xFF27AE60); // Verde
+          androidDetails = AndroidNotificationDetails(
+            _alertsChannelId,
+            'Alertas de Éxito',
+            importance: Importance.defaultImportance,
+            priority: Priority.defaultPriority,
+            playSound: true,
+            enableVibration: true,
+            color: notificationColor,
+            icon: '@drawable/ic_success',
+          );
+          iosDetails = const DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: true,
+            sound: 'success.aiff',
+          );
+          break;
 
-      final iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: config['playSound'],
-        interruptionLevel: config['interruptionLevel'],
-      );
+        case 'warning':
+          notificationColor = const Color(0xFFF39C12); // Naranja
+          androidDetails = AndroidNotificationDetails(
+            _alertsChannelId,
+            'Alertas de Advertencia',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+            color: notificationColor,
+            icon: '@drawable/ic_warning',
+          );
+          iosDetails = const DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: true,
+            sound: 'warning.aiff',
+          );
+          break;
+
+        case 'error':
+          notificationColor = const Color(0xFFE74C3C); // Rojo
+          androidDetails = AndroidNotificationDetails(
+            _alertsChannelId,
+            'Alertas de Error',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+            color: notificationColor,
+            icon: '@drawable/ic_error',
+          );
+          iosDetails = const DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: true,
+            sound: 'error.aiff',
+            interruptionLevel: InterruptionLevel.active,
+          );
+          break;
+
+        case 'info':
+        default:
+          notificationColor = const Color(0xFF3498DB); // Azul
+          androidDetails = AndroidNotificationDetails(
+            _alertsChannelId,
+            'Alertas Informativas',
+            importance: Importance.defaultImportance,
+            priority: Priority.defaultPriority,
+            playSound: false,
+            enableVibration: false,
+            color: notificationColor,
+            icon: '@drawable/ic_info',
+          );
+          iosDetails = const DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: false,
+          );
+          break;
+      }
 
       final details = NotificationDetails(
         android: androidDetails,
@@ -519,49 +677,111 @@ class NotificationManager {
       );
 
       await _notifications.show(id, title, body, details);
+
+      // Auto-close si se especifica
+      if (autoCloseAfter > 0) {
+        Timer(Duration(milliseconds: autoCloseAfter), () async {
+          await cancelNotification(id);
+        });
+      }
     } catch (e) {
-      debugPrint('❌ Error mostrando alerta: $e');
+      debugPrint('❌ Error mostrando alerta ($type): $e');
     }
   }
 
-  Map<String, dynamic> _getAlertConfig(String type) {
-    switch (type) {
-      case 'success':
-        return {
-          'importance': Importance.defaultImportance,
-          'priority': Priority.defaultPriority,
-          'playSound': false,
-          'enableVibration': true,
-          'icon': '@mipmap/ic_launcher',
-          'interruptionLevel': InterruptionLevel.active,
-        };
-      case 'warning':
-        return {
-          'importance': Importance.high,
-          'priority': Priority.high,
-          'playSound': true,
-          'enableVibration': true,
-          'icon': '@mipmap/ic_launcher',
-          'interruptionLevel': InterruptionLevel.timeSensitive,
-        };
-      case 'critical':
-        return {
-          'importance': Importance.max,
-          'priority': Priority.max,
-          'playSound': true,
-          'enableVibration': true,
-          'icon': '@mipmap/ic_launcher',
-          'interruptionLevel': InterruptionLevel.critical,
-        };
-      default: // 'info'
-        return {
-          'importance': Importance.defaultImportance,
-          'priority': Priority.defaultPriority,
-          'playSound': false,
-          'enableVibration': false,
-          'icon': '@mipmap/ic_launcher',
-          'interruptionLevel': InterruptionLevel.active,
-        };
+  Map<String, dynamic> getImplementedNotifications() {
+    return {
+      'total_notifications': 14,
+      'notifications': [
+        {
+          'id': _trackingNotificationId,
+          'name': 'tracking_active',
+          'type': 'persistent'
+        },
+        {'id': _geofenceEnteredId, 'name': 'geofence_entered', 'type': 'alert'},
+        {'id': _geofenceExitedId, 'name': 'geofence_exited', 'type': 'alert'},
+        {'id': _breakStartedId, 'name': 'break_started', 'type': 'alert'},
+        {'id': _breakEndedId, 'name': 'break_ended', 'type': 'alert'},
+        {
+          'id': _attendanceRegisteredId,
+          'name': 'attendance_registered',
+          'type': 'alert'
+        },
+        {
+          'id': _appClosedWarningId,
+          'name': 'app_closed_warning',
+          'type': 'critical'
+        },
+        {
+          'id': _backgroundTrackingId,
+          'name': 'background_tracking',
+          'type': 'info'
+        },
+        {
+          'id': _trackingResumedId,
+          'name': 'tracking_resumed',
+          'type': 'success'
+        },
+        {
+          'id': _attendanceLostId,
+          'name': 'attendance_lost',
+          'type': 'critical'
+        },
+        {'id': _eventStartedId, 'name': 'event_started', 'type': 'info'},
+        {
+          'id': _connectionErrorId,
+          'name': 'connection_error',
+          'type': 'warning'
+        },
+        {
+          'id': _criticalWarningId,
+          'name': 'critical_lifecycle_warning',
+          'type': 'critical'
+        },
+      ],
+      'channels': [
+        {'id': _trackingChannelId, 'name': 'tracking', 'importance': 'low'},
+        {'id': _alertsChannelId, 'name': 'alerts', 'importance': 'high'},
+      ],
+    };
+  }
+
+  Future<void> testAllNotifications() async {
+    if (!kDebugMode) return; // Solo en debug mode
+
+    debugPrint('🧪 TESTING: Probando todas las notificaciones...');
+
+    try {
+      await showTrackingActiveNotification();
+      await Future.delayed(const Duration(seconds: 2));
+
+      await showBackgroundTrackingNotification();
+      await Future.delayed(const Duration(seconds: 2));
+
+      await showGeofenceEnteredNotification('Evento de Prueba');
+      await Future.delayed(const Duration(seconds: 2));
+
+      await showGeofenceExitedNotification('Evento de Prueba');
+      await Future.delayed(const Duration(seconds: 2));
+
+      await showEventStartedNotification('Evento de Prueba');
+      await Future.delayed(const Duration(seconds: 2));
+
+      await showBreakStartedNotification();
+      await Future.delayed(const Duration(seconds: 2));
+
+      await showBreakEndedNotification();
+      await Future.delayed(const Duration(seconds: 2));
+
+      await showAttendanceRegisteredNotification();
+      await Future.delayed(const Duration(seconds: 2));
+
+      await showTrackingResumedNotification();
+      await Future.delayed(const Duration(seconds: 2));
+
+      debugPrint('✅ TESTING: Todas las notificaciones probadas');
+    } catch (e) {
+      debugPrint('❌ TESTING: Error probando notificaciones: $e');
     }
   }
 
@@ -664,16 +884,44 @@ class NotificationManager {
     try {
       debugPrint('❌ Mostrando notificación - Asistencia perdida');
 
-      await _showAlertNotification(
-        _attendanceLostId,
-        'Asistencia Perdida',
-        'Has perdido tu asistencia. Razón: $reason',
-        'critical',
+      const androidDetails = AndroidNotificationDetails(
+        _alertsChannelId,
+        'Alertas Críticas',
+        importance: Importance.max,
+        priority: Priority.max,
+        ongoing: false,
+        autoCancel: false,
+        playSound: true,
+        enableVibration: true,
+        category: AndroidNotificationCategory.error,
+        ticker: 'Asistencia perdida',
+        color: Color(0xFFE74C3C), // Rojo para error
       );
 
-      // Vibración crítica
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.critical,
+      );
+
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notifications.show(
+        _attendanceLostId,
+        '❌ Asistencia Perdida',
+        'Motivo: $reason. Contacta a tu profesor.',
+        details,
+      );
+
+      // Vibración de error (larga)
       await HapticFeedback.heavyImpact();
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 500));
+      await HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 500));
       await HapticFeedback.heavyImpact();
     } catch (e) {
       debugPrint('❌ Error notificación asistencia perdida: $e');
