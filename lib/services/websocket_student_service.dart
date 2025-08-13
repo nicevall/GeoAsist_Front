@@ -57,7 +57,7 @@ class WebSocketStudentService {
   // 🎯 CONFIGURACIÓN
   static const Duration _connectionTimeout = Duration(seconds: 15);
   static const Duration _heartbeatInterval = Duration(seconds: 30);
-  static const String _wsBaseUrl = 'ws://54.210.246.199';
+  static const String _wsBaseUrl = 'ws://44.211.171.188';
 
   /// Stream público para escuchar notificaciones
   Stream<StudentNotification> get notificationStream =>

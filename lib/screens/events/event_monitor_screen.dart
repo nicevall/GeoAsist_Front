@@ -38,6 +38,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   // 🎯 ESTADO DEL RECESO
   bool _isBreakActive = false;
   DateTime? _breakStartTime;
+  Timer? _breakDurationTimer;
 
   // 🎯 WEBSOCKET REAL - NUEVAS PROPIEDADES
   WebSocketChannel? _wsChannel;
@@ -77,6 +78,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     _refreshController.dispose();
     _pulseController.dispose();
     _realtimeUpdateTimer?.cancel();
+    _breakDurationTimer?.cancel();
 
     // ✅ NUEVO: Limpiar WebSocket
     _cleanupWebSocket();
@@ -368,29 +370,62 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     try {
       debugPrint('▶️ Terminando receso para evento: ${widget.eventId}');
 
+      // 1. Obtener duración como texto ANTES de limpiar _breakStartTime
+      final breakDurationText = _getBreakDurationText();
+
+      // 2. Llamar al backend para terminar receso
       final result = await _eventoService.terminarReceso(widget.eventId);
 
       if (result) {
+        // 3. Limpiar timers ANTES de actualizar estado
+        _stopBreakDurationTimer();
+
+        // 4. Actualizar estado local
         setState(() {
           _isBreakActive = false;
           _breakStartTime = null;
         });
 
-        // ✅ NUEVO: Notificación automática a estudiantes
+        // 5. Notificar a estudiantes automáticamente
         await _notificationManager.showBreakEndedNotification(widget.eventId);
 
+        // 6. Refrescar datos para sincronizar con backend
         await _refreshData();
 
+        // 7. Mostrar confirmación al profesor con duración
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('▶️ Receso terminado - Estudiantes notificados'),
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.play_circle_filled, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('▶️ Receso terminado'),
+                      Text(
+                        'Duración: $breakDurationText - Estudiantes notificados',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white
+                              .withValues(alpha: 0.8), // ✅ CORREGIDO
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 4),
           ),
         );
 
-        debugPrint('✅ Receso terminado con notificación automática');
+        debugPrint(
+            '✅ Receso terminado exitosamente. Duración: $breakDurationText');
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -402,6 +437,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       }
     } catch (e) {
       debugPrint('❌ Error terminando receso: $e');
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -424,21 +460,48 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           _breakStartTime = DateTime.now();
         });
 
-        // ✅ NUEVO: Notificación automática a estudiantes
+        _startBreakDurationTimer();
         await _notificationManager.showBreakStartedNotification(widget.eventId);
-
         await _refreshData();
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('⏸️ Receso iniciado - Estudiantes notificados'),
-            backgroundColor: Colors.blue,
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.pause_circle_filled, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('⏸️ Receso iniciado'),
+                      Text(
+                        'Estudiantes notificados automáticamente',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white
+                              .withValues(alpha: 0.8), // ✅ CORREGIDO
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Terminar',
+              textColor: Colors.white,
+              onPressed: _endBreak,
+            ),
           ),
         );
 
-        debugPrint('✅ Receso iniciado con notificación automática');
+        debugPrint(
+            '✅ Receso iniciado exitosamente a las ${_formatTime(_breakStartTime!)}');
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -450,6 +513,12 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       }
     } catch (e) {
       debugPrint('❌ Error iniciando receso: $e');
+
+      setState(() {
+        _isBreakActive = false;
+        _breakStartTime = null;
+      });
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -458,6 +527,103 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         ),
       );
     }
+  }
+
+  /// Iniciar timer para actualizar duración del receso en tiempo real
+  void _startBreakDurationTimer() {
+    _breakDurationTimer?.cancel(); // Cancelar timer previo si existe
+
+    _breakDurationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted && _isBreakActive && _breakStartTime != null) {
+        setState(() {}); // Trigger rebuild para actualizar UI
+      } else {
+        timer.cancel(); // Auto-cancelar si no cumple condiciones
+      }
+    });
+
+    debugPrint('⏰ Timer de duración de receso iniciado');
+  }
+
+  /// Detener timer de duración del receso
+  void _stopBreakDurationTimer() {
+    _breakDurationTimer?.cancel();
+    _breakDurationTimer = null;
+    debugPrint('⏰ Timer de duración de receso detenido');
+  }
+
+  /// Obtener duración actual del receso como Duration
+  Duration _getBreakDuration() {
+    if (_breakStartTime == null) return Duration.zero;
+    return DateTime.now().difference(_breakStartTime!);
+  }
+
+  /// Obtener duración del receso como texto formateado
+  String _getBreakDurationText() {
+    if (_breakStartTime == null) return '00:00';
+
+    final duration = _getBreakDuration();
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  /// Formatear DateTime a texto legible
+  String _formatTime(DateTime dateTime) {
+    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  // ✅ WIDGET PARA MOSTRAR ESTADO DEL RECESO (OPCIONAL - AGREGAR A TU UI)
+  Widget _buildBreakStatusWidget() {
+    if (!_isBreakActive || _breakStartTime == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.1), // ✅ CORREGIDO
+        border: Border.all(color: Colors.orange),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.pause_circle_filled, color: Colors.orange, size: 20),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Receso Activo',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              Text(
+                'Duración: ${_getBreakDurationText()}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.orange.shade700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 16),
+          TextButton.icon(
+            onPressed: _endBreak,
+            icon: const Icon(Icons.play_circle_filled, size: 18),
+            label: const Text('Terminar'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.orange,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _connectWebSocket() async {
@@ -473,9 +639,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
       // ✅ MEJORADO: WebSocket con query parameters de autenticación
       final wsUrl =
-          'ws://54.210.246.199?token=$token&eventId=${widget.eventId}&role=docente';
+          'ws://44.211.171.188?token=$token&eventId=${widget.eventId}&role=docente';
       debugPrint(
-          '📡 URL WebSocket con auth: ws://54.210.246.199?token=***&eventId=${widget.eventId}');
+          '📡 URL WebSocket con auth: ws://44.211.171.188?token=***&eventId=${widget.eventId}');
 
       _wsChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
@@ -532,9 +698,21 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // ✅ CORREGIDO: Color básico
+      backgroundColor: Colors.grey[100],
       appBar: _buildAppBar(),
-      body: _isLoading ? _buildLoadingState() : _buildEventMonitorContent(),
+      body: Column(
+        // ✅ CAMBIAR DE body directo a Column
+        children: [
+          // ✅ AGREGAR: Widget de estado del receso
+          _buildBreakStatusWidget(),
+
+          // ✅ MODIFICAR: Tu contenido existente pero expandido
+          Expanded(
+            child:
+                _isLoading ? _buildLoadingState() : _buildEventMonitorContent(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1143,7 +1321,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   /// Manejar mensajes del WebSocket
   void _handleWebSocketMessage(dynamic message) {
     try {
-      final data = jsonDecode(message);
+      final Map<String, dynamic> data = jsonDecode(message);
       debugPrint('📨 Mensaje WebSocket recibido: ${data['type']}');
 
       switch (data['type']) {
