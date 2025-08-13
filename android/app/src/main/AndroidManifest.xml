@@ -1,5 +1,4 @@
 <!-- android/app/src/main/AndroidManifest.xml -->
-
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     
     <!-- ✅ PERMISOS CRÍTICOS PARA TRACKING CONTINUO -->
@@ -13,6 +12,12 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    
+    <!-- 🔥 NUEVOS PERMISOS CRÍTICOS PARA FOREGROUNDSERVICE -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <!-- ✅ CARACTERÍSTICAS GPS REQUERIDAS -->
     <uses-feature 
@@ -50,7 +55,16 @@
             </intent-filter>
         </activity>
         
-        <!-- ✅ SERVICIO PARA TRACKING CONTINUO -->
+        <!-- 🔥 SERVICIO FOREGROUND NATIVO PARA TRACKING CRÍTICO -->
+        <service
+            android:name=".TrackingForegroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location"
+            android:stopWithTask="false"
+            android:directBootAware="true" />
+        
+        <!-- ✅ SERVICIO PARA TRACKING CONTINUO (WorkManager) -->
         <service
             android:name="dev.fluttercommunity.workmanager.WorkmanagerPlugin$BackgroundWorker"
             android:exported="false" />
@@ -59,14 +73,22 @@
         <receiver 
             android:name=".BootReceiver"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:directBootAware="true">
             <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED"/>
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
                 <action android:name="android.intent.action.PACKAGE_REPLACED"/>
                 <data android:scheme="package"/>
             </intent-filter>
         </receiver>
+        
+        <!-- 🔥 RECEIVER PARA ALARMAS EXACTAS (HEARTBEAT CRÍTICO) -->
+        <receiver
+            android:name=".HeartbeatAlarmReceiver"
+            android:enabled="true"
+            android:exported="false" />
         
         <meta-data
             android:name="flutterEmbedding"
@@ -76,12 +98,21 @@
         <meta-data 
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyB7aK19MzXW4bBXvvyoAH9OqeXDwa4zbOU" />
+            
+        <!-- 🔥 CONFIGURACIÓN PARA BATTERY OPTIMIZATION -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc"/>
     </application>
     
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- 🔥 QUERY PARA BATTERY OPTIMIZATION -->
+        <intent>
+            <action android:name="android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
         </intent>
     </queries>
 </manifest>

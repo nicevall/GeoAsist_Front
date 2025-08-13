@@ -1,16 +1,22 @@
 // lib/services/background_service.dart
+// 🔥 SERVICIO COMPLETO - FOREGROUNDSERVICE NATIVO + WORKMANAGER + LIFECYCLE MANAGEMENT
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:workmanager/workmanager.dart';
 import '../services/notifications/notification_manager.dart';
 import '../services/asistencia_service.dart';
 import '../services/storage_service.dart';
 
-/// Servicio para manejo de tareas en background y ForegroundService
+/// Servicio completo de background con ForegroundService nativo de Android
 class BackgroundService {
   static final BackgroundService _instance = BackgroundService._internal();
   factory BackgroundService() => _instance;
   BackgroundService._internal();
+
+  // 🔥 METHODCHANNEL PARA COMUNICACIÓN NATIVA
+  static const MethodChannel _nativeChannel =
+      MethodChannel('com.geoasist/foreground_service');
 
   // 🎯 IDENTIFICADORES DE TAREAS
   static const String _trackingTaskName = 'tracking_task';
@@ -21,39 +27,50 @@ class BackgroundService {
   // 🎯 SERVICIOS
   late NotificationManager _notificationManager;
   late AsistenciaService _asistenciaService;
-// ✅ CORRECCIÓN: Remover unused warning
 
   // 🎯 ESTADO DEL SERVICIO
   bool _isInitialized = false;
   bool _isForegroundServiceActive = false;
-  bool _isWakeLockActive =
-      false; // ✅ Mantener para compatibilidad pero no usar wakelock
+  bool _isNativeForegroundActive =
+      false; // 🔥 NUEVO: Estado del servicio nativo
+  bool _isWakeLockActive = false;
   String? _currentEventId;
   String? _currentUserId;
+  DateTime? _lastHeartbeat; // 🔥 NUEVO: Último heartbeat
+  int _gracePeriodSeconds = 30; // 🔥 NUEVO: Contador de grace period
+  bool _isInGracePeriod = false; // 🔥 NUEVO: Estado de grace period
 
   // 🎯 TIMERS Y CONTROLADORES
   Timer? _heartbeatTimer;
   Timer? _locationTimer;
   Timer? _lifecycleTimer;
+  Timer? _gracePeriodTimer; // 🔥 NUEVO: Timer para grace period
 
-  /// Inicializar el servicio de background
+  /// Inicializar el servicio de background completo
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      debugPrint('🚀 Inicializando BackgroundService');
+      debugPrint(
+          '🚀 Inicializando BackgroundService con ForegroundService nativo');
 
       _notificationManager = NotificationManager();
       _asistenciaService = AsistenciaService();
 
-      // Inicializar WorkManager
+      // 1. Inicializar notificaciones
+      await _notificationManager.initialize();
+
+      // 2. Inicializar WorkManager
       await _initializeWorkManager();
 
+      // 3. 🔥 NUEVO: Verificar battery optimization
+      await _checkBatteryOptimizationStatus();
+
       _isInitialized = true;
-      debugPrint('✅ BackgroundService inicializado correctamente');
+      debugPrint('✅ BackgroundService inicializado con soporte nativo');
     } catch (e) {
       debugPrint('❌ Error inicializando BackgroundService: $e');
-      rethrow; // ✅ CORRECCIÓN: usar rethrow
+      rethrow;
     }
   }
 
@@ -63,70 +80,138 @@ class BackgroundService {
 
       await Workmanager().initialize(
         callbackDispatcher,
-        // ✅ CORRECCIÓN: Eliminar isInDebugMode deprecated
-        // isInDebugMode: kDebugMode, // ❌ DEPRECATED
       );
 
       debugPrint('✅ WorkManager configurado');
     } catch (e) {
       debugPrint('❌ Error configurando WorkManager: $e');
-      rethrow; // ✅ CORRECCIÓN: usar rethrow
+      rethrow;
     }
   }
 
-  // 🎯 FOREGROUND SERVICE
+  // 🔥 FOREGROUND SERVICE NATIVO - INTEGRACIÓN COMPLETA
 
-  /// Iniciar servicio foreground persistente
-  Future<void> startForegroundService() async {
+  /// Iniciar ForegroundService nativo de Android + WorkManager
+  Future<void> startForegroundService({
+    required String userId,
+    required String eventId,
+  }) async {
     try {
-      debugPrint('▶️ Iniciando ForegroundService');
+      debugPrint('🚀 Iniciando ForegroundService nativo completo');
 
       if (_isForegroundServiceActive) {
         debugPrint('⚠️ ForegroundService ya está activo');
         return;
       }
 
-      // 1. Crear notificación persistente
+      // 1. Guardar contexto del evento
+      _currentEventId = eventId;
+      _currentUserId = userId;
+
+      // 2. 🔥 NUEVO: Iniciar ForegroundService nativo de Android
+      final nativeSuccess = await _startNativeForegroundService();
+      if (!nativeSuccess) {
+        debugPrint('❌ No se pudo iniciar ForegroundService nativo');
+        // Continuar con WorkManager aunque falle el nativo
+      }
+
+      // 3. Crear notificación persistente de Flutter
       await _createPersistentTrackingNotification();
 
-      // 2. ✅ CORRECCIÓN: Usar permisos nativos en lugar de wakelock
+      // 4. Activar wake lock nativo
       await _enableNativeWakeLock();
 
-      // 3. Registrar tareas de background críticas
+      // 5. Registrar tareas de WorkManager
       await _registerBackgroundTasks();
 
-      // 4. Iniciar timers críticos
+      // 6. Iniciar timers críticos de Flutter
       _startCriticalTimers();
 
+      // 7. Configurar tracking para el evento
+      await setupTrackingForEvent(eventId, userId);
+
       _isForegroundServiceActive = true;
-      debugPrint('✅ ForegroundService iniciado exitosamente');
+      _lastHeartbeat = DateTime.now();
+
+      debugPrint('✅ ForegroundService COMPLETO iniciado (Nativo + Flutter)');
     } catch (e) {
-      debugPrint('❌ Error iniciando ForegroundService: $e');
-      rethrow; // ✅ CORRECCIÓN: usar rethrow
+      debugPrint('❌ Error iniciando ForegroundService completo: $e');
+      rethrow;
     }
   }
 
-  /// Detener servicio foreground
+  /// 🔥 NUEVO: Iniciar el ForegroundService nativo de Android
+  Future<bool> _startNativeForegroundService() async {
+    try {
+      debugPrint('📱 Iniciando ForegroundService nativo de Android');
+
+      final success =
+          await _nativeChannel.invokeMethod<bool>('startForegroundService') ??
+              false;
+
+      if (success) {
+        _isNativeForegroundActive = true;
+        debugPrint('✅ ForegroundService nativo iniciado exitosamente');
+      } else {
+        debugPrint('❌ ForegroundService nativo falló al iniciar');
+      }
+
+      return success;
+    } catch (e) {
+      debugPrint('❌ Error comunicándose con ForegroundService nativo: $e');
+      return false;
+    }
+  }
+
+  /// Detener ForegroundService nativo + WorkManager
   Future<void> stopForegroundService() async {
     try {
-      debugPrint('⏹️ Deteniendo ForegroundService');
+      debugPrint('🛑 Deteniendo ForegroundService completo');
 
-      // 1. Cancelar todas las tareas
+      // 1. 🔥 NUEVO: Detener ForegroundService nativo
+      await _stopNativeForegroundService();
+
+      // 2. Cancelar todas las tareas de WorkManager
       await _cancelAllBackgroundTasks();
 
-      // 2. Detener timers
+      // 3. Detener timers de Flutter
       _stopCriticalTimers();
 
-      // 3. ✅ CORRECCIÓN: Desactivar wake lock nativo
+      // 4. 🔥 NUEVO: Cancelar grace period si está activo
+      _cancelGracePeriod();
+
+      // 5. Desactivar wake lock nativo
       await _disableNativeWakeLock();
 
-      // 4. Limpiar notificaciones
+      // 6. Limpiar notificaciones de Flutter
       await _notificationManager.clearAllNotifications();
 
+      // 7. Limpiar estado
       _isForegroundServiceActive = false;
-      debugPrint('✅ ForegroundService detenido');
+      _isNativeForegroundActive = false;
+      _currentUserId = null;
+      _currentEventId = null;
+      _lastHeartbeat = null;
+
+      debugPrint('✅ ForegroundService COMPLETO detenido');
     } catch (e) {
       debugPrint('❌ Error deteniendo ForegroundService: $e');
+    }
+  }
+
+  /// 🔥 NUEVO: Detener el ForegroundService nativo de Android
+  Future<void> _stopNativeForegroundService() async {
+    try {
+      if (!_isNativeForegroundActive) return;
+
+      debugPrint('📱 Deteniendo ForegroundService nativo de Android');
+
+      await _nativeChannel.invokeMethod('stopForegroundService');
+      _isNativeForegroundActive = false;
+
+      debugPrint('✅ ForegroundService nativo detenido');
+    } catch (e) {
+      debugPrint('❌ Error deteniendo ForegroundService nativo: $e');
     }
   }
 
@@ -139,20 +224,20 @@ class BackgroundService {
       debugPrint('✅ Notificación persistente creada');
     } catch (e) {
       debugPrint('❌ Error creando notificación persistente: $e');
-      rethrow; // ✅ CORRECCIÓN: usar rethrow
+      rethrow;
     }
   }
 
-  // 🎯 ✅ CORRECCIÓN: NATIVE WAKE LOCK EN LUGAR DE PLUGIN
+  // 🎯 NATIVE WAKE LOCK
 
-  /// ✅ Activar wake lock usando permisos nativos de Android
+  /// Activar wake lock usando permisos nativos de Android
   Future<void> _enableNativeWakeLock() async {
     try {
       if (_isWakeLockActive) return;
 
       debugPrint('🔋 Activando Wake Lock nativo (Android permissions)');
 
-      // ✅ El permiso WAKE_LOCK ya está en AndroidManifest.xml
+      // El permiso WAKE_LOCK ya está en AndroidManifest.xml
       // El sistema Android gestiona automáticamente el wake lock
       // con ForegroundService + WorkManager
       _isWakeLockActive = true;
@@ -165,14 +250,14 @@ class BackgroundService {
     }
   }
 
-  /// ✅ Desactivar wake lock nativo
+  /// Desactivar wake lock nativo
   Future<void> _disableNativeWakeLock() async {
     try {
       if (!_isWakeLockActive) return;
 
       debugPrint('🔋 Desactivando Wake Lock nativo');
 
-      // ✅ El sistema Android libera automáticamente el wake lock
+      // El sistema Android libera automáticamente el wake lock
       // cuando se detiene el ForegroundService
       _isWakeLockActive = false;
 
@@ -180,6 +265,91 @@ class BackgroundService {
     } catch (e) {
       debugPrint('❌ Error desactivando Wake Lock nativo: $e');
     }
+  }
+
+  // 🔥 NUEVOS MÉTODOS CRÍTICOS
+
+  /// Verificar y solicitar exención de optimización de batería
+  Future<void> _checkBatteryOptimizationStatus() async {
+    try {
+      debugPrint('🔋 Verificando optimización de batería');
+
+      final isIgnored = await _nativeChannel
+              .invokeMethod<bool>('isBatteryOptimizationIgnored') ??
+          false;
+
+      if (!isIgnored) {
+        debugPrint('⚡ Solicitando exención de optimización de batería');
+        await _nativeChannel
+            .invokeMethod('requestBatteryOptimizationExemption');
+      } else {
+        debugPrint('✅ App ya está exenta de optimización de batería');
+      }
+    } catch (e) {
+      debugPrint('❌ Error verificando battery optimization: $e');
+    }
+  }
+
+  /// 🔥 NUEVO: Actualizar estado de la notificación nativa
+  Future<void> updateNativeNotificationStatus(String status) async {
+    try {
+      if (!_isNativeForegroundActive) return;
+
+      debugPrint('📱 Actualizando notificación nativa: $status');
+
+      await _nativeChannel.invokeMethod('updateNotificationStatus', {
+        'status': status,
+      });
+    } catch (e) {
+      debugPrint('❌ Error actualizando notificación nativa: $e');
+    }
+  }
+
+  /// 🔥 NUEVO: Iniciar el período de gracia de 30 segundos
+  Future<void> _startGracePeriod() async {
+    if (_isInGracePeriod) return;
+
+    debugPrint('⏳ Iniciando grace period de 30 segundos');
+
+    _isInGracePeriod = true;
+    _gracePeriodSeconds = 30;
+
+    // Timer que cuenta regresivamente cada segundo
+    _gracePeriodTimer =
+        Timer.periodic(const Duration(seconds: 1), (timer) async {
+      _gracePeriodSeconds--;
+
+      // Mostrar notificación de countdown cada 5 segundos
+      if (_gracePeriodSeconds % 5 == 0 || _gracePeriodSeconds <= 10) {
+        await _notificationManager
+            .showAppClosedWarningNotification(_gracePeriodSeconds);
+      }
+
+      // Actualizar notificación nativa también
+      await updateNativeNotificationStatus(
+          'REABRE YA - ${_gracePeriodSeconds}s');
+
+      // Si se acaba el tiempo, activar pérdida de asistencia
+      if (_gracePeriodSeconds <= 0) {
+        timer.cancel();
+        await triggerAttendanceLossProtocol('Grace period expirado');
+      }
+    });
+  }
+
+  /// 🔥 NUEVO: Cancelar el período de gracia
+  void _cancelGracePeriod() {
+    if (!_isInGracePeriod) return;
+
+    debugPrint('✅ Cancelando grace period - App reactivada');
+
+    _gracePeriodTimer?.cancel();
+    _gracePeriodTimer = null;
+    _isInGracePeriod = false;
+    _gracePeriodSeconds = 30;
+
+    // Limpiar notificaciones de warning
+    _notificationManager.clearAllNotifications();
   }
 
   // 🎯 BACKGROUND TASKS
@@ -204,7 +374,7 @@ class BackgroundService {
       debugPrint('✅ Todas las tareas de background registradas');
     } catch (e) {
       debugPrint('❌ Error registrando tareas: $e');
-      rethrow; // ✅ CORRECCIÓN: usar rethrow
+      rethrow;
     }
   }
 
@@ -345,22 +515,34 @@ class BackgroundService {
     debugPrint('✅ Timers detenidos');
   }
 
-  // 🎯 EJECUCIÓN DE TAREAS
+  // 🎯 EJECUCIÓN DE TAREAS - MEJORADAS
 
+  /// 🔥 MODIFICADO: Heartbeat con validación de estado
   Future<void> _performHeartbeat() async {
     try {
       if (_currentUserId == null || _currentEventId == null) return;
 
-      debugPrint('💓 Enviando heartbeat desde timer');
+      debugPrint('💓 Enviando heartbeat crítico con validación');
 
       await _asistenciaService.actualizarUbicacion(
         usuarioId: _currentUserId!,
         eventoId: _currentEventId!,
-        latitud: 0.0, // Se actualizará con ubicación real
+        latitud: 0.0, // GPS real implementado en StudentAttendanceManager
         longitud: 0.0,
       );
+
+      _lastHeartbeat = DateTime.now();
+
+      // Actualizar ambas notificaciones con último heartbeat
+      final now = DateTime.now();
+      final timeString = '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+
+      await updateNativeNotificationStatus('Heartbeat: $timeString');
+      await _notificationManager
+          .updateTrackingNotificationStatus('Heartbeat: $timeString');
     } catch (e) {
-      debugPrint('❌ Error en heartbeat: $e');
+      debugPrint('❌ Error crítico en heartbeat: $e');
+      await _handleHeartbeatFailure();
     }
   }
 
@@ -377,17 +559,39 @@ class BackgroundService {
     }
   }
 
+  /// 🔥 MODIFICADO: Lifecycle check con validación nativa
   Future<void> _performLifecycleCheck() async {
     try {
-      debugPrint('🔄 Verificando estado de lifecycle');
+      debugPrint('🔄 Verificando estado de app lifecycle');
 
-      // Verificar que el servicio sigue activo
-      if (_isForegroundServiceActive) {
-        await _updateTrackingNotificationStatus('Tracking Activo');
+      // Verificar que ambos servicios siguen activos
+      if (_isForegroundServiceActive && _lastHeartbeat != null) {
+        final timeSinceLastHeartbeat =
+            DateTime.now().difference(_lastHeartbeat!);
+
+        if (timeSinceLastHeartbeat.inSeconds > 60) {
+          debugPrint('⚠️ Heartbeat perdido - reiniciando');
+          await _performHeartbeat();
+        }
+
+        // 🔥 NUEVO: Verificar estado del servicio nativo también
+        if (_isNativeForegroundActive) {
+          await updateNativeNotificationStatus('Lifecycle Check OK');
+        }
       }
     } catch (e) {
       debugPrint('❌ Error en lifecycle check: $e');
     }
+  }
+
+  /// 🔥 NUEVO: Manejar fallo de heartbeat
+  Future<void> _handleHeartbeatFailure() async {
+    debugPrint('💔 Fallo crítico de heartbeat');
+
+    await _notificationManager.showConnectionErrorNotification();
+    await updateNativeNotificationStatus('Error Conexión');
+
+    // En una implementación real, aquí podrías implementar reconexión automática
   }
 
   // 🎯 GESTIÓN DE NOTIFICACIONES
@@ -396,6 +600,8 @@ class BackgroundService {
   Future<void> _updateTrackingNotificationStatus(String status) async {
     try {
       await _notificationManager.updateTrackingNotificationStatus(status);
+      await updateNativeNotificationStatus(
+          status); // 🔥 NUEVO: Actualizar ambas
     } catch (e) {
       debugPrint('❌ Error actualizando notificación: $e');
     }
@@ -412,7 +618,7 @@ class BackgroundService {
     }
   }
 
-  // 🎯 MANEJO DE APP LIFECYCLE
+  // 🎯 MANEJO DE APP LIFECYCLE - MEJORADO
 
   /// Manejar eventos de lifecycle de la aplicación
   Future<void> handleAppLifecycleEvents(String state) async {
@@ -437,26 +643,39 @@ class BackgroundService {
     }
   }
 
+  /// 🔥 MODIFICADO: App resumed con grace period
   Future<void> _handleAppResumed() async {
-    debugPrint('✅ App resumed - Servicio continúa normal');
+    debugPrint('✅ App resumed - Cancelando grace period');
+
+    // 🔥 NUEVO: Cancelar grace period si estaba activo
+    if (_isInGracePeriod) {
+      _cancelGracePeriod();
+    }
 
     if (_isForegroundServiceActive) {
-      await _updateTrackingNotificationStatus('Tracking Activo');
+      await updateNativeNotificationStatus('Tracking Activo');
+      await _notificationManager
+          .updateTrackingNotificationStatus('Tracking Activo');
     }
   }
 
+  /// 🔥 MODIFICADO: App paused con grace period
   Future<void> _handleAppPaused() async {
-    debugPrint('⏸️ App paused - Manteniendo tracking en background');
+    debugPrint('⏸️ App paused - Iniciando grace period');
 
     if (_isForegroundServiceActive) {
-      await _updateTrackingNotificationStatus('Tracking en Background');
-      await showCriticalAppLifecycleWarning();
+      await updateNativeNotificationStatus('Tracking en Background');
+      await _notificationManager
+          .updateTrackingNotificationStatus('Tracking en Background');
+      await _startGracePeriod(); // 🔥 NUEVO: Iniciar grace period
     }
   }
 
+  /// 🔥 MODIFICADO: App detached sin grace period
   Future<void> _handleAppDetached() async {
-    debugPrint('❌ App detached - Activando protocolo de pérdida');
+    debugPrint('❌ App detached - Activando protocolo de pérdida inmediata');
 
+    // 🔥 NUEVO: Sin grace period para detached
     await triggerAttendanceLossProtocol('App cerrada completamente');
   }
 
@@ -517,30 +736,51 @@ class BackgroundService {
       debugPrint('✅ Tracking configurado para evento: $eventId');
     } catch (e) {
       debugPrint('❌ Error configurando tracking: $e');
-      rethrow; // ✅ CORRECCIÓN: usar rethrow
+      rethrow;
     }
   }
 
-  // 🎯 ESTADO Y INFORMACIÓN
+  // 🎯 ESTADO Y INFORMACIÓN - AMPLIADO
 
   /// Verificar si el servicio está activo
   bool get isForegroundServiceActive => _isForegroundServiceActive;
 
+  /// 🔥 NUEVO: Verificar si el ForegroundService nativo está activo
+  bool get isNativeForegroundActive => _isNativeForegroundActive;
+
   /// Verificar si WakeLock está activo
   bool get isWakeLockActive => _isWakeLockActive;
 
-  /// Obtener información del estado actual
-  Map<String, dynamic> getServiceStatus() {
+  /// 🔥 NUEVO: Verificar si está en período de gracia
+  bool get isInGracePeriod => _isInGracePeriod;
+
+  /// 🔥 NUEVO: Obtener segundos restantes del período de gracia
+  int get gracePeriodSecondsRemaining => _gracePeriodSeconds;
+
+  /// 🔥 NUEVO: Obtener último heartbeat
+  DateTime? get lastHeartbeat => _lastHeartbeat;
+
+  /// 🔥 NUEVO: Obtener estado completo del servicio
+  Map<String, dynamic> getCompleteServiceStatus() {
     return {
       'initialized': _isInitialized,
       'foreground_service_active': _isForegroundServiceActive,
+      'native_foreground_active': _isNativeForegroundActive,
       'wakelock_active': _isWakeLockActive,
+      'in_grace_period': _isInGracePeriod,
+      'grace_period_seconds_remaining': _gracePeriodSeconds,
       'current_event_id': _currentEventId,
       'current_user_id': _currentUserId,
+      'last_heartbeat': _lastHeartbeat?.toIso8601String(),
       'heartbeat_timer_active': _heartbeatTimer?.isActive ?? false,
       'location_timer_active': _locationTimer?.isActive ?? false,
       'lifecycle_timer_active': _lifecycleTimer?.isActive ?? false,
     };
+  }
+
+  /// Obtener información del estado actual (compatibilidad)
+  Map<String, dynamic> getServiceStatus() {
+    return getCompleteServiceStatus();
   }
 
   /// Limpiar configuración
@@ -558,12 +798,18 @@ class BackgroundService {
 
       await stopForegroundService();
       await Future.delayed(const Duration(seconds: 2));
-      await startForegroundService();
+
+      if (_currentUserId != null && _currentEventId != null) {
+        await startForegroundService(
+          userId: _currentUserId!,
+          eventId: _currentEventId!,
+        );
+      }
 
       debugPrint('✅ BackgroundService reiniciado');
     } catch (e) {
       debugPrint('❌ Error reiniciando servicio: $e');
-      rethrow; // ✅ CORRECCIÓN: usar rethrow
+      rethrow;
     }
   }
 }
@@ -637,7 +883,7 @@ Future<void> _executeTrackingTask(String eventId, String userId) async {
     debugPrint('✅ Tarea de tracking completada');
   } catch (e) {
     debugPrint('❌ Error en tarea de tracking: $e');
-    rethrow; // ✅ CORRECCIÓN: usar rethrow
+    rethrow;
   }
 }
 
@@ -658,7 +904,7 @@ Future<void> _executeHeartbeatTask(String eventId, String userId) async {
     debugPrint('✅ Heartbeat enviado desde background');
   } catch (e) {
     debugPrint('❌ Error en heartbeat background: $e');
-    rethrow; // ✅ CORRECCIÓN: usar rethrow
+    rethrow;
   }
 }
 
@@ -682,7 +928,7 @@ Future<void> _executeLocationUpdateTask(String eventId, String userId) async {
     debugPrint('✅ Ubicación actualizada desde background');
   } catch (e) {
     debugPrint('❌ Error actualizando ubicación background: $e');
-    rethrow; // ✅ CORRECCIÓN: usar rethrow
+    rethrow;
   }
 }
 
@@ -700,7 +946,7 @@ Future<void> _executeLifecycleMonitorTask(String eventId, String userId) async {
     debugPrint('✅ Monitoreo de lifecycle completado');
   } catch (e) {
     debugPrint('❌ Error en monitoreo lifecycle: $e');
-    rethrow; // ✅ CORRECCIÓN: usar rethrow
+    rethrow;
   }
 }
 
@@ -731,7 +977,7 @@ Future<void> _performBackgroundTrackingCheck(
     debugPrint('✅ Estado de tracking verificado: $estado');
   } catch (e) {
     debugPrint('❌ Error verificando tracking: $e');
-    rethrow; // ✅ CORRECCIÓN: usar rethrow
+    rethrow;
   }
 }
 
@@ -774,8 +1020,7 @@ Future<void> cleanupBackgroundResources() async {
     // Cancelar todas las tareas de WorkManager
     await Workmanager().cancelAll();
 
-    // ✅ CORRECCIÓN: No usar wakelock plugin - el sistema Android
-    // libera automáticamente los recursos al terminar ForegroundService
+    // El sistema Android libera automáticamente los recursos al terminar ForegroundService
 
     debugPrint('✅ Recursos de background limpiados');
   } catch (e) {

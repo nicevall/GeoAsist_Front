@@ -25,6 +25,8 @@ class NotificationManager {
   static const int _attendanceRegisteredId = 1006;
   static const int _appClosedWarningId = 1007;
   static const int _criticalWarningId = 1008;
+  static const int _connectionErrorId = 1009;
+  static const int _attendanceLostId = 1010;
 
   // 🎯 PLUGIN DE NOTIFICACIONES
   late FlutterLocalNotificationsPlugin _notifications;
@@ -550,6 +552,45 @@ class NotificationManager {
       };
     } catch (e) {
       return {'error': e.toString()};
+    }
+  }
+
+  Future<void> showConnectionErrorNotification() async {
+    try {
+      debugPrint('🔔 Mostrando notificación - Error de conexión');
+
+      await _showAlertNotification(
+        _connectionErrorId,
+        'Error de Conexión',
+        'Problema conectando al servidor. Verificando conexión...',
+        'warning',
+      );
+
+      // Vibración de advertencia
+      await HapticFeedback.heavyImpact();
+    } catch (e) {
+      debugPrint('❌ Error notificación de conexión: $e');
+    }
+  }
+
+  /// Notificación cuando se pierde la asistencia
+  Future<void> showAttendanceLostNotification(String reason) async {
+    try {
+      debugPrint('❌ Mostrando notificación - Asistencia perdida');
+
+      await _showAlertNotification(
+        _attendanceLostId,
+        'Asistencia Perdida',
+        'Has perdido tu asistencia. Razón: $reason',
+        'critical',
+      );
+
+      // Vibración crítica
+      await HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 100));
+      await HapticFeedback.heavyImpact();
+    } catch (e) {
+      debugPrint('❌ Error notificación asistencia perdida: $e');
     }
   }
 
