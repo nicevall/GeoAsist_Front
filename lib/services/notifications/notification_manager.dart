@@ -46,7 +46,7 @@ class NotificationManager {
       debugPrint('✅ NotificationManager inicializado correctamente');
     } catch (e) {
       debugPrint('❌ Error inicializando NotificationManager: $e');
-      throw e;
+      rethrow;
     }
   }
 

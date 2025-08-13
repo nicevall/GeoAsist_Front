@@ -6,6 +6,17 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
+/// Tipo de resultado para permisos de ubicación
+enum LocationPermissionResult {
+  granted,
+  denied,
+  deniedForever,
+  restrictedBackground,
+  notPrecise,
+  serviceDisabled,
+  error,
+}
+
 /// Servicio para gestionar permisos críticos con validación estricta
 class PermissionService {
   static final PermissionService _instance = PermissionService._internal();
@@ -47,8 +58,10 @@ class PermissionService {
       // 4. Probar obtener ubicación con alta precisión
       try {
         final position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.best,
-          timeLimit: const Duration(seconds: 10),
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.best,
+            distanceFilter: 5,
+          ),
         );
 
         final isAccurate = position.accuracy <= 20.0; // Máximo 20 metros
@@ -519,8 +532,10 @@ class PermissionService {
   Future<double?> getCurrentLocationAccuracy() async {
     try {
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
-        timeLimit: const Duration(seconds: 5),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.best,
+          distanceFilter: 5,
+        ),
       );
       return position.accuracy;
     } catch (e) {
@@ -673,6 +688,82 @@ class PermissionService {
     } catch (e) {
       debugPrint('❌ Error obteniendo info del sistema: $e');
       return {'error': e.toString()};
+    }
+  }
+
+  // AGREGAR al final de la clase PermissionService, antes del cierre }
+
+  /// Verificar si tiene permisos de ubicación básicos
+  Future<bool> hasLocationPermissions() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
+      return permission != LocationPermission.denied &&
+          permission != LocationPermission.deniedForever &&
+          serviceEnabled;
+    } catch (e) {
+      debugPrint('❌ Error verificando permisos de ubicación: $e');
+      return false;
+    }
+  }
+
+  /// Obtener ubicación actual del dispositivo
+  Future<Position?> getCurrentLocation() async {
+    try {
+      // Verificar permisos primero
+      if (!await hasLocationPermissions()) {
+        debugPrint('❌ Sin permisos de ubicación para obtener posición');
+        return null;
+      }
+
+      // Obtener ubicación con configuración moderna
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.best,
+          distanceFilter: 5,
+        ),
+      );
+
+      debugPrint(
+          '📍 Ubicación obtenida: ${position.latitude}, ${position.longitude}');
+      return position;
+    } catch (e) {
+      debugPrint('❌ Error obteniendo ubicación: $e');
+      return null;
+    }
+  }
+
+  /// Solicitar permisos de ubicación con resultado detallado
+  Future<LocationPermissionResult> requestLocationPermissions() async {
+    try {
+      debugPrint('📲 Solicitando permisos de ubicación');
+
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        return LocationPermissionResult.serviceDisabled;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      switch (permission) {
+        case LocationPermission.denied:
+          return LocationPermissionResult.denied;
+        case LocationPermission.deniedForever:
+          return LocationPermissionResult.deniedForever;
+        case LocationPermission.whileInUse:
+        case LocationPermission.always:
+          return LocationPermissionResult.granted;
+        default:
+          return LocationPermissionResult.denied;
+      }
+    } catch (e) {
+      debugPrint('❌ Error solicitando permisos: $e');
+      return LocationPermissionResult.denied;
     }
   }
 }

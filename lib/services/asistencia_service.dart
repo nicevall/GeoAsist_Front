@@ -414,6 +414,33 @@ class AsistenciaService {
     }
   }
 
+  /// Obtener métricas de un evento específico
+  Future<ApiResponse<Map<String, dynamic>>> obtenerMetricasEvento(
+      String eventoId) async {
+    try {
+      debugPrint('📊 Obteniendo métricas del evento: $eventoId');
+
+      final token = await _storageService.getToken();
+      if (token == null) {
+        return ApiResponse.error('No hay sesión activa');
+      }
+
+      final response = await _apiService.get(
+        '/eventos/$eventoId/metricas',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success && response.data != null) {
+        return ApiResponse.success(response.data!);
+      }
+
+      return ApiResponse.error(response.error ?? 'Error obteniendo métricas');
+    } catch (e) {
+      debugPrint('❌ Error obteniendo métricas del evento: $e');
+      rethrow;
+    }
+  }
+
   // 🔧 MÉTODOS UTILITARIOS
 
   bool _esLinkValido(String link) {

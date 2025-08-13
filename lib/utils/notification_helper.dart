@@ -16,7 +16,7 @@ class NotificationHelper {
 
   // Estado de inicialización
   bool _isInitialized = false;
-  bool _hasPermissions = false;
+  final bool _hasPermissions = false;
 
   // 🎯 INICIALIZACIÓN
   Future<void> initialize() async {

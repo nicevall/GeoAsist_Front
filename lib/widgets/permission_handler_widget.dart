@@ -197,8 +197,14 @@ class _PermissionHandlerWidgetState extends State<PermissionHandlerWidget> {
           case LocationPermissionResult.serviceDisabled:
             _showServiceDisabledDialog();
             break;
-          case LocationPermissionResult.error:
-            widget.onPermissionDenied?.call();
+          case LocationPermissionResult.restrictedBackground:
+            _showDeniedDialog();
+            break;
+          case LocationPermissionResult.notPrecise:
+            _showDeniedDialog();
+            break;
+          case LocationPermissionResult.error: // ✅ AÑADIR ESTE CASO
+            _showDeniedDialog(); // Manejar como error genérico
             break;
         }
       }
