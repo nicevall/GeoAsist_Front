@@ -16,6 +16,10 @@ class Evento {
   final String? creadoPor;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final String estado; // ✅ AGREGADO campo estado
+  final bool isActive; // ✅ AGREGADO campo isActive
+  final double? latitud; // ✅ AGREGADO getter latitud
+  final double? longitud; // ✅ AGREGADO getter longitud
 
   Evento({
     this.id,
@@ -31,205 +35,198 @@ class Evento {
     this.creadoPor,
     this.createdAt,
     this.updatedAt,
-  });
+    this.estado = 'programado', // ✅ VALOR DEFAULT
+    this.isActive = false, // ✅ VALOR DEFAULT
+  }) : latitud = ubicacion.latitud, // ✅ GETTER CALCULADO
+       longitud = ubicacion.longitud; // ✅ GETTER CALCULADO
 
   factory Evento.fromJson(Map<String, dynamic> json) {
     try {
       // ✅ MANEJAR AMBOS NOMBRES: titulo (frontend) y nombre (backend)
-      final String titulo = json['titulo']?.toString() ??
+      final String titulo =
+          json['titulo']?.toString() ??
           json['nombre']?.toString() ??
           'Evento sin título';
 
       // ✅ NUEVOS CAMPOS DEL BACKEND
       final String? tipo = json['tipo']?.toString();
       final String? lugar = json['lugar']?.toString();
+      final String? descripcion = json['descripcion']?.toString();
+      final String? creadoPor =
+          json['creadoPor']?.toString() ??
+          json['docente']?.toString() ??
+          json['creadorId']?.toString();
 
-      // ✅ PARSING SEGURO: Fechas con manejo de errores
-      DateTime fecha;
-      DateTime horaInicio;
-      DateTime horaFinal;
+      // ✅ ESTADO E ISACTIVE DEL BACKEND
+      final String estado = json['estado']?.toString() ?? 'programado';
+      final bool isActive =
+          json['isActive'] == true ||
+          json['activo'] == true ||
+          estado == 'activo';
 
-      // Parsing de fecha base
-      try {
-        if (json['fecha'] != null) {
-          fecha = DateTime.parse(json['fecha'].toString());
-        } else if (json['fechaInicio'] != null) {
-          // Backend usa fechaInicio como fecha base
-          fecha = DateTime.parse(json['fechaInicio'].toString());
-        } else {
-          debugPrint('No se encontró fecha válida, usando fecha actual');
-          fecha = DateTime.now();
-        }
-      } catch (e) {
-        debugPrint(
-            'Error parsing fecha: ${json['fecha']}, usando fecha actual');
-        fecha = DateTime.now();
-      }
+      // ✅ COORDENADAS DEL BACKEND
+      Map<String, dynamic>? coordenadas;
+      double lat = 0.0, lng = 0.0, radio = 100.0;
 
-      // Parsing de horaInicio
-      try {
-        if (json['horaInicio'] != null) {
-          // Si viene como datetime completo
-          if (json['horaInicio'].toString().contains('T') ||
-              json['horaInicio'].toString().contains(' ')) {
-            horaInicio = DateTime.parse(json['horaInicio'].toString());
-          } else {
-            // Si viene como HH:mm, combinar con fecha
-            final timeStr = json['horaInicio'].toString();
-            final timeParts = timeStr.split(':');
-            if (timeParts.length >= 2) {
-              final hour = int.parse(timeParts[0]);
-              final minute = int.parse(timeParts[1]);
-              horaInicio =
-                  DateTime(fecha.year, fecha.month, fecha.day, hour, minute);
-            } else {
-              throw FormatException('Formato de hora inválido');
-            }
-          }
-        } else {
-          debugPrint('horaInicio no encontrado, usando hora actual');
-          horaInicio = DateTime.now();
-        }
-      } catch (e) {
-        debugPrint(
-            'Error parsing horaInicio: ${json['horaInicio']}, usando hora actual');
-        horaInicio = DateTime.now();
-      }
-
-      // Parsing de horaFinal
-      try {
-        if (json['horaFinal'] != null || json['horaFin'] != null) {
-          final horaFinalJson = json['horaFinal'] ?? json['horaFin'];
-
-          // Si viene como datetime completo
-          if (horaFinalJson.toString().contains('T') ||
-              horaFinalJson.toString().contains(' ')) {
-            horaFinal = DateTime.parse(horaFinalJson.toString());
-          } else {
-            // Si viene como HH:mm, combinar con fecha
-            final timeStr = horaFinalJson.toString();
-            final timeParts = timeStr.split(':');
-            if (timeParts.length >= 2) {
-              final hour = int.parse(timeParts[0]);
-              final minute = int.parse(timeParts[1]);
-              horaFinal =
-                  DateTime(fecha.year, fecha.month, fecha.day, hour, minute);
-            } else {
-              throw FormatException('Formato de hora inválido');
-            }
-          }
-        } else {
-          debugPrint('horaFinal no encontrado, usando hora actual + 1h');
-          horaFinal = horaInicio.add(const Duration(hours: 1));
-        }
-      } catch (e) {
-        debugPrint(
-            'Error parsing horaFinal: ${json['horaFinal'] ?? json['horaFin']}, usando hora actual + 1h');
-        horaFinal = horaInicio.add(const Duration(hours: 1));
-      }
-
-      // ✅ UBICACIÓN SEGURA: Manejar ubicacion (frontend) y coordenadas (backend)
-      Ubicacion ubicacion;
-      if (json['ubicacion'] != null &&
-          json['ubicacion'] is Map<String, dynamic>) {
-        try {
-          ubicacion = Ubicacion.fromJson(json['ubicacion']);
-        } catch (e) {
-          debugPrint(
-              'Error parsing ubicacion: ${json['ubicacion']}, usando ubicación por defecto');
-          ubicacion = Ubicacion(
-              latitud: -0.1805, longitud: -78.4680); // UIDE por defecto
-        }
-      } else if (json['coordenadas'] != null &&
-          json['coordenadas'] is Map<String, dynamic>) {
-        // Backend usa 'coordenadas'
-        try {
-          ubicacion = Ubicacion.fromJson({
-            'latitud': json['coordenadas']['latitud'],
-            'longitud': json['coordenadas']['longitud'],
-          });
-        } catch (e) {
-          debugPrint(
-              'Error parsing coordenadas: ${json['coordenadas']}, usando ubicación por defecto');
-          ubicacion = Ubicacion(latitud: -0.1805, longitud: -78.4680);
-        }
+      if (json['coordenadas'] != null) {
+        coordenadas = json['coordenadas'] as Map<String, dynamic>;
+        lat = (coordenadas['latitud'] as num?)?.toDouble() ?? 0.0;
+        lng = (coordenadas['longitud'] as num?)?.toDouble() ?? 0.0;
+        radio = (coordenadas['radio'] as num?)?.toDouble() ?? 100.0;
       } else {
-        ubicacion =
-            Ubicacion(latitud: -0.1805, longitud: -78.4680); // UIDE por defecto
+        // ✅ FALLBACK SI VIENEN DIRECTAMENTE EN EL JSON
+        lat = (json['latitud'] as num?)?.toDouble() ?? 0.0;
+        lng = (json['longitud'] as num?)?.toDouble() ?? 0.0;
+        radio =
+            (json['radio'] as num?)?.toDouble() ??
+            (json['rangoPermitido'] as num?)?.toDouble() ??
+            100.0;
       }
 
-      // ✅ RANGO PERMITIDO: Manejar rangoPermitido (frontend) y radio (backend)
-      double rangoPermitido = _parseDouble(json['rangoPermitido'], 100.0);
-      if (rangoPermitido == 100.0 && json['coordenadas']?['radio'] != null) {
-        rangoPermitido = _parseDouble(json['coordenadas']['radio'], 100.0);
+      // ✅ FECHAS Y HORAS DEL BACKEND
+      DateTime fecha = DateTime.now();
+      if (json['fechaInicio'] != null) {
+        fecha = DateTime.parse(json['fechaInicio'].toString());
+      } else if (json['fecha'] != null) {
+        fecha = DateTime.parse(json['fecha'].toString());
+      }
+
+      DateTime horaInicio = DateTime.now();
+      DateTime horaFinal = DateTime.now().add(const Duration(hours: 2));
+
+      if (json['horaInicio'] != null) {
+        final timeStr = json['horaInicio'].toString();
+        final parts = timeStr.split(':');
+        if (parts.length >= 2) {
+          horaInicio = DateTime(
+            fecha.year,
+            fecha.month,
+            fecha.day,
+            int.parse(parts[0]),
+            int.parse(parts[1]),
+          );
+        }
+      }
+
+      if (json['horaFin'] != null || json['horaFinal'] != null) {
+        final timeStr = (json['horaFin'] ?? json['horaFinal']).toString();
+        final parts = timeStr.split(':');
+        if (parts.length >= 2) {
+          horaFinal = DateTime(
+            fecha.year,
+            fecha.month,
+            fecha.day,
+            int.parse(parts[0]),
+            int.parse(parts[1]),
+          );
+        }
       }
 
       return Evento(
-        id: json['_id']?.toString() ?? json['id']?.toString(),
+        id: json['id']?.toString() ?? json['_id']?.toString(),
         titulo: titulo,
-        tipo: tipo, // ✅ NUEVO CAMPO
-        lugar: lugar, // ✅ NUEVO CAMPO
-        descripcion: json['descripcion']?.toString(),
-        ubicacion: ubicacion,
+        tipo: tipo,
+        lugar: lugar,
+        descripcion: descripcion,
+        ubicacion: Ubicacion(latitud: lat, longitud: lng),
         fecha: fecha,
         horaInicio: horaInicio,
         horaFinal: horaFinal,
-        rangoPermitido: rangoPermitido,
-        creadoPor: json['creadoPor']?.toString(),
-        createdAt: _parseDateTime(json['createdAt']),
-        updatedAt: _parseDateTime(json['updatedAt']),
+        rangoPermitido: radio,
+        creadoPor: creadoPor,
+        createdAt: json['creadoEn'] != null
+            ? DateTime.parse(json['creadoEn'].toString())
+            : null,
+        updatedAt: json['updatedAt'] != null
+            ? DateTime.parse(json['updatedAt'].toString())
+            : null,
+        estado: estado,
+        isActive: isActive,
       );
     } catch (e) {
-      debugPrint('Error general en Evento.fromJson: $e');
-      debugPrint('JSON problemático: $json');
-      rethrow; // Re-lanzar para que el servicio pueda manejarlo
-    }
-  }
-
-  /// ✅ HELPER: Parsing seguro de double
-  static double _parseDouble(dynamic value, double defaultValue) {
-    if (value == null) return defaultValue;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) {
-      try {
-        return double.parse(value);
-      } catch (e) {
-        debugPrint('Error parsing double: $value, usando $defaultValue');
-        return defaultValue;
-      }
-    }
-    return defaultValue;
-  }
-
-  /// ✅ HELPER: Parsing seguro de DateTime
-  static DateTime? _parseDateTime(dynamic value) {
-    if (value == null) return null;
-    try {
-      return DateTime.parse(value.toString());
-    } catch (e) {
-      debugPrint('Error parsing DateTime: $value');
-      return null;
+      debugPrint('❌ Error parsing Evento from JSON: $e');
+      debugPrint('❌ JSON data: $json');
+      throw Exception('Error parsing Evento: $e');
     }
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'titulo': titulo,
+      'nombre': titulo, // ✅ ENVIAR AMBOS NOMBRES
+      'tipo': tipo,
+      'lugar': lugar,
       'descripcion': descripcion,
-      'ubicacion': ubicacion.toJson(),
-      'fecha': fecha.toIso8601String(),
-      'horaInicio': horaInicio.toIso8601String(),
-      'horaFinal': horaFinal.toIso8601String(),
-      'rangoPermitido': rangoPermitido,
+      'coordenadas': {
+        'latitud': ubicacion.latitud,
+        'longitud': ubicacion.longitud,
+        'radio': rangoPermitido,
+      },
+      'fecha': fecha.toIso8601String().split('T')[0],
+      'fechaInicio': fecha.toIso8601String().split('T')[0],
+      'horaInicio':
+          '${horaInicio.hour.toString().padLeft(2, '0')}:${horaInicio.minute.toString().padLeft(2, '0')}',
+      'horaFin':
+          '${horaFinal.hour.toString().padLeft(2, '0')}:${horaFinal.minute.toString().padLeft(2, '0')}',
+      'horaFinal':
+          '${horaFinal.hour.toString().padLeft(2, '0')}:${horaFinal.minute.toString().padLeft(2, '0')}',
+      'creadoPor': creadoPor,
+      'docente': creadoPor,
+      'estado': estado,
+      'isActive': isActive,
+      'activo': isActive,
     };
   }
 
-  bool get isActive {
-    final now = DateTime.now();
-    return now.isAfter(horaInicio) && now.isBefore(horaFinal);
+  // ✅ MÉTODO PARA ACTUALIZAR isActive
+  Evento copyWith({
+    String? id,
+    String? titulo,
+    String? tipo,
+    String? lugar,
+    String? descripcion,
+    Ubicacion? ubicacion,
+    DateTime? fecha,
+    DateTime? horaInicio,
+    DateTime? horaFinal,
+    double? rangoPermitido,
+    String? creadoPor,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    String? estado,
+    bool? isActive,
+  }) {
+    return Evento(
+      id: id ?? this.id,
+      titulo: titulo ?? this.titulo,
+      tipo: tipo ?? this.tipo,
+      lugar: lugar ?? this.lugar,
+      descripcion: descripcion ?? this.descripcion,
+      ubicacion: ubicacion ?? this.ubicacion,
+      fecha: fecha ?? this.fecha,
+      horaInicio: horaInicio ?? this.horaInicio,
+      horaFinal: horaFinal ?? this.horaFinal,
+      rangoPermitido: rangoPermitido ?? this.rangoPermitido,
+      creadoPor: creadoPor ?? this.creadoPor,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      estado: estado ?? this.estado,
+      isActive: isActive ?? this.isActive,
+    );
   }
 
-  bool get hasStarted => DateTime.now().isAfter(horaInicio);
-  bool get hasEnded => DateTime.now().isAfter(horaFinal);
+  @override
+  String toString() {
+    return 'Evento(id: $id, titulo: $titulo, tipo: $tipo, estado: $estado, isActive: $isActive)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Evento && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

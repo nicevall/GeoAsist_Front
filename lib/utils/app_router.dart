@@ -11,7 +11,7 @@ import '../screens/create_event_screen.dart'; // ✅ AGREGADO
 import '../services/storage_service.dart';
 import '../models/evento_model.dart'; // ✅ AGREGADO
 import '../screens/available_events_screen.dart';
-import '../screens/student_dashboard_screen.dart';
+import '../screens/attendance/attendance_tracking_screen.dart';
 import '../screens/location_picker_screen.dart';
 
 class AppRouter {
@@ -66,7 +66,7 @@ class AppRouter {
       case AppConstants.studentDashboardRoute:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => StudentDashboardScreen(
+          builder: (_) => AttendanceTrackingScreen(
             userName: args?['userName'] ?? 'Usuario',
           ),
         );

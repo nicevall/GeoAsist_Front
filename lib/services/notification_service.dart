@@ -1,4 +1,5 @@
 // lib/services/notification_service.dart
+// 🎯 SERVICIO DE NOTIFICACIONES FASE C - Sistema básico funcional
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -188,14 +189,9 @@ class NotificationService {
     }
   }
 
-  /// Log interno de notificaciones (para debugging)
+  /// Log interno de notificaciones (para debugging) - CORREGIDO
   void _logNotification(String type, String message) {
     final timestamp = DateTime.now().toString().substring(11, 19);
-    debugPrint('📢 [$timestamp] $type: $message');
-    debugPrint('📢 [$timestamp] $type: $message');
-    debugPrint('📢 [$timestamp] $type: $message');
-    debugPrint('📢 [$timestamp] $type: $message');
-    debugPrint('📢 [$timestamp] $type: $message');
     debugPrint('📢 [$timestamp] $type: $message');
   }
 
@@ -241,5 +237,16 @@ class NotificationService {
   void dispose() {
     _lastNotificationTimes.clear();
     debugPrint('🧹 NotificationService disposed');
+  }
+
+  /// Verificar si el servicio está inicializado
+  bool get isInitialized => _isInitialized;
+
+  /// Obtener estadísticas de notificaciones (para debugging)
+  Map<String, dynamic> getNotificationStats() {
+    return {
+      'isInitialized': _isInitialized,
+      'lastNotificationTimes': _lastNotificationTimes,
+    };
   }
 }

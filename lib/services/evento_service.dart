@@ -518,6 +518,164 @@ class EventoService {
     }
   }
 
+  // 🎯 MÉTODOS PARA CONTROL DE EVENTOS EN TIEMPO REAL (FASE C)
+
+  /// Activar evento para permitir unirse a estudiantes
+  Future<bool> activarEvento(String eventoId) async {
+    try {
+      debugPrint('▶️ Activando evento: $eventoId');
+
+      final token = await _storageService.getToken();
+      if (token == null) {
+        debugPrint('❌ No hay sesión activa para activar evento');
+        return false;
+      }
+
+      final response = await _apiService.put(
+        '/eventos/$eventoId/activar',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      debugPrint('📡 Activate response success: ${response.success}');
+
+      if (response.success) {
+        debugPrint('✅ Evento activado exitosamente: $eventoId');
+        return true;
+      }
+
+      debugPrint('❌ Error activando evento: ${response.error}');
+      return false;
+    } catch (e) {
+      debugPrint('❌ Excepción activando evento: $e');
+      return false;
+    }
+  }
+
+  /// Desactivar evento para impedir nuevos accesos
+  Future<bool> desactivarEvento(String eventoId) async {
+    try {
+      debugPrint('⏹️ Desactivando evento: $eventoId');
+
+      final token = await _storageService.getToken();
+      if (token == null) {
+        debugPrint('❌ No hay sesión activa para desactivar evento');
+        return false;
+      }
+
+      final response = await _apiService.put(
+        '/eventos/$eventoId/desactivar',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      debugPrint('📡 Deactivate response success: ${response.success}');
+
+      if (response.success) {
+        debugPrint('✅ Evento desactivado exitosamente: $eventoId');
+        return true;
+      }
+
+      debugPrint('❌ Error desactivando evento: ${response.error}');
+      return false;
+    } catch (e) {
+      debugPrint('❌ Excepción desactivando evento: $e');
+      return false;
+    }
+  }
+
+  /// Iniciar receso durante el evento
+  Future<bool> iniciarReceso(String eventoId) async {
+    try {
+      debugPrint('⏸️ Iniciando receso para evento: $eventoId');
+
+      final token = await _storageService.getToken();
+      if (token == null) {
+        debugPrint('❌ No hay sesión activa para iniciar receso');
+        return false;
+      }
+
+      final response = await _apiService.post(
+        '/eventos/$eventoId/receso/iniciar',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      debugPrint('📡 Start break response success: ${response.success}');
+
+      if (response.success) {
+        debugPrint('✅ Receso iniciado exitosamente: $eventoId');
+        return true;
+      }
+
+      debugPrint('❌ Error iniciando receso: ${response.error}');
+      return false;
+    } catch (e) {
+      debugPrint('❌ Excepción iniciando receso: $e');
+      return false;
+    }
+  }
+
+  /// Terminar receso y reanudar evento
+  Future<bool> terminarReceso(String eventoId) async {
+    try {
+      debugPrint('▶️ Terminando receso para evento: $eventoId');
+
+      final token = await _storageService.getToken();
+      if (token == null) {
+        debugPrint('❌ No hay sesión activa para terminar receso');
+        return false;
+      }
+
+      final response = await _apiService.post(
+        '/eventos/$eventoId/receso/terminar',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      debugPrint('📡 End break response success: ${response.success}');
+
+      if (response.success) {
+        debugPrint('✅ Receso terminado exitosamente: $eventoId');
+        return true;
+      }
+
+      debugPrint('❌ Error terminando receso: ${response.error}');
+      return false;
+    } catch (e) {
+      debugPrint('❌ Excepción terminando receso: $e');
+      return false;
+    }
+  }
+
+  /// Obtener métricas en tiempo real de un evento específico
+  Future<Map<String, dynamic>> obtenerMetricasEvento(String eventoId) async {
+    try {
+      debugPrint('📊 Obteniendo métricas del evento: $eventoId');
+
+      final token = await _storageService.getToken();
+      if (token == null) {
+        debugPrint('❌ No hay sesión activa para obtener métricas');
+        return {};
+      }
+
+      final response = await _apiService.get(
+        '/eventos/$eventoId/metricas',
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      debugPrint('📡 Metrics response success: ${response.success}');
+
+      if (response.success && response.data != null) {
+        final metrics = response.data!;
+        debugPrint('✅ Métricas obtenidas: ${metrics.keys.join(', ')}');
+        return metrics;
+      }
+
+      debugPrint('❌ Error obteniendo métricas: ${response.error}');
+      return {};
+    } catch (e) {
+      debugPrint('❌ Excepción obteniendo métricas: $e');
+      return {};
+    }
+  }
+
   // Validación de datos de evento del backend
   bool _isValidBackendEventData(Map<String, dynamic> data) {
     final requiredFields = ['id', 'nombre', 'coordenadas'];

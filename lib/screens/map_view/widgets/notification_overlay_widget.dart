@@ -1,5 +1,5 @@
 // lib/screens/map_view/widgets/notification_overlay_widget.dart
-// 🎯 WIDGET ESPECIALIZADO FASE A1.2 - Overlay de notificaciones visuales
+// 🎯 WIDGET ESPECIALIZADO FASE C - Overlay de notificaciones visuales (CORREGIDO)
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../models/attendance_state_model.dart';
@@ -128,7 +128,7 @@ class _NotificationOverlayWidgetState extends State<NotificationOverlayWidget>
     String message;
     Color color;
     IconData icon;
-    VibrationPattern vibrationPattern = VibrationPattern.light;
+    String vibrationPattern = 'light';
 
     // Determinar el tipo de notificación basado en el cambio
     if (oldState.isInsideGeofence != newState.isInsideGeofence) {
@@ -136,24 +136,24 @@ class _NotificationOverlayWidgetState extends State<NotificationOverlayWidget>
         message = '✅ Has ingresado al área del evento';
         color = Colors.green;
         icon = Icons.check_circle;
-        vibrationPattern = VibrationPattern.medium;
+        vibrationPattern = 'medium';
       } else {
         message = '⚠️ Has salido del área permitida';
         color = Colors.orange;
         icon = Icons.warning;
-        vibrationPattern = VibrationPattern.heavy;
+        vibrationPattern = 'heavy';
       }
     } else if (oldState.isInGracePeriod != newState.isInGracePeriod) {
       if (newState.isInGracePeriod) {
         message = '⏰ Período de gracia iniciado';
         color = Colors.orange;
         icon = Icons.access_time;
-        vibrationPattern = VibrationPattern.heavy;
+        vibrationPattern = 'heavy';
       } else {
         message = '❌ Período de gracia terminado';
         color = Colors.red;
         icon = Icons.timer_off;
-        vibrationPattern = VibrationPattern.error;
+        vibrationPattern = 'error';
       }
     } else if (oldState.trackingStatus != newState.trackingStatus) {
       switch (newState.trackingStatus) {
@@ -161,25 +161,25 @@ class _NotificationOverlayWidgetState extends State<NotificationOverlayWidget>
           message = '▶️ Tracking reanudado';
           color = Colors.green;
           icon = Icons.play_circle;
-          vibrationPattern = VibrationPattern.light;
+          vibrationPattern = 'light';
           break;
         case TrackingStatus.paused:
           message = '⏸️ Tracking pausado - En receso';
           color = AppColors.secondaryTeal;
           icon = Icons.pause_circle;
-          vibrationPattern = VibrationPattern.medium;
+          vibrationPattern = 'medium';
           break;
         case TrackingStatus.stopped:
           message = '⏹️ Tracking detenido';
           color = Colors.grey;
           icon = Icons.stop_circle;
-          vibrationPattern = VibrationPattern.light;
+          vibrationPattern = 'light';
           break;
         case TrackingStatus.error:
           message = '❌ Error en el tracking';
           color = Colors.red;
           icon = Icons.error;
-          vibrationPattern = VibrationPattern.error;
+          vibrationPattern = 'error';
           break;
         default:
           return; // No mostrar notificación para otros estados
@@ -190,7 +190,7 @@ class _NotificationOverlayWidgetState extends State<NotificationOverlayWidget>
         message = '🎉 Asistencia registrada exitosamente';
         color = Colors.green;
         icon = Icons.check_circle_outline;
-        vibrationPattern = VibrationPattern.success;
+        vibrationPattern = 'success';
       } else {
         return; // No deberían poder "des-registrar" asistencia
       }
@@ -199,7 +199,7 @@ class _NotificationOverlayWidgetState extends State<NotificationOverlayWidget>
         message = '🚨 Límites de asistencia violados';
         color = Colors.red;
         icon = Icons.gpp_bad;
-        vibrationPattern = VibrationPattern.error;
+        vibrationPattern = 'error';
       } else {
         return; // Raramente se revertiría una violación
       }
@@ -208,7 +208,7 @@ class _NotificationOverlayWidgetState extends State<NotificationOverlayWidget>
       message = '⚠️ Error de conexión';
       color = Colors.red;
       icon = Icons.signal_wifi_connected_no_internet_4;
-      vibrationPattern = VibrationPattern.error;
+      vibrationPattern = 'error';
     } else {
       return; // No hay cambio significativo para notificar
     }
@@ -216,8 +216,8 @@ class _NotificationOverlayWidgetState extends State<NotificationOverlayWidget>
     _displayNotification(message, color, icon, vibrationPattern);
   }
 
-  void _displayNotification(String message, Color color, IconData icon,
-      VibrationPattern vibrationPattern) {
+  void _displayNotification(
+      String message, Color color, IconData icon, String vibrationPattern) {
     // Actualizar estado de la notificación
     setState(() {
       _currentNotificationMessage = message;
@@ -253,32 +253,25 @@ class _NotificationOverlayWidgetState extends State<NotificationOverlayWidget>
     _fadeController.reverse();
   }
 
-  void _triggerHapticFeedback(VibrationPattern pattern) {
-    switch (pattern) {
-      case VibrationPattern.light:
+  void _triggerHapticFeedback(String pattern) {
+    switch (pattern.toLowerCase()) {
+      case 'light':
         HapticFeedback.lightImpact();
         break;
-      case VibrationPattern.medium:
+      case 'medium':
         HapticFeedback.mediumImpact();
         break;
-      case VibrationPattern.heavy:
+      case 'heavy':
         HapticFeedback.heavyImpact();
         break;
-      case VibrationPattern.success:
+      case 'success':
         HapticFeedback.mediumImpact();
-        Future.delayed(const Duration(milliseconds: 100), () {
-          HapticFeedback.lightImpact();
-        });
         break;
-      case VibrationPattern.error:
+      case 'error':
         HapticFeedback.heavyImpact();
-        Future.delayed(const Duration(milliseconds: 100), () {
-          HapticFeedback.heavyImpact();
-        });
-        Future.delayed(const Duration(milliseconds: 200), () {
-          HapticFeedback.mediumImpact();
-        });
         break;
+      default:
+        HapticFeedback.lightImpact();
     }
   }
 
@@ -366,13 +359,4 @@ class _NotificationOverlayWidgetState extends State<NotificationOverlayWidget>
       ),
     );
   }
-}
-
-// 🎯 ENUM PARA PATRONES DE VIBRACIÓN
-enum VibrationPattern {
-  light,
-  medium,
-  heavy,
-  success,
-  error,
 }
