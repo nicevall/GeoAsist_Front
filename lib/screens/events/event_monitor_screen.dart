@@ -6,6 +6,8 @@ import '../../services/evento_service.dart';
 import '../../services/asistencia_service.dart'; // ✅ NUEVO para backend real
 import '../../models/evento_model.dart';
 import '../../models/asistencia_model.dart'; // ✅ NUEVO para datos reales
+import 'dart:convert';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class EventMonitorScreen extends StatefulWidget {
   final String teacherName;
@@ -26,6 +28,10 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   // 🎯 SERVICIOS CON BACKEND REAL
   final EventoService _eventoService = EventoService();
   final AsistenciaService _asistenciaService = AsistenciaService(); // ✅ REAL
+
+  // 🎯 WEBSOCKET REAL - NUEVAS PROPIEDADES
+  WebSocketChannel? _wsChannel;
+  StreamSubscription? _wsSubscription;
 
   // 🎯 CONTROLADORES DE ANIMACIÓN
   late AnimationController _refreshController;
@@ -60,6 +66,10 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     _refreshController.dispose();
     _pulseController.dispose();
     _realtimeUpdateTimer?.cancel();
+
+    // ✅ NUEVO: Limpiar WebSocket
+    _cleanupWebSocket();
+
     super.dispose();
   }
 
@@ -89,6 +99,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
       // 3. Iniciar actualización en tiempo real cada 30 segundos
       _startRealtimeUpdates();
+      await _connectWebSocket();
     } catch (e) {
       debugPrint('❌ Error inicializando event monitor: $e');
       if (mounted) {
@@ -370,6 +381,41 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  Future<void> _connectWebSocket() async {
+    try {
+      debugPrint('🔌 Conectando WebSocket real al backend');
+
+      // ✅ BACKEND REAL: ws://54.210.246.199
+      const wsUrl = 'ws://54.210.246.199';
+      debugPrint('📡 URL WebSocket: $wsUrl');
+
+      _wsChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
+
+      // Enviar suscripción al evento específico
+      final subscriptionMessage = jsonEncode({
+        'action': 'subscribe',
+        'eventId': widget.eventId,
+        'userRole': 'docente',
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
+      _wsChannel!.sink.add(subscriptionMessage);
+      debugPrint('📤 Mensaje de suscripción enviado');
+
+      // Escuchar mensajes del WebSocket
+      _wsSubscription = _wsChannel!.stream.listen(
+        _handleWebSocketMessage,
+        onError: _handleWebSocketError,
+        onDone: _handleWebSocketClosed,
+      );
+
+      debugPrint('✅ WebSocket conectado exitosamente');
+    } catch (e) {
+      debugPrint('❌ Error conectando WebSocket: $e');
+      // Continuar sin WebSocket - usar refresh timer como fallback
     }
   }
 
@@ -974,5 +1020,136 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         ],
       ),
     );
+  }
+
+  /// Manejar mensajes del WebSocket
+  void _handleWebSocketMessage(dynamic message) {
+    try {
+      final data = jsonDecode(message);
+      debugPrint('📨 Mensaje WebSocket recibido: ${data['type']}');
+
+      switch (data['type']) {
+        case 'attendance_update':
+          _handleAttendanceUpdate(data);
+          break;
+        case 'event_status_changed':
+          _handleEventStatusChanged(data);
+          break;
+        case 'break_status_changed':
+          _handleBreakStatusChanged(data);
+          break;
+        case 'metrics_update':
+          _handleMetricsUpdate(data);
+          break;
+        default:
+          debugPrint('📋 Tipo de mensaje no manejado: ${data['type']}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error procesando mensaje WebSocket: $e');
+    }
+  }
+
+  void _handleAttendanceUpdate(Map<String, dynamic> data) {
+    debugPrint('👥 Actualización de asistencia recibida');
+    _loadEventAttendances();
+  }
+
+  void _handleEventStatusChanged(Map<String, dynamic> data) {
+    final newStatus = data['isActive'] ?? false;
+    debugPrint('🎯 Estado del evento cambió: $newStatus');
+
+    setState(() {
+      _isEventActive = newStatus;
+      if (_monitoredEvent != null) {
+        _monitoredEvent = _monitoredEvent!.copyWith(isActive: newStatus);
+      }
+    });
+
+    if (newStatus) {
+      _showNotification('Evento Activado', 'El evento ahora está activo');
+    }
+  }
+
+  void _handleBreakStatusChanged(Map<String, dynamic> data) {
+    final isBreakActive = data['breakActive'] ?? false;
+    debugPrint('⏸️ Estado del receso cambió: $isBreakActive');
+
+    if (isBreakActive) {
+      _showNotification(
+          'Receso Iniciado', 'Los estudiantes han sido notificados');
+    } else {
+      _showNotification('Receso Terminado', 'Tracking reanudado');
+    }
+  }
+
+  void _handleMetricsUpdate(Map<String, dynamic> data) {
+    debugPrint('📊 Métricas actualizadas en tiempo real');
+    _loadRealtimeMetrics();
+  }
+
+  void _handleWebSocketError(error) {
+    debugPrint('❌ Error en WebSocket: $error');
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Conexión tiempo real perdida - usando actualización manual'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _handleWebSocketClosed() {
+    debugPrint('🔌 WebSocket cerrado - intentando reconexión');
+
+    Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        _connectWebSocket();
+      }
+    });
+  }
+
+  /// Limpiar conexión WebSocket
+  void _cleanupWebSocket() {
+    try {
+      debugPrint('🧹 Limpiando conexión WebSocket');
+
+      _wsSubscription?.cancel();
+      _wsChannel?.sink.close();
+
+      _wsSubscription = null;
+      _wsChannel = null;
+
+      debugPrint('✅ WebSocket limpiado');
+    } catch (e) {
+      debugPrint('❌ Error limpiando WebSocket: $e');
+    }
+  }
+
+  /// Método auxiliar para notificaciones rápidas
+  void _showNotification(String title, String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(message),
+            ],
+          ),
+          backgroundColor: AppColors.primaryOrange,
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 }

@@ -32,6 +32,8 @@ dependencies:
   # ✅ ACTUALIZADO: Location services - ACTUALIZACIONES CRÍTICAS
   geolocator: ^14.0.2             # Era: ^14.0.1 - Mejor precisión GPS
   permission_handler: ^12.0.1     # Era: ^12.0.0+1 - Permisos mejorados
+  web_socket_channel: ^2.4.0
+
 
   # Maps (for future integration) - Mantenido
   google_maps_flutter: ^2.12.3

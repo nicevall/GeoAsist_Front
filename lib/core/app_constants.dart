@@ -12,6 +12,15 @@ class AppConstants {
   static const String apiVersion = 'v1';
   static const Duration apiTimeout = Duration(seconds: 30);
 
+  // ✅ NUEVO: WebSocket para tiempo real
+  static const String baseUrlWebSocket = 'ws://54.210.246.199';
+
+  // ✅ NUEVO: Configuración crítica Día 2
+  static const Duration heartbeatInterval = Duration(seconds: 30);
+  static const Duration gracePeriodDuration = Duration(minutes: 1);
+  static const double maxGpsAccuracyMeters = 20.0;
+  static const Duration permissionCheckInterval = Duration(minutes: 10);
+
   // API Endpoints
   static const String loginEndpoint = '/usuarios/login';
   static const String registerEndpoint = '/usuarios/registrar';
@@ -24,7 +33,6 @@ class AppConstants {
   // Location & Geofencing
   static const double defaultLocationAccuracy = 5.0; // meters
   static const Duration locationUpdateInterval = Duration(seconds: 10);
-  static const Duration gracePeriodDuration = Duration(minutes: 1);
   static const double geofenceRadius = 100.0; // meters
   static const Duration breakTimerInterval = Duration(seconds: 1);
 
@@ -76,6 +84,14 @@ class AppConstants {
   static const String genericErrorMessage =
       'Ocurrió un error inesperado. Inténtalo de nuevo.';
 
+  // ✅ NUEVO: Headers para autenticación con JWT
+  static Map<String, String> getAuthHeaders(String token) {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
+
   // Location & Permission Messages
   static const String locationPermissionRequiredMessage =
       'Se requieren permisos de ubicación para registrar asistencia.';
@@ -102,6 +118,7 @@ class AppConstants {
       'Asistencia registrada correctamente.';
   static const String breakStartedMessage = 'Período de descanso iniciado.';
   static const String breakEndedMessage = 'Período de descanso terminado.';
+
   // Mensajes de éxito para gestión de Docentes
   static const String professorCreatedSuccessMessage =
       '¡Docente creado exitosamente!';
@@ -183,13 +200,4 @@ class AppConstants {
   static const String dashboardEventMetrics =
       '/dashboard/metrics/event'; // Para /{id}
   static const String dashboardOverview = '/dashboard/overview';
-
-  // Headers con autenticación
-  static Map<String, String> getAuthHeaders(String token) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-      'Accept': 'application/json',
-    };
-  }
 }

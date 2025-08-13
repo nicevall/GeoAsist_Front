@@ -7,6 +7,7 @@ import '../models/api_response_model.dart';
 import '../models/asistencia_model.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
+import 'dart:io';
 
 /// Servicio para manejar todas las operaciones de asistencia con el backend real
 class AsistenciaService {
@@ -438,6 +439,106 @@ class AsistenciaService {
     } catch (e) {
       debugPrint('❌ Error obteniendo métricas del evento: $e');
       rethrow;
+    }
+  }
+
+  Future<ApiResponse<bool>> enviarHeartbeat({
+    required String usuarioId,
+    required String eventoId,
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) {
+        return ApiResponse.error('No hay sesión activa');
+      }
+
+      final response = await _apiService.post(
+        '/heartbeat',
+        body: {
+          'usuarioId': usuarioId,
+          'eventoId': eventoId,
+          'timestamp': DateTime.now().toIso8601String(),
+          'appStatus': 'active',
+          'platform': Platform.operatingSystem,
+        },
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success) {
+        debugPrint('💓 Heartbeat enviado exitosamente');
+        return ApiResponse.success(true);
+      }
+
+      debugPrint('❌ Error en heartbeat: ${response.error}');
+      return ApiResponse.error(response.error ?? 'Error en heartbeat');
+    } catch (e) {
+      debugPrint('❌ Excepción en heartbeat: $e');
+      return ApiResponse.error('Error de conexión: $e');
+    }
+  }
+
+  // 🎯 MÉTODO CRÍTICO 2: Marcar ausente específicamente por cierre de app
+  Future<ApiResponse<bool>> marcarAusentePorCierreApp({
+    required String usuarioId,
+    required String eventoId,
+  }) async {
+    try {
+      debugPrint('🚨 Marcando ausente por cierre de app');
+
+      final response = await registrarAsistencia(
+        eventoId: eventoId,
+        usuarioId: usuarioId,
+        latitud: 0.0, // No aplica
+        longitud: 0.0, // No aplica
+        estado: 'ausente',
+        observaciones: jsonEncode({
+          'tipo': 'ausencia_automatica',
+          'motivo': 'Aplicación cerrada durante tracking',
+          'timestamp': DateTime.now().toIso8601String(),
+          'platform': Platform.operatingSystem,
+        }),
+      );
+
+      if (response.success) {
+        debugPrint('✅ Marcado como ausente por cierre de app');
+        return ApiResponse.success(true);
+      }
+
+      return ApiResponse.error(response.error ?? 'Error marcando ausente');
+    } catch (e) {
+      debugPrint('❌ Excepción marcando ausente: $e');
+      return ApiResponse.error('Error: $e');
+    }
+  }
+
+  // 🎯 MÉTODO CRÍTICO 3: Registrar eventos específicos de geofence
+  Future<ApiResponse<bool>> registrarEventoGeofence({
+    required String usuarioId,
+    required String eventoId,
+    required bool entrando, // true = entrando, false = saliendo
+    required double latitud,
+    required double longitud,
+  }) async {
+    try {
+      final tipoEvento = entrando ? 'entrada_area' : 'salida_area';
+      debugPrint('📍 Registrando $tipoEvento de geofence');
+
+      final response = await actualizarUbicacion(
+        usuarioId: usuarioId,
+        eventoId: eventoId,
+        latitud: latitud,
+        longitud: longitud,
+      );
+
+      if (response.success) {
+        debugPrint('✅ Evento geofence registrado: $tipoEvento');
+        return ApiResponse.success(true);
+      }
+
+      return ApiResponse.error(response.error ?? 'Error registrando geofence');
+    } catch (e) {
+      debugPrint('❌ Excepción registrando geofence: $e');
+      return ApiResponse.error('Error: $e');
     }
   }
 
