@@ -14,6 +14,15 @@ class BackgroundService {
   factory BackgroundService() => _instance;
   BackgroundService._internal();
 
+  // 🎯 NUEVAS PROPIEDADES PARA HEARTBEAT MEJORADO
+  int _consecutiveHeartbeatFailures = 0;
+  int _totalHeartbeatsSent = 0;
+  int _totalHeartbeatFailures = 0;
+  DateTime? _lastSuccessfulHeartbeat;
+  bool _isHeartbeatCriticalFailure = false;
+  bool _isAppInForeground = true;
+  static const int _maxConsecutiveFailures = 3;
+
   // 🔥 METHODCHANNEL PARA COMUNICACIÓN NATIVA
   static const MethodChannel _nativeChannel =
       MethodChannel('com.geoasist/foreground_service');
@@ -517,32 +526,124 @@ class BackgroundService {
 
   // 🎯 EJECUCIÓN DE TAREAS - MEJORADAS
 
-  /// 🔥 MODIFICADO: Heartbeat con validación de estado
+  /// 🔥 ACTUALIZAR tu método _performHeartbeat() existente:
   Future<void> _performHeartbeat() async {
     try {
-      if (_currentUserId == null || _currentEventId == null) return;
+      if (_currentUserId == null || _currentEventId == null) {
+        debugPrint('⚠️ Heartbeat cancelado - Sin usuario/evento activo');
+        return;
+      }
 
-      debugPrint('💓 Enviando heartbeat crítico con validación');
+      debugPrint(
+          '💓 Enviando heartbeat crítico mejorado (#$_totalHeartbeatsSent)');
 
-      await _asistenciaService.actualizarUbicacion(
+      // 1. ✅ NUEVO: Obtener ubicación real para heartbeat si está disponible
+      final currentLocation = await _getCurrentLocationForHeartbeat();
+
+      // 2. ✅ NUEVO: Usar tu AsistenciaService mejorado
+      final heartbeatResponse =
+          await _asistenciaService.enviarHeartbeatConValidacion(
         usuarioId: _currentUserId!,
         eventoId: _currentEventId!,
-        latitud: 0.0, // GPS real implementado en StudentAttendanceManager
-        longitud: 0.0,
+        latitud: currentLocation['latitude'],
+        longitud: currentLocation['longitude'],
+        appActive: _isAppInForeground, // Usar tu variable existente
+        maxReintentos: 2, // Menos reintentos para el timer automático
       );
 
-      _lastHeartbeat = DateTime.now();
+      // 3. ✅ NUEVO: Procesar respuesta del backend
+      if (heartbeatResponse.success) {
+        await _handleSuccessfulHeartbeat(heartbeatResponse.data);
+      } else {
+        throw Exception(
+            'Backend rechazó heartbeat: ${heartbeatResponse.error}');
+      }
 
-      // Actualizar ambas notificaciones con último heartbeat
-      final now = DateTime.now();
-      final timeString = '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+      // 4. ✅ NUEVO: Actualizar estadísticas de éxito
+      _totalHeartbeatsSent++;
+      _consecutiveHeartbeatFailures = 0;
+      _lastSuccessfulHeartbeat = DateTime.now();
+      _isHeartbeatCriticalFailure = false;
 
-      await updateNativeNotificationStatus('Heartbeat: $timeString');
-      await _notificationManager
-          .updateTrackingNotificationStatus('Heartbeat: $timeString');
+      // 5. ✅ Actualizar tus notificaciones existentes
+      final timeString = DateTime.now().toString().substring(11, 19);
+      await updateNativeNotificationStatus('💓 Heartbeat OK $timeString');
+      await _notificationManager.updateTrackingNotificationStatus(
+          'Heartbeat #$_totalHeartbeatsSent - $timeString');
+      debugPrint('💓 Heartbeat #$_totalHeartbeatsSent enviado exitosamente');
     } catch (e) {
-      debugPrint('❌ Error crítico en heartbeat: $e');
-      await _handleHeartbeatFailure();
+      debugPrint('❌ Error crítico en heartbeat #$_totalHeartbeatsSent: $e');
+      await _handleHeartbeatFailure(e.toString());
+    }
+  }
+
+  /// 🔥 NUEVO: Obtener ubicación actual para heartbeat (compatible con tu sistema)
+  Future<Map<String, double?>> _getCurrentLocationForHeartbeat() async {
+    try {
+      // ✅ Integrar con tu sistema de ubicación existente si está disponible
+      // Por ahora, usar valores seguros que no rompan el flujo
+      return {
+        'latitude': null, // En producción: usar tu LocationService
+        'longitude': null,
+        'accuracy': null,
+      };
+    } catch (e) {
+      debugPrint('⚠️ Error obteniendo ubicación para heartbeat: $e');
+      return {'latitude': null, 'longitude': null, 'accuracy': null};
+    }
+  }
+
+  /// 🔥 NUEVO: Procesar respuesta exitosa del heartbeat
+  Future<void> _handleSuccessfulHeartbeat(
+      Map<String, dynamic>? responseData) async {
+    try {
+      if (responseData == null) return;
+
+      debugPrint('📊 Procesando respuesta de heartbeat exitoso');
+
+      // 1. ✅ Verificar si el evento sigue activo según el backend
+      final eventStillActive =
+          responseData['eventoActivo'] ?? responseData['eventActive'] ?? true;
+      if (!eventStillActive) {
+        debugPrint('🏁 Backend reporta evento terminado - deteniendo tracking');
+        await _handleEventEndedByBackend();
+        return;
+      }
+
+      // 2. ✅ Verificar estado de asistencia según el backend
+      final attendanceStatus = responseData['estadoAsistencia'] ??
+          responseData['attendanceStatus'] as String?;
+      if (attendanceStatus == 'lost' || attendanceStatus == 'ausente') {
+        debugPrint(
+            '❌ Backend reporta asistencia perdida - activando protocolo');
+        await triggerAttendanceLossProtocol(
+            'Backend reportó pérdida de asistencia');
+        return;
+      }
+
+      // 3. ✅ Verificar si hay receso activo
+      final inBreak =
+          responseData['enReceso'] ?? responseData['inBreak'] ?? false;
+      if (inBreak) {
+        debugPrint('⏸️ Backend reporta receso activo');
+        await _notificationManager.showBreakStartedNotification();
+      }
+
+      // 4. ✅ Procesar comandos del backend si los hay
+      final backendCommands = responseData['comandosBackend'] ??
+          responseData['commands'] as List<dynamic>?;
+      if (backendCommands != null && backendCommands.isNotEmpty) {
+        await _processBackendCommands(backendCommands);
+      }
+
+      // 5. ✅ Actualizar métricas si están disponibles
+      final metrics = responseData['metricas'] ??
+          responseData['metrics'] as Map<String, dynamic>?;
+      if (metrics != null) {
+        debugPrint('📈 Métricas recibidas del backend: ${metrics.keys}');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error procesando respuesta de heartbeat: $e');
     }
   }
 
@@ -584,14 +685,133 @@ class BackgroundService {
     }
   }
 
-  /// 🔥 NUEVO: Manejar fallo de heartbeat
-  Future<void> _handleHeartbeatFailure() async {
-    debugPrint('💔 Fallo crítico de heartbeat');
+  /// 🔥 ACTUALIZAR tu método _handleHeartbeatFailure() existente:
+  Future<void> _handleHeartbeatFailure(String error) async {
+    _consecutiveHeartbeatFailures++;
+    _totalHeartbeatFailures++;
 
+    debugPrint(
+        '💔 Fallo de heartbeat #$_consecutiveHeartbeatFailures/$_maxConsecutiveFailures');
+    debugPrint('💔 Error: $error');
+
+    // 1. ✅ Actualizar tus notificaciones existentes
+    await updateNativeNotificationStatus(
+        '💔 Heartbeat Error $_consecutiveHeartbeatFailures/$_maxConsecutiveFailures');
     await _notificationManager.showConnectionErrorNotification();
-    await updateNativeNotificationStatus('Error Conexión');
 
-    // En una implementación real, aquí podrías implementar reconexión automática
+    // 2. ✅ Escalación según número de fallos consecutivos
+    if (_consecutiveHeartbeatFailures == 1) {
+      debugPrint('⚠️ Primer fallo de heartbeat - monitoreando...');
+    } else if (_consecutiveHeartbeatFailures == 2) {
+      debugPrint('🚨 Segundo fallo de heartbeat - advertencia crítica');
+      await _notificationManager.showCriticalAppLifecycleWarning();
+    } else if (_consecutiveHeartbeatFailures >= _maxConsecutiveFailures) {
+      debugPrint(
+          '❌ FALLOS CRÍTICOS DE HEARTBEAT - Activando protocolo de pérdida');
+      _isHeartbeatCriticalFailure = true;
+
+      await _notificationManager.showAppClosedWarningNotification(30);
+
+      // ✅ Usar tu timer de grace period existente
+      Timer(const Duration(seconds: 30), () async {
+        if (_consecutiveHeartbeatFailures >= _maxConsecutiveFailures) {
+          await triggerAttendanceLossProtocol(
+              'Fallos críticos de heartbeat consecutivos');
+        }
+      });
+    }
+
+    // 3. ✅ NUEVO: Intentar recovery automático
+    await _attemptHeartbeatRecovery();
+  }
+
+  /// 🔥 NUEVO: Intentar recuperación automática del heartbeat
+  Future<void> _attemptHeartbeatRecovery() async {
+    try {
+      debugPrint('🔄 Intentando recuperación automática de heartbeat...');
+
+      // 1. ✅ Verificar conectividad usando tu AsistenciaService mejorado
+      final isConnected = await _asistenciaService.testConnection();
+      if (!isConnected.success) {
+        debugPrint('❌ Sin conectividad - no se puede recuperar heartbeat');
+        return;
+      }
+
+      // 2. ✅ Verificar que tus servicios básicos funcionen
+      final servicesHealthy = await _validateCoreServices();
+      if (!servicesHealthy) {
+        debugPrint('❌ Servicios core no están saludables');
+        return;
+      }
+
+      // 3. ✅ Reintentrar heartbeat inmediatamente
+      debugPrint('🔄 Reintentando heartbeat después de fallo...');
+      await _performHeartbeat();
+    } catch (e) {
+      debugPrint('❌ Error en recuperación de heartbeat: $e');
+    }
+  }
+
+  /// 🔥 NUEVO: Validar servicios core para recovery
+  Future<bool> _validateCoreServices() async {
+    try {
+      // 🔧 CORREGIDO: Sin comparaciones null innecesarias
+      final asistenciaServiceOk = _isInitialized;
+      final notificationManagerOk = _isInitialized;
+      final nativeServiceOk = _isNativeForegroundActive;
+
+      final allServicesOk =
+          asistenciaServiceOk && notificationManagerOk && nativeServiceOk;
+
+      debugPrint('🔍 Validación servicios core: $allServicesOk');
+      return allServicesOk;
+    } catch (e) {
+      debugPrint('❌ Error validando servicios core: $e');
+      return false;
+    }
+  }
+
+  /// 🔥 NUEVO: Procesar comandos del backend
+  Future<void> _processBackendCommands(List<dynamic> commands) async {
+    try {
+      for (final command in commands) {
+        if (command is! Map<String, dynamic>) continue;
+
+        final commandType = command['type'] as String?;
+        debugPrint('📨 Procesando comando del backend: $commandType');
+
+        switch (commandType) {
+          case 'start_break':
+            await _notificationManager.showBreakStartedNotification();
+            break;
+          case 'end_break':
+            await _notificationManager.showBreakEndedNotification();
+            break;
+          case 'force_location_update':
+            await _performLocationUpdate(); // Usar tu método existente
+            break;
+          case 'update_notification':
+            final message = command['message'] as String?;
+            if (message != null) {
+              await updateNativeNotificationStatus(message);
+            }
+            break;
+          default:
+            debugPrint('⚠️ Comando desconocido del backend: $commandType');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error procesando comandos del backend: $e');
+    }
+  }
+
+  /// 🔥 NUEVO: Manejar evento terminado por el backend
+  Future<void> _handleEventEndedByBackend() async {
+    debugPrint('🏁 El backend reporta que el evento ha terminado');
+
+    await _notificationManager
+        .showEventEndedNotification(_currentEventId ?? '');
+    await stopForegroundService(); // Usar tu método existente
   }
 
   // 🎯 GESTIÓN DE NOTIFICACIONES
@@ -691,24 +911,22 @@ class BackgroundService {
     }
   }
 
-  /// Activar protocolo de pérdida de asistencia
+  /// 🔥 ACTUALIZAR tu método triggerAttendanceLossProtocol() existente:
   Future<void> triggerAttendanceLossProtocol(String reason) async {
     try {
       debugPrint('❌ ACTIVANDO PROTOCOLO DE PÉRDIDA: $reason');
 
       if (_currentUserId != null && _currentEventId != null) {
-        // Marcar como ausente en el backend
-        await _asistenciaService.marcarAusente(
+        // ✅ Usar tu AsistenciaService mejorado
+        await _asistenciaService.marcarAusentePorCierreApp(
           usuarioId: _currentUserId!,
           eventoId: _currentEventId!,
-          motivo: reason,
+          motivoAdicional: reason,
         );
       }
 
-      // Detener todos los servicios
+      // ✅ Usar tus métodos existentes
       await stopForegroundService();
-
-      // Limpiar notificaciones
       await _notificationManager.clearAllNotifications();
 
       debugPrint('✅ Protocolo de pérdida ejecutado');
@@ -719,7 +937,7 @@ class BackgroundService {
 
   // 🎯 CONFIGURACIÓN DE TRACKING
 
-  /// Configurar tracking para un evento específico
+  /// 🔥 ACTUALIZAR tu método setupTrackingForEvent() existente:
   Future<void> setupTrackingForEvent(String eventId, String userId) async {
     try {
       debugPrint('⚙️ Configurando tracking para evento: $eventId');
@@ -727,8 +945,10 @@ class BackgroundService {
       _currentEventId = eventId;
       _currentUserId = userId;
 
+      // ✅ NUEVO: Reset de estadísticas para nuevo evento
+      resetHeartbeatStatistics();
+
       if (_isForegroundServiceActive) {
-        // Reconfigurar tareas con nuevos datos
         await _cancelAllBackgroundTasks();
         await _registerBackgroundTasks();
       }
@@ -760,9 +980,9 @@ class BackgroundService {
   /// 🔥 NUEVO: Obtener último heartbeat
   DateTime? get lastHeartbeat => _lastHeartbeat;
 
-  /// 🔥 NUEVO: Obtener estado completo del servicio
+  /// 🔥 ACTUALIZAR tu método getCompleteServiceStatus() existente:
   Map<String, dynamic> getCompleteServiceStatus() {
-    return {
+    final baseStatus = {
       'initialized': _isInitialized,
       'foreground_service_active': _isForegroundServiceActive,
       'native_foreground_active': _isNativeForegroundActive,
@@ -776,6 +996,44 @@ class BackgroundService {
       'location_timer_active': _locationTimer?.isActive ?? false,
       'lifecycle_timer_active': _lifecycleTimer?.isActive ?? false,
     };
+
+    // ✅ NUEVO: Agregar estadísticas de heartbeat
+    final heartbeatStats = {
+      'total_heartbeats_sent': _totalHeartbeatsSent,
+      'total_failures': _totalHeartbeatFailures,
+      'consecutive_failures': _consecutiveHeartbeatFailures,
+      'last_successful_heartbeat': _lastSuccessfulHeartbeat?.toIso8601String(),
+      'is_critical_failure': _isHeartbeatCriticalFailure,
+      'success_rate': _totalHeartbeatsSent > 0
+          ? ((_totalHeartbeatsSent - _totalHeartbeatFailures) /
+                  _totalHeartbeatsSent *
+                  100)
+              .toStringAsFixed(1)
+          : '0.0',
+    };
+
+    // ✅ NUEVO: Agregar estadísticas del AsistenciaService
+    final asistenciaStats = _asistenciaService.getHeartbeatStatistics();
+
+    return {
+      ...baseStatus,
+      'heartbeat_statistics': heartbeatStats,
+      'asistencia_service_stats': asistenciaStats,
+    };
+  }
+
+  /// 🔥 NUEVO: Reset de estadísticas de heartbeat (para nuevos eventos)
+  void resetHeartbeatStatistics() {
+    debugPrint('🔄 Reseteando estadísticas de heartbeat');
+
+    _consecutiveHeartbeatFailures = 0;
+    _totalHeartbeatsSent = 0;
+    _totalHeartbeatFailures = 0;
+    _lastSuccessfulHeartbeat = null;
+    _isHeartbeatCriticalFailure = false;
+
+    // ✅ También resetear en AsistenciaService
+    _asistenciaService.resetSession();
   }
 
   /// Obtener información del estado actual (compatibilidad)

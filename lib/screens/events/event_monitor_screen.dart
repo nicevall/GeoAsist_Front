@@ -8,6 +8,8 @@ import '../../models/evento_model.dart';
 import '../../models/asistencia_model.dart'; // ✅ NUEVO para datos reales
 import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../../services/notifications/notification_manager.dart';
+import '../../services/storage_service.dart';
 
 class EventMonitorScreen extends StatefulWidget {
   final String teacherName;
@@ -28,6 +30,14 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   // 🎯 SERVICIOS CON BACKEND REAL
   final EventoService _eventoService = EventoService();
   final AsistenciaService _asistenciaService = AsistenciaService(); // ✅ REAL
+
+  // 🎯 SERVICIOS ADICIONALES PARA NOTIFICACIONES
+  final NotificationManager _notificationManager = NotificationManager();
+  final StorageService _storageService = StorageService();
+
+  // 🎯 ESTADO DEL RECESO
+  bool _isBreakActive = false;
+  DateTime? _breakStartTime;
 
   // 🎯 WEBSOCKET REAL - NUEVAS PROPIEDADES
   WebSocketChannel? _wsChannel;
@@ -58,6 +68,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   void initState() {
     super.initState();
     _initializeAnimations();
+    _initializeNotificationManager();
     _initializeEventMonitor();
   }
 
@@ -85,6 +96,15 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     );
 
     _pulseController.repeat(reverse: true);
+  }
+
+  Future<void> _initializeNotificationManager() async {
+    try {
+      await _notificationManager.initialize();
+      debugPrint('✅ NotificationManager inicializado para EventMonitor');
+    } catch (e) {
+      debugPrint('❌ Error inicializando NotificationManager: $e');
+    }
   }
 
   Future<void> _initializeEventMonitor() async {
@@ -348,36 +368,92 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     try {
       debugPrint('▶️ Terminando receso para evento: ${widget.eventId}');
 
-      // ✅ CORREGIDO: EventoService retorna bool directamente
       final result = await _eventoService.terminarReceso(widget.eventId);
 
       if (result) {
+        setState(() {
+          _isBreakActive = false;
+          _breakStartTime = null;
+        });
+
+        // ✅ NUEVO: Notificación automática a estudiantes
+        await _notificationManager.showBreakEndedNotification(widget.eventId);
+
         await _refreshData();
 
-        if (!mounted) return; // ✅ CORREGIDO: Verificar mounted
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Receso terminado - Tracking reanudado'),
+            content: Text('▶️ Receso terminado - Estudiantes notificados'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
           ),
         );
 
-        debugPrint('✅ Receso terminado exitosamente');
+        debugPrint('✅ Receso terminado con notificación automática');
       } else {
-        if (!mounted) return; // ✅ CORREGIDO: Verificar mounted
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Error terminando receso'),
+            content: Text('❌ Error terminando receso'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e) {
       debugPrint('❌ Error terminando receso: $e');
-      if (!mounted) return; // ✅ CORREGIDO: Verificar mounted
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error terminando receso: $e'),
+          content: Text('❌ Error terminando receso: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _startBreak() async {
+    try {
+      debugPrint('⏸️ Iniciando receso para evento: ${widget.eventId}');
+
+      final result = await _eventoService.iniciarReceso(widget.eventId);
+
+      if (result) {
+        setState(() {
+          _isBreakActive = true;
+          _breakStartTime = DateTime.now();
+        });
+
+        // ✅ NUEVO: Notificación automática a estudiantes
+        await _notificationManager.showBreakStartedNotification(widget.eventId);
+
+        await _refreshData();
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⏸️ Receso iniciado - Estudiantes notificados'),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        debugPrint('✅ Receso iniciado con notificación automática');
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Error iniciando receso'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Error iniciando receso: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Error iniciando receso: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -386,24 +462,37 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
   Future<void> _connectWebSocket() async {
     try {
-      debugPrint('🔌 Conectando WebSocket real al backend');
+      debugPrint('🔌 Conectando WebSocket real al backend con autenticación');
 
-      // ✅ BACKEND REAL: ws://54.210.246.199
-      const wsUrl = 'ws://54.210.246.199';
-      debugPrint('📡 URL WebSocket: $wsUrl');
+      // ✅ NUEVO: Obtener token JWT para autenticación
+      final token = await _storageService.getToken();
+      if (token == null) {
+        debugPrint('❌ No hay token JWT para WebSocket');
+        return;
+      }
+
+      // ✅ MEJORADO: WebSocket con query parameters de autenticación
+      final wsUrl =
+          'ws://54.210.246.199?token=$token&eventId=${widget.eventId}&role=docente';
+      debugPrint(
+          '📡 URL WebSocket con auth: ws://54.210.246.199?token=***&eventId=${widget.eventId}');
 
       _wsChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
-      // Enviar suscripción al evento específico
+      // ✅ NUEVO: Mensaje de suscripción mejorado con datos del profesor
+      final user = await _storageService.getUser();
       final subscriptionMessage = jsonEncode({
-        'action': 'subscribe',
+        'action': 'subscribe_event_monitor',
         'eventId': widget.eventId,
         'userRole': 'docente',
+        'userId': user?.id ?? 'unknown',
+        'teacherName': widget.teacherName,
         'timestamp': DateTime.now().toIso8601String(),
+        'clientType': 'flutter_event_monitor',
       });
 
       _wsChannel!.sink.add(subscriptionMessage);
-      debugPrint('📤 Mensaje de suscripción enviado');
+      debugPrint('📤 Mensaje de suscripción enviado con autenticación');
 
       // Escuchar mensajes del WebSocket
       _wsSubscription = _wsChannel!.stream.listen(
@@ -412,10 +501,31 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         onDone: _handleWebSocketClosed,
       );
 
-      debugPrint('✅ WebSocket conectado exitosamente');
+      // ✅ NUEVO: Confirmar conexión exitosa
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('📡 Conexión tiempo real activada'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      debugPrint('✅ WebSocket conectado con autenticación JWT');
     } catch (e) {
       debugPrint('❌ Error conectando WebSocket: $e');
-      // Continuar sin WebSocket - usar refresh timer como fallback
+      // Mostrar error pero continuar con refresh timer
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                '⚠️ Modo tiempo real no disponible - usando actualización automática'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -651,17 +761,25 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _endBreak,
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text('Fin Receso'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
+              if (_isEventActive) ...[
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isBreakActive ? _endBreak : _startBreak,
+                    icon: Icon(_isBreakActive ? Icons.play_arrow : Icons.pause),
+                    label: Text(
+                        _isBreakActive ? 'Terminar Receso' : 'Iniciar Receso'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          _isBreakActive ? Colors.green : Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
                 ),
-              ),
+              ] else ...[
+                const Expanded(
+                  child: SizedBox(), // Espaciador cuando evento no está activo
+                ),
+              ],
             ],
           ),
         ],

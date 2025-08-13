@@ -14,6 +14,10 @@ class AsistenciaService {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
 
+  // 🎯 NUEVAS PROPIEDADES PARA HEARTBEAT MEJORADO
+  static String? _sessionId;
+  static int _heartbeatSequence = 0;
+
   // 🎯 MÉTODO 1: Registrar asistencia en el backend real
   Future<ApiResponse<Asistencia>> registrarAsistencia({
     required String eventoId,
@@ -415,6 +419,260 @@ class AsistenciaService {
     }
   }
 
+  Future<ApiResponse<Map<String, dynamic>>> enviarHeartbeat({
+    required String usuarioId,
+    required String eventoId,
+    double? latitud,
+    double? longitud,
+    bool? appActive,
+    int? batteryLevel,
+    int? signalStrength,
+  }) async {
+    try {
+      debugPrint('💓 Enviando heartbeat mejorado (#${_heartbeatSequence++})');
+      debugPrint('👤 Usuario: $usuarioId, Evento: $eventoId');
+      debugPrint('📱 App activa: ${appActive ?? true}');
+
+      final token = await _storageService.getToken();
+      if (token == null) {
+        debugPrint('❌ No hay token para heartbeat');
+        return ApiResponse.error('No hay sesión activa');
+      }
+
+      // ✅ MEJORADO: Payload más completo
+      final heartbeatData = {
+        'usuarioId': usuarioId,
+        'eventoId': eventoId,
+        'timestamp': DateTime.now().toIso8601String(),
+        'appStatus': appActive == true ? 'active' : 'background',
+        'platform': Platform.operatingSystem,
+
+        // ✅ NUEVO: Datos adicionales del dispositivo
+        'sessionId': _getOrCreateSessionId(),
+        'sequence': _heartbeatSequence,
+        'appVersion': '1.0.0',
+
+        // ✅ NUEVO: Ubicación si está disponible
+        if (latitud != null) 'latitud': latitud,
+        if (longitud != null) 'longitud': longitud,
+
+        // ✅ NUEVO: Información del dispositivo
+        'deviceInfo': {
+          if (batteryLevel != null) 'batteryLevel': batteryLevel,
+          if (signalStrength != null) 'signalStrength': signalStrength,
+          'platform': Platform.operatingSystem,
+          'heartbeatVersion': '2.0',
+        },
+      };
+
+      debugPrint('📦 Heartbeat data keys: ${heartbeatData.keys}');
+
+      final response = await _apiService.post(
+        '/heartbeat', // Mantener tu endpoint existente
+        body: heartbeatData,
+        headers: AppConstants.getAuthHeaders(token),
+      );
+
+      if (response.success) {
+        debugPrint('💓 Enviando heartbeat mejorado (#$_heartbeatSequence)');
+        _heartbeatSequence++;
+
+        // ✅ NUEVO: Retornar datos del backend si están disponibles
+        return ApiResponse.success(
+          response.data ?? {'status': 'ok'},
+          message: 'Heartbeat enviado exitosamente',
+        );
+      }
+
+      debugPrint('❌ Backend rechazó heartbeat: ${response.error}');
+      return ApiResponse.error(response.error ?? 'Error en heartbeat');
+    } catch (e) {
+      debugPrint('❌ Excepción en heartbeat mejorado: $e');
+      return ApiResponse.error('Error de conexión: $e');
+    }
+  }
+
+  /// 🔥 NUEVO: Heartbeat con validación previa y reintentos automáticos
+  Future<ApiResponse<Map<String, dynamic>>> enviarHeartbeatConValidacion({
+    required String usuarioId,
+    required String eventoId,
+    double? latitud,
+    double? longitud,
+    bool? appActive,
+    int maxReintentos = 3,
+  }) async {
+    for (int intento = 1; intento <= maxReintentos; intento++) {
+      try {
+        debugPrint(
+            '💓 Heartbeat con validación - Intento $intento/$maxReintentos');
+
+        // 1. ✅ Validar conexión antes de enviar
+        if (intento == 1) {
+          // Solo validar en el primer intento para eficiencia
+          final connectionTest = await testConnection();
+          if (!connectionTest.success) {
+            debugPrint('❌ Sin conexión - omitiendo heartbeat');
+            return ApiResponse.error('Sin conexión de red');
+          }
+        }
+
+        // 2. ✅ Enviar heartbeat con datos completos
+        final heartbeatResponse = await enviarHeartbeat(
+          usuarioId: usuarioId,
+          eventoId: eventoId,
+          latitud: latitud,
+          longitud: longitud,
+          appActive: appActive,
+        );
+
+        // 3. ✅ Si es exitoso, retornar inmediatamente
+        if (heartbeatResponse.success) {
+          if (intento > 1) {
+            debugPrint('✅ Heartbeat exitoso después de $intento intentos');
+          }
+          return heartbeatResponse;
+        }
+
+        // 4. ✅ Si falla y no es el último intento, esperar y reintentar
+        if (intento < maxReintentos) {
+          final delaySegundos = intento * 2; // Backoff exponencial: 2s, 4s, 6s
+          debugPrint('⏳ Reintentando heartbeat en ${delaySegundos}s...');
+          await Future.delayed(Duration(seconds: delaySegundos));
+        }
+      } catch (e) {
+        debugPrint('❌ Error en intento $intento de heartbeat: $e');
+
+        if (intento == maxReintentos) {
+          return ApiResponse.error('Fallos múltiples de heartbeat: $e');
+        }
+      }
+    }
+
+    // Si llegamos aquí, todos los intentos fallaron
+    debugPrint('❌ TODOS LOS INTENTOS DE HEARTBEAT FALLARON');
+    return ApiResponse.error(
+        'Heartbeat falló después de $maxReintentos intentos');
+  }
+
+  /// 🔥 NUEVO: Validar estado del evento desde heartbeat
+  Future<Map<String, dynamic>?> validarEstadoEventoConHeartbeat({
+    required String usuarioId,
+    required String eventoId,
+  }) async {
+    try {
+      debugPrint('🔍 Validando estado del evento via heartbeat');
+
+      final heartbeatResponse = await enviarHeartbeatConValidacion(
+        usuarioId: usuarioId,
+        eventoId: eventoId,
+        appActive: true,
+      );
+
+      if (heartbeatResponse.success && heartbeatResponse.data != null) {
+        final responseData = heartbeatResponse.data!;
+
+        // ✅ Extraer información del estado del evento del backend
+        final estadoEvento = {
+          'eventoActivo': responseData['eventActive'] ?? true,
+          'asistenciaValida': responseData['attendanceValid'] ?? true,
+          'estadoAsistencia': responseData['attendanceStatus'] ?? 'unknown',
+          'enReceso': responseData['inBreak'] ?? false,
+          'comandosBackend': responseData['commands'] ?? [],
+          'metricas': responseData['metrics'] ?? {},
+          'heartbeatValido': true,
+        };
+
+        debugPrint('📊 Estado del evento validado: $estadoEvento');
+        return estadoEvento;
+      }
+
+      debugPrint('❌ No se pudo validar estado del evento');
+      return {'heartbeatValido': false, 'error': heartbeatResponse.error};
+    } catch (e) {
+      debugPrint('❌ Error validando estado del evento: $e');
+      return {'heartbeatValido': false, 'error': e.toString()};
+    }
+  }
+
+  /// 🔥 NUEVO: Heartbeat de emergencia (para situaciones críticas)
+  Future<ApiResponse<bool>> enviarHeartbeatEmergencia({
+    required String usuarioId,
+    required String eventoId,
+    required String tipoEmergencia, // 'app_closing', 'connection_lost', etc.
+  }) async {
+    try {
+      debugPrint('🚨 Enviando heartbeat de EMERGENCIA: $tipoEmergencia');
+
+      final token = await _storageService.getToken();
+      if (token == null) {
+        return ApiResponse.error('No hay token para heartbeat de emergencia');
+      }
+
+      final emergencyData = {
+        'usuarioId': usuarioId,
+        'eventoId': eventoId,
+        'timestamp': DateTime.now().toIso8601String(),
+        'tipo': 'emergency_heartbeat',
+        'emergencyType': tipoEmergencia,
+        'sessionId': _getOrCreateSessionId(),
+        'platform': Platform.operatingSystem,
+        'urgente': true,
+      };
+
+      // ✅ Timeout más corto para emergencias
+      final response = await _apiService
+          .post(
+            '/heartbeat/emergency', // Endpoint especializado si está disponible
+            body: emergencyData,
+            headers: AppConstants.getAuthHeaders(token),
+          )
+          .timeout(
+            const Duration(seconds: 10), // Timeout reducido para emergencias
+          );
+
+      if (response.success) {
+        debugPrint('✅ Heartbeat de emergencia enviado');
+        return ApiResponse.success(true);
+      }
+
+      return ApiResponse.error(
+          response.error ?? 'Error en heartbeat de emergencia');
+    } catch (e) {
+      debugPrint('❌ Error crítico en heartbeat de emergencia: $e');
+      return ApiResponse.error('Error crítico: $e');
+    }
+  }
+
+  /// 🔥 NUEVO: Obtener o crear Session ID único
+  String _getOrCreateSessionId() {
+    if (_sessionId == null) {
+      _sessionId =
+          '${DateTime.now().millisecondsSinceEpoch}_${Platform.operatingSystem}';
+      debugPrint('🆔 Session ID creado: $_sessionId');
+    }
+    return _sessionId!;
+  }
+
+  /// 🔥 NUEVO: Reset de session (para nuevos eventos)
+  void resetSession() {
+    debugPrint('🔄 Reseteando session de heartbeat');
+    _sessionId = null;
+    _heartbeatSequence = 0;
+  }
+
+  /// 🔥 NUEVO: Obtener estadísticas de heartbeat
+  Map<String, dynamic> getHeartbeatStatistics() {
+    return {
+      'session_id': _sessionId ?? 'no_session',
+      'total_heartbeats_sent': _heartbeatSequence,
+      'session_start_time': _sessionId != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+                  int.tryParse(_sessionId!.split('_')[0]) ?? 0)
+              .toIso8601String()
+          : null,
+    };
+  }
+
   /// Obtener métricas de un evento específico
   Future<ApiResponse<Map<String, dynamic>>> obtenerMetricasEvento(
       String eventoId) async {
@@ -442,38 +700,30 @@ class AsistenciaService {
     }
   }
 
-  Future<ApiResponse<bool>> enviarHeartbeat({
-    required String usuarioId,
-    required String eventoId,
-  }) async {
+  /// 🔥 NUEVO: Test de conexión rápido para validaciones
+  Future<ApiResponse<bool>> testConnection() async {
     try {
+      debugPrint('🔍 Testing conexión al backend');
+
       final token = await _storageService.getToken();
       if (token == null) {
-        return ApiResponse.error('No hay sesión activa');
+        return ApiResponse.error('No hay token para test');
       }
 
-      final response = await _apiService.post(
-        '/heartbeat',
-        body: {
-          'usuarioId': usuarioId,
-          'eventoId': eventoId,
-          'timestamp': DateTime.now().toIso8601String(),
-          'appStatus': 'active',
-          'platform': Platform.operatingSystem,
-        },
+      // ✅ Usar un endpoint ligero existente o crear uno específico
+      final response = await _apiService.get(
+        '/dashboard/metrics', // Usar tu endpoint existente más ligero
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      if (response.success) {
-        debugPrint('💓 Heartbeat enviado exitosamente');
-        return ApiResponse.success(true);
-      }
+      final isConnected = response.success;
+      debugPrint(
+          '📡 Test de conexión: ${isConnected ? "✅ CONECTADO" : "❌ SIN CONEXIÓN"}');
 
-      debugPrint('❌ Error en heartbeat: ${response.error}');
-      return ApiResponse.error(response.error ?? 'Error en heartbeat');
+      return ApiResponse.success(isConnected);
     } catch (e) {
-      debugPrint('❌ Excepción en heartbeat: $e');
-      return ApiResponse.error('Error de conexión: $e');
+      debugPrint('❌ Error en test de conexión: $e');
+      return ApiResponse.error('Sin conexión: $e');
     }
   }
 
@@ -481,34 +731,63 @@ class AsistenciaService {
   Future<ApiResponse<bool>> marcarAusentePorCierreApp({
     required String usuarioId,
     required String eventoId,
+    String? motivoAdicional,
   }) async {
     try {
-      debugPrint('🚨 Marcando ausente por cierre de app');
+      debugPrint('🚨 Marcando ausente por cierre de app - MEJORADO');
 
+      // ✅ NUEVO: Intentar heartbeat de emergencia primero
+      await enviarHeartbeatEmergencia(
+        usuarioId: usuarioId,
+        eventoId: eventoId,
+        tipoEmergencia: 'app_closing',
+      );
+
+      // ✅ Usar tu lógica existente pero mejorada
       final response = await registrarAsistencia(
         eventoId: eventoId,
         usuarioId: usuarioId,
-        latitud: 0.0, // No aplica
-        longitud: 0.0, // No aplica
+        latitud: 0.0,
+        longitud: 0.0,
         estado: 'ausente',
         observaciones: jsonEncode({
           'tipo': 'ausencia_automatica',
           'motivo': 'Aplicación cerrada durante tracking',
+          'motivoAdicional': motivoAdicional,
           'timestamp': DateTime.now().toIso8601String(),
           'platform': Platform.operatingSystem,
+          'sessionId': _getOrCreateSessionId(),
+          'heartbeatSequence': _heartbeatSequence,
         }),
       );
 
       if (response.success) {
-        debugPrint('✅ Marcado como ausente por cierre de app');
+        debugPrint('✅ Marcado como ausente por cierre de app (MEJORADO)');
+        resetSession(); // ✅ Limpiar session después de marcar ausente
         return ApiResponse.success(true);
       }
 
       return ApiResponse.error(response.error ?? 'Error marcando ausente');
     } catch (e) {
-      debugPrint('❌ Excepción marcando ausente: $e');
+      debugPrint('❌ Excepción marcando ausente (MEJORADO): $e');
       return ApiResponse.error('Error: $e');
     }
+  }
+
+  // ✅ NUEVO: Validar si el heartbeat está funcionando correctamente
+  Future<bool> isHeartbeatHealthy() async {
+    try {
+      final connectionTest = await testConnection();
+      return connectionTest.success;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ✅ NUEVO: Cleanup de resources para heartbeat
+  void cleanupHeartbeatResources() {
+    debugPrint('🧹 Limpiando recursos de heartbeat');
+    resetSession();
   }
 
   // 🎯 MÉTODO CRÍTICO 3: Registrar eventos específicos de geofence

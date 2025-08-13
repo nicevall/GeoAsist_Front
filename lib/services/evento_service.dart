@@ -6,6 +6,7 @@ import 'api_service.dart';
 import 'storage_service.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
+import 'notifications/notification_manager.dart';
 
 class EventoService {
   static final EventoService _instance = EventoService._internal();
@@ -14,6 +15,7 @@ class EventoService {
 
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
+  final NotificationManager _notificationManager = NotificationManager();
 
   Future<List<Evento>> obtenerEventos() async {
     try {
@@ -520,7 +522,7 @@ class EventoService {
 
   // 🎯 MÉTODOS PARA CONTROL DE EVENTOS EN TIEMPO REAL (FASE C)
 
-  /// Activar evento para permitir unirse a estudiantes
+  /// ✅ Activar evento (permite que estudiantes se unan)
   Future<bool> activarEvento(String eventoId) async {
     try {
       debugPrint('▶️ Activando evento: $eventoId');
@@ -536,10 +538,8 @@ class EventoService {
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Activate response success: ${response.success}');
-
       if (response.success) {
-        debugPrint('✅ Evento activado exitosamente: $eventoId');
+        debugPrint('✅ Evento activado exitosamente');
         return true;
       }
 
@@ -551,7 +551,7 @@ class EventoService {
     }
   }
 
-  /// Desactivar evento para impedir nuevos accesos
+  /// Desactivar evento
   Future<bool> desactivarEvento(String eventoId) async {
     try {
       debugPrint('⏹️ Desactivando evento: $eventoId');
@@ -567,10 +567,8 @@ class EventoService {
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Deactivate response success: ${response.success}');
-
       if (response.success) {
-        debugPrint('✅ Evento desactivado exitosamente: $eventoId');
+        debugPrint('✅ Evento desactivado exitosamente');
         return true;
       }
 
@@ -593,15 +591,20 @@ class EventoService {
         return false;
       }
 
+      final requestData = {
+        'eventoId': eventoId,
+        'timestamp': DateTime.now().toIso8601String(),
+        'duration': 15, // 15 minutos por defecto
+      };
+
       final response = await _apiService.post(
         '/eventos/$eventoId/receso/iniciar',
+        body: requestData,
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Start break response success: ${response.success}');
-
       if (response.success) {
-        debugPrint('✅ Receso iniciado exitosamente: $eventoId');
+        debugPrint('✅ Receso iniciado exitosamente');
         return true;
       }
 
@@ -613,7 +616,7 @@ class EventoService {
     }
   }
 
-  /// Terminar receso y reanudar evento
+  /// ✅ NUEVO: Terminar receso en el evento
   Future<bool> terminarReceso(String eventoId) async {
     try {
       debugPrint('▶️ Terminando receso para evento: $eventoId');
@@ -624,15 +627,19 @@ class EventoService {
         return false;
       }
 
+      final requestData = {
+        'eventoId': eventoId,
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+
       final response = await _apiService.post(
         '/eventos/$eventoId/receso/terminar',
+        body: requestData,
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 End break response success: ${response.success}');
-
       if (response.success) {
-        debugPrint('✅ Receso terminado exitosamente: $eventoId');
+        debugPrint('✅ Receso terminado exitosamente');
         return true;
       }
 
@@ -651,7 +658,7 @@ class EventoService {
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No hay sesión activa para obtener métricas');
+        debugPrint('❌ No hay sesión activa para métricas');
         return {};
       }
 
@@ -660,12 +667,10 @@ class EventoService {
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Metrics response success: ${response.success}');
-
       if (response.success && response.data != null) {
-        final metrics = response.data!;
-        debugPrint('✅ Métricas obtenidas: ${metrics.keys.join(', ')}');
-        return metrics;
+        final metricas = response.data!;
+        debugPrint('✅ Métricas obtenidas: ${metricas.keys}');
+        return metricas;
       }
 
       debugPrint('❌ Error obteniendo métricas: ${response.error}');

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
+import '../../models/student_notification_model.dart';
 
 /// Sistema de notificaciones simple y funcional para Fase C
 class NotificationManager {
@@ -27,6 +28,7 @@ class NotificationManager {
   static const int _criticalWarningId = 1008;
   static const int _connectionErrorId = 1009;
   static const int _attendanceLostId = 1010;
+  static const int _eventEndedId = 1011;
 
   // 🎯 PLUGIN DE NOTIFICACIONES
   late FlutterLocalNotificationsPlugin _notifications;
@@ -265,50 +267,134 @@ class NotificationManager {
   // 🎯 NOTIFICACIONES DE EVENTOS
 
   /// Notificación cuando el profesor inicia un evento
-  Future<void> showEventStartedNotification(String eventName) async {
+  Future<void> showEventStartedNotification(String eventId) async {
     try {
-      debugPrint('🎯 Mostrando notificación - Evento iniciado');
+      debugPrint('📢 Mostrando notificación: Evento Iniciado');
 
-      await _showAlertNotification(
+      await _notifications.show(
         _eventStartedId,
-        'Evento Iniciado',
-        'El evento "$eventName" ha comenzado. Puedes unirte ahora.',
-        'info',
+        '🎯 Evento Iniciado',
+        'El evento está ahora activo. Los estudiantes pueden unirse.',
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'alerts',
+            'Alertas Críticas',
+            channelDescription: 'Notificaciones importantes del sistema',
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            enableVibration: true,
+            vibrationPattern: Int64List.fromList([0, 250, 250, 250]),
+            playSound: true,
+          ),
+        ),
       );
+
+      // Vibración háptica diferenciada
+      HapticFeedback.mediumImpact();
+
+      debugPrint('✅ Notificación "Evento Iniciado" mostrada');
     } catch (e) {
-      debugPrint('❌ Error notificación evento iniciado: $e');
+      debugPrint('❌ Error mostrando notificación evento iniciado: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Notificación de evento finalizado
+  Future<void> showEventEndedNotification(String eventId) async {
+    try {
+      debugPrint('📢 Mostrando notificación: Evento Finalizado');
+
+      await _notifications.show(
+        _eventEndedId,
+        '🏁 Evento Finalizado',
+        'El evento ha terminado. Gracias por participar.',
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'alerts',
+            'Alertas Críticas',
+            channelDescription: 'Notificaciones importantes del sistema',
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            enableVibration: true,
+            vibrationPattern: Int64List.fromList([0, 100, 100, 100, 100, 100]),
+            playSound: true,
+          ),
+        ),
+      );
+
+      // Vibración háptica diferenciada
+      HapticFeedback.lightImpact();
+
+      debugPrint('✅ Notificación "Evento Finalizado" mostrada');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación evento finalizado: $e');
     }
   }
 
   /// Notificación cuando inicia un receso
-  Future<void> showBreakStartedNotification() async {
+  Future<void> showBreakStartedNotification([String? eventId]) async {
     try {
-      debugPrint('⏸️ Mostrando notificación - Receso iniciado');
+      debugPrint('📢 Mostrando notificación: Receso Iniciado');
 
-      await _showAlertNotification(
+      await _notifications.show(
         _breakStartedId,
-        'Receso Iniciado',
-        'El tracking se ha pausado temporalmente durante el receso.',
-        'info',
+        '⏸️ Receso Iniciado',
+        'El profesor ha iniciado un receso. Puedes salir del área temporalmente.',
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'alerts',
+            'Alertas Críticas',
+            channelDescription: 'Notificaciones importantes del sistema',
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            enableVibration: true,
+            vibrationPattern: Int64List.fromList([0, 200, 100, 200]),
+            playSound: true,
+          ),
+        ),
       );
+
+      // Vibración háptica diferenciada
+      HapticFeedback.mediumImpact();
+
+      debugPrint('✅ Notificación "Receso Iniciado" mostrada');
     } catch (e) {
-      debugPrint('❌ Error notificación receso iniciado: $e');
+      debugPrint('❌ Error mostrando notificación receso iniciado: $e');
     }
   }
 
   /// Notificación cuando termina un receso
-  Future<void> showBreakEndedNotification() async {
+  Future<void> showBreakEndedNotification([String? eventId]) async {
     try {
-      debugPrint('▶️ Mostrando notificación - Receso terminado');
+      debugPrint('📢 Mostrando notificación: Receso Terminado');
 
-      await _showAlertNotification(
-        _breakEndedId,
-        'Receso Terminado',
-        'El tracking se ha reanudado. Asegúrate de estar en el área.',
-        'success',
+      await _notifications.show(
+        _breakEndedId, // ID único para receso terminado
+        '▶️ Receso Terminado',
+        'El receso ha terminado. Regresa al área del evento para continuar con tu asistencia.',
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'alerts',
+            'Alertas Críticas',
+            channelDescription: 'Notificaciones importantes del sistema',
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            enableVibration: true,
+            vibrationPattern: Int64List.fromList([0, 150, 50, 150, 50, 150]),
+            playSound: true,
+          ),
+        ),
       );
+
+      // Vibración háptica diferenciada
+      HapticFeedback.heavyImpact();
+
+      debugPrint('✅ Notificación "Receso Terminado" mostrada');
     } catch (e) {
-      debugPrint('❌ Error notificación receso terminado: $e');
+      debugPrint('❌ Error mostrando notificación receso terminado: $e');
     }
   }
 
@@ -609,6 +695,24 @@ class NotificationManager {
       );
     } catch (e) {
       debugPrint('❌ Error en notificación de prueba: $e');
+    }
+  }
+
+  Future<void> showStudentNotification(StudentNotification notification) async {
+    try {
+      debugPrint(
+          '📱 Mostrando notificación para estudiante: ${notification.title}');
+
+      await _showAlertNotification(
+        int.tryParse(notification.id) ?? DateTime.now().millisecondsSinceEpoch,
+        notification.title,
+        notification.message,
+        notification.type.toString().split('.').last.toLowerCase(),
+      );
+
+      debugPrint('✅ Notificación de estudiante mostrada');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación de estudiante: $e');
     }
   }
 }
