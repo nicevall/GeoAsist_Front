@@ -738,12 +738,18 @@ class EventoService {
   // Mapeo de estructura backend a estructura Flutter
   Map<String, dynamic> _mapBackendToFlutter(Map<String, dynamic> backendData) {
     try {
+      // ✅ CORREGIDO: Usar el ID correcto
+      final eventoId = backendData['_id'] ?? backendData['id'] ?? '';
+
+      // ✅ CORREGIDO: Usar el título correcto
+      final titulo =
+          backendData['titulo'] ?? backendData['nombre'] ?? 'Sin título';
+
       final coordenadas = backendData['coordenadas'] as Map<String, dynamic>;
 
       return {
-        'id': backendData['id'],
-        'titulo':
-            backendData['nombre'] ?? backendData['titulo'] ?? 'Sin título',
+        'id': eventoId,
+        'titulo': titulo,
         'descripcion': backendData['descripcion'] ?? '',
         'tipo': backendData['tipo'] ?? 'clase',
         'lugar': backendData['lugar'] ?? 'Sin ubicación',

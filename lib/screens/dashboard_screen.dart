@@ -59,104 +59,134 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   /// Inicializa todos los datos necesarios para el dashboard
   Future<void> _initializeData() async {
-    await Future.wait([
-      _loadUserData(),
-      _loadMetrics(),
-      _loadEvents(),
-    ]);
+    // ✅ SOLO UN setState al inicio
+    setState(() {
+      _isLoadingUser = true;
+      _isLoadingMetrics = true;
+      _isLoadingEvents = true;
+      _isLoadingAsistencias = true;
+    });
 
-    // ✅ AGREGADO: Cargar asistencias solo para estudiantes
-    if (_currentUser?.rol == AppConstants.estudianteRole) {
-      await _loadAsistenciasRecientes();
+    try {
+      // ✅ Cargar todo sin setState intermedios
+      final results = await Future.wait([
+        _loadUserDataSync(),
+        _loadMetricsSync(),
+        _loadEventsSync(),
+      ]);
+
+      final user = results[0] as Usuario?;
+      final metrics = results[1] as List<DashboardMetric>?;
+      final eventos = results[2] as List<Evento>;
+
+      // ✅ Procesar datos sin setState
+      List<Asistencia> asistencias = [];
+      if (user?.rol == AppConstants.estudianteRole) {
+        try {
+          asistencias = await _loadAsistenciasSync(user!.id);
+        } catch (e) {
+          debugPrint('❌ Error cargando asistencias: $e');
+        }
+      }
+
+      // ✅ Procesar eventos para estudiantes
+      Evento? eventoActivo;
+      List<Evento> userEvents = []; // ✅ DECLARAR VARIABLE
+      if (user?.rol == AppConstants.estudianteRole) {
+        final eventosActivos = eventos.where((e) => e.isActive);
+        eventoActivo = eventosActivos.isNotEmpty ? eventosActivos.first : null;
+      }
+
+      // ✅ Filtrar eventos para docentes usando el método existente
+      if (user?.rol == AppConstants.docenteRole) {
+        // Establecer datos temporalmente para usar _filterEventsByUser()
+        _currentUser = user;
+        _eventos = eventos;
+        _filterEventsByUser(); // ✅ USAR EL MÉTODO EXISTENTE
+        userEvents = _userEvents; // Copiar resultado
+      }
+
+      // ✅ UN SOLO setState con todos los datos
+      setState(() {
+        _currentUser = user;
+        _metrics = metrics ?? [];
+        _eventos = eventos;
+        _userEvents = userEvents;
+        _asistenciasRecientes = asistencias.take(5).toList();
+        _eventoActivo = eventoActivo;
+
+        // ✅ Marcar todas las cargas como completadas
+        _isLoadingUser = false;
+        _isLoadingMetrics = false;
+        _isLoadingEvents = false;
+        _isLoadingAsistencias = false;
+      });
+
+      debugPrint(
+          '✅ Dashboard inicializado: Usuario=${user?.nombre}, Eventos=${eventos.length}');
+    } catch (e) {
+      debugPrint('❌ Error en inicialización: $e');
+      setState(() {
+        _isLoadingUser = false;
+        _isLoadingMetrics = false;
+        _isLoadingEvents = false;
+        _isLoadingAsistencias = false;
+      });
     }
   }
 
-  /// Carga los datos del usuario actual desde storage
-  Future<void> _loadUserData() async {
-    setState(() => _isLoadingUser = true);
-
+  /// Carga usuario sin setState
+  Future<Usuario?> _loadUserDataSync() async {
     try {
       final user = await _storageService.getUser();
-      setState(() => _currentUser = user);
-
       if (user != null) {
         debugPrint('Usuario cargado: ${user.nombre} - Rol: ${user.rol}');
       }
+      return user;
     } catch (e) {
       debugPrint('Error cargando usuario: $e');
-      // Si no hay usuario, redirigir al login
       AppRouter.logout();
-    } finally {
-      setState(() => _isLoadingUser = false);
+      return null;
     }
   }
 
-  /// Carga las métricas del dashboard
-  Future<void> _loadMetrics() async {
-    setState(() => _isLoadingMetrics = true);
-
+  /// Carga métricas sin setState
+  Future<List<DashboardMetric>?> _loadMetricsSync() async {
     try {
       final metrics = await _dashboardService.getMetrics();
       if (metrics != null) {
-        setState(() => _metrics = metrics);
         debugPrint('Métricas cargadas: ${metrics.length}');
       }
+      return metrics;
     } catch (e) {
       debugPrint('Error cargando métricas: $e');
-    } finally {
-      setState(() => _isLoadingMetrics = false);
+      return null;
     }
   }
 
-  /// Carga los eventos y los filtra según el rol del usuario
-  Future<void> _loadEvents() async {
-    setState(() => _isLoadingEvents = true);
-
+  /// Carga eventos sin setState
+  Future<List<Evento>> _loadEventsSync() async {
     try {
       final eventos = await _eventoService.obtenerEventos();
-      setState(() => _eventos = eventos);
-
-      // Filtrar eventos para docentes
-      if (_currentUser?.rol == AppConstants.docenteRole) {
-        _filterEventsByUser();
-      }
-
-      // ✅ AGREGADO: Buscar evento activo para estudiantes
-      if (_currentUser?.rol == AppConstants.estudianteRole) {
-        _eventoActivo = eventos.where((e) => e.isActive).isNotEmpty
-            ? eventos.firstWhere((e) => e.isActive)
-            : null;
-      }
-
       debugPrint('Eventos cargados: ${eventos.length}');
+      return eventos;
     } catch (e) {
       debugPrint('Error cargando eventos: $e');
-    } finally {
-      setState(() => _isLoadingEvents = false);
+      return [];
     }
   }
 
-  /// ✅ NUEVO: Cargar asistencias recientes del estudiante
-  Future<void> _loadAsistenciasRecientes() async {
-    setState(() => _isLoadingAsistencias = true);
-
+  /// Carga asistencias sin setState
+  Future<List<Asistencia>> _loadAsistenciasSync(String userId) async {
     try {
-      if (_currentUser?.id != null) {
-        debugPrint('📊 Cargando asistencias del estudiante...');
-        final asistencias = await _asistenciaService
-            .obtenerHistorialUsuario(_currentUser!.id); // ✅ CORREGIDO
-
-        setState(() {
-          _asistenciasRecientes =
-              asistencias.take(5).toList(); // Solo las 5 más recientes
-        });
-
-        debugPrint('✅ ${asistencias.length} asistencias cargadas');
-      }
+      debugPrint('📊 Cargando asistencias del estudiante...');
+      final asistencias =
+          await _asistenciaService.obtenerHistorialUsuario(userId);
+      debugPrint('✅ ${asistencias.length} asistencias cargadas');
+      return asistencias;
     } catch (e) {
       debugPrint('❌ Error cargando asistencias: $e');
-    } finally {
-      setState(() => _isLoadingAsistencias = false);
+      return [];
     }
   }
 
@@ -567,7 +597,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ✅ WIDGETS PROFESOR CON DATOS REALES
   // ===========================================
 
-  /// ✅ ACCIONES RÁPIDAS PROFESOR CON NAVEGACIÓN REAL
+  /// ✅ ACCIONES RÁPIDAS PROFESOR - SOLUCIÓN DEFINITIVA
   Widget _buildProfessorQuickActions() {
     return Card(
       elevation: 4,
@@ -588,20 +618,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                _buildActionButton(
-                  'Crear Evento',
-                  Icons.add_circle,
-                  AppColors.primaryOrange,
-                  () => Navigator.pushNamed(
-                      context, AppConstants.createEventRoute),
+                Expanded(
+                  child: Container(
+                    height: 50,
+                    child: TextButton.icon(
+                      onPressed: () => Navigator.pushNamed(
+                          context, AppConstants.createEventRoute),
+                      icon: const Icon(Icons.add_circle, size: 16),
+                      label: const Text(
+                        'Crear Evento',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: AppColors.primaryOrange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
-                _buildActionButton(
-                  'Mis Eventos',
-                  Icons.event_note,
-                  AppColors.secondaryTeal,
-                  () => Navigator.pushNamed(
-                      context, AppConstants.availableEventsRoute),
+                Expanded(
+                  child: Container(
+                    height: 50,
+                    child: TextButton.icon(
+                      onPressed: () => Navigator.pushNamed(
+                          context, AppConstants.availableEventsRoute),
+                      icon: const Icon(Icons.event_note, size: 16),
+                      label: const Text(
+                        'Mis Eventos',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: AppColors.secondaryTeal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -805,8 +865,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            _capitalizeUserName(
-                _currentUser?.nombre ?? widget.userName ?? 'Estudiante'),
+            _capitalizeUserName(_currentUser?.nombre ?? widget.userName),
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -829,7 +888,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ✅ ESTADO ACTUAL REAL DEL ESTUDIANTE
+  /// ✅ ESTADO ACTUAL REAL DEL ESTUDIANTE - SOLUCIÓN DEFINITIVA
   Widget _buildStudentCurrentStatus() {
     return Card(
       elevation: 4,
@@ -856,46 +915,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 16),
             if (_eventoActivo != null) ...[
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.play_circle, color: Colors.green),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Evento Activo',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                            ),
+                    const Row(
+                      children: [
+                        Icon(Icons.play_circle, color: Colors.green),
+                        SizedBox(width: 8),
+                        Text(
+                          'Evento Activo',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
                           ),
-                          Text(
-                            _eventoActivo!.titulo,
-                            style: const TextStyle(color: AppColors.darkGray),
-                          ),
-                        ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _eventoActivo!.titulo,
+                      style: const TextStyle(
+                        color: AppColors.darkGray,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: _navigateToTracking,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
+                    const SizedBox(height: 12),
+                    // ✅ BOTÓN CON TAMAÑO FIJO - SOLUCIÓN DEFINITIVA
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        width: 100,
+                        height: 36,
+                        child: TextButton(
+                          onPressed: _navigateToTracking,
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Continuar',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
                       ),
-                      child: const Text('Continuar'),
                     ),
                   ],
                 ),
               ),
             ] else ...[
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.lightGray,
@@ -1118,27 +1197,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ✅ BOTONES DE ACCIÓN ESTUDIANTE
+  /// ✅ BOTONES DE ACCIÓN ESTUDIANTE - SOLUCIÓN DEFINITIVA
   Widget _buildStudentActionButtons() {
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            _buildActionButton(
-              'Ver Eventos',
-              Icons.event_available,
-              AppColors.primaryOrange,
-              () => Navigator.pushNamed(
+        // ✅ BOTÓN 1 CON RESTRICCIONES EXPLÍCITAS
+        Expanded(
+          child: Container(
+            height: 50,
+            child: TextButton.icon(
+              onPressed: () => Navigator.pushNamed(
                   context, AppConstants.availableEventsRoute),
+              icon: const Icon(Icons.event_available, size: 16),
+              label: const Text(
+                'Ver Eventos',
+                style: TextStyle(fontSize: 12),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.primaryOrange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
             ),
-            const SizedBox(width: 12),
-            _buildActionButton(
-              'Mi Tracking',
-              Icons.location_on,
-              AppColors.secondaryTeal,
-              _navigateToTracking,
+          ),
+        ),
+        const SizedBox(width: 12),
+        // ✅ BOTÓN 2 CON RESTRICCIONES EXPLÍCITAS
+        Expanded(
+          child: Container(
+            height: 50,
+            child: TextButton.icon(
+              onPressed: _navigateToTracking,
+              icon: const Icon(Icons.location_on, size: 16),
+              label: const Text(
+                'Mi Tracking',
+                style: TextStyle(fontSize: 12),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.secondaryTeal,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
             ),
-          ],
+          ),
         ),
       ],
     );
@@ -1247,25 +1354,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ✅ BOTÓN DE ACCIÓN REUTILIZABLE - CORREGIDO
+  /// ✅ BOTÓN DE ACCIÓN REUTILIZABLE - SOLUCIÓN DEFINITIVA
   Widget _buildActionButton(
       String title, IconData icon, Color color, VoidCallback onPressed) {
     return Expanded(
-      // ✅ AGREGADO: Expanded automático
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 20),
-        label: Text(
-          title,
-          overflow:
-              TextOverflow.ellipsis, // ✅ AGREGADO: Prevenir overflow de texto
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+      child: Container(
+        height: 50, // ✅ ALTURA FIJA
+        child: TextButton.icon(
+          onPressed: onPressed,
+          icon: Icon(icon, size: 16),
+          label: Text(
+            title,
+            style: const TextStyle(fontSize: 12),
+            overflow: TextOverflow.ellipsis,
+          ),
+          style: TextButton.styleFrom(
+            backgroundColor: color,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         ),
       ),
@@ -1375,7 +1484,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ✅ ITEM DE EVENTO ESTUDIANTE
+  /// ✅ ITEM DE EVENTO ESTUDIANTE - SOLUCIÓN DEFINITIVA
   Widget _buildStudentEventItem(Evento evento) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -1407,21 +1516,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-          ElevatedButton(
-            onPressed: () => _joinEvent(evento),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryOrange,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          // ✅ BOTÓN CON TAMAÑO FIJO - SOLUCIÓN DEFINITIVA
+          Container(
+            width: 80,
+            height: 32,
+            child: TextButton(
+              onPressed: () => _joinEvent(evento),
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.primaryOrange,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              child: const Text(
+                'Unirse',
+                style: TextStyle(fontSize: 11),
+              ),
             ),
-            child: const Text('Unirse'),
           ),
         ],
       ),
     );
   }
 
-  /// ✅ ITEM DE HISTORIAL
+  /// ✅ ITEM DE HISTORIAL - COMPLETAMENTE CORREGIDO
   Widget _buildHistoryItem(Asistencia asistencia) {
     Color stateColor;
     IconData stateIcon;
@@ -1444,6 +1564,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         stateIcon = Icons.help;
     }
 
+    // ✅ OBTENER NOMBRE DEL EVENTO DEL ID - CORREGIDO
+    String eventoNombre = 'Evento Desconocido';
+    try {
+      final evento = _eventos.firstWhere((e) => e.id == asistencia.eventoId);
+      eventoNombre = evento.titulo;
+    } catch (e) {
+      // ✅ INTERPOLACIÓN CORREGIDA Y SEGURA
+      if (asistencia.eventoId != null && asistencia.eventoId!.isNotEmpty) {
+        final shortId = asistencia.eventoId!.length > 8
+            ? asistencia.eventoId!.substring(0, 8)
+            : asistencia.eventoId!;
+        eventoNombre = 'Evento $shortId';
+      } else {
+        eventoNombre = 'Evento sin ID';
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -1460,14 +1597,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Evento ${asistencia.eventoId}', // TODO: Get event name
+                  eventoNombre,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppColors.darkGray,
                   ),
                 ),
                 Text(
-                  asistencia.fecha.toString().split(' ')[0], // Solo fecha
+                  asistencia.fecha.toString().split(' ')[0],
                   style: const TextStyle(
                     color: AppColors.textGray,
                     fontSize: 12,
@@ -1547,7 +1684,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ✅ MÉTODOS DE INTERACCIÓN REALES
   // ===========================================
 
-  // ✅ CAMBIAR TODO EL MÉTODO _toggleEventActive:
+  /// Cambia el estado activo/inactivo de un evento
   Future<void> _toggleEventActive(String eventoId, bool isActive) async {
     try {
       final success =
@@ -1706,7 +1843,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 16),
           TextButton(
-            onPressed: _loadMetrics,
+            onPressed: _handleRefresh,
             child: const Text('Recargar métricas'),
           ),
         ],
@@ -1743,7 +1880,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 16),
           Center(
             child: TextButton(
-              onPressed: _loadEvents,
+              onPressed: _handleRefresh,
               child: const Text('Recargar eventos'),
             ),
           ),
