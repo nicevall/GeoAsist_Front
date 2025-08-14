@@ -42,7 +42,61 @@ class StudentAttendanceManager {
   Timer? _heartbeatTimer;
   Timer? _lifecycleTimer;
   bool _isAppInForeground = true;
-  final int _gracePeriodSeconds = 30;
+
+  // 🎯 NUEVOS MÉTODOS PARA GRACE PERIOD
+  Future<void> _triggerGracePeriod() async {
+    if (_currentState.isInGracePeriod) return;
+
+    debugPrint('🚨 Grace period iniciado - 30 segundos');
+
+    await _notificationManager.showAppClosedWarningNotification(30);
+
+    _gracePeriodTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      final remaining = 30 - timer.tick;
+
+      _updateState(_currentState.copyWith(
+        isInGracePeriod: true,
+        gracePeriodRemaining: remaining,
+      ));
+
+      if (remaining <= 0) {
+        timer.cancel();
+        _triggerAttendanceLoss();
+      }
+    });
+  }
+
+  Future<void> _cancelGracePeriod() async {
+    if (!_currentState.isInGracePeriod) return;
+
+    debugPrint('✅ Grace period cancelado');
+
+    _gracePeriodTimer?.cancel();
+    await _notificationManager.clearAllNotifications();
+
+    _updateState(_currentState.copyWith(
+      isInGracePeriod: false,
+      gracePeriodRemaining: 0,
+    ));
+  }
+
+  Future<void> _triggerAttendanceLoss() async {
+    debugPrint('❌ Asistencia perdida por cierre de app');
+
+    if (_currentState.currentEvent != null &&
+        _currentState.currentUser != null) {
+      await _asistenciaService.enviarHeartbeat(
+        usuarioId: _currentState.currentUser!.id,
+        eventoId: _currentState.currentEvent!.id!,
+        isAppActive: false,
+        isInGracePeriod: true,
+        gracePeriodRemaining: 0,
+      );
+    }
+
+    await stopTracking();
+    await _notificationManager.clearAllNotifications();
+  }
 
   // 🎯 GETTERS PÚBLICOS
   Stream<AttendanceState> get stateStream => _stateController.stream;
@@ -305,27 +359,6 @@ class StudentAttendanceManager {
     debugPrint('⏰ Período de gracia iniciado: ${gracePeriodSeconds}s');
   }
 
-  // 🎯 CANCELAR PERÍODO DE GRACIA
-  void _cancelGracePeriod() {
-    if (!_currentState.isInGracePeriod) return;
-
-    debugPrint('✅ GRACE PERIOD CANCELADO - App reactivada exitosamente');
-
-    _gracePeriodTimer?.cancel();
-    _gracePeriodTimer = null;
-
-    _updateState(_currentState.copyWith(
-      isInGracePeriod: false,
-      gracePeriodRemaining: 0,
-    ));
-
-    // Limpiar notificaciones de warning
-    _notificationManager.clearAllNotifications();
-
-    // Registrar recovery exitoso en backend
-    _registerRecoveryInBackend();
-  }
-
   /// ✅ NUEVO DÍA 4: Continuar heartbeat en background (sin interrumpir)
   void _continueBackgroundHeartbeat() {
     debugPrint('💓 Continuando heartbeat en background');
@@ -334,26 +367,6 @@ class StudentAttendanceManager {
     // No se interrumpe por estar en background
     if (_heartbeatTimer?.isActive == true) {
       debugPrint('✅ Heartbeat activo en background - sin cambios');
-    }
-  }
-
-  /// ✅ NUEVO DÍA 4: Registrar recovery exitoso en backend
-  Future<void> _registerRecoveryInBackend() async {
-    if (_currentState.currentEvent == null ||
-        _currentState.currentUser == null) {
-      return;
-    }
-
-    try {
-      await _asistenciaService.registrarRecoveryExitoso(
-        usuarioId: _currentState.currentUser!.id,
-        eventoId: _currentState.currentEvent!.id!,
-        downtimeSeconds: _gracePeriodSeconds,
-      );
-
-      debugPrint('✅ Recovery exitoso registrado en backend');
-    } catch (e) {
-      debugPrint('❌ Error registrando recovery: $e');
     }
   }
 
@@ -598,10 +611,8 @@ class StudentAttendanceManager {
         _isAppInForeground = true;
         debugPrint('✅ App en foreground - tracking normal');
 
-        // ✅ NUEVO: Cancelar grace period si estaba activo
         if (_currentState.isInGracePeriod) {
           _cancelGracePeriod();
-          _notificationManager.showTrackingResumedNotification();
         }
         break;
 
@@ -614,8 +625,8 @@ class StudentAttendanceManager {
 
       case AppLifecycleState.detached:
         debugPrint('🚨 App CERRADA COMPLETAMENTE - Iniciando grace period 30s');
-        // ✅ CORREGIDO: SOLO 'detached' inicia grace period de 30 segundos
-        _startAppClosedGracePeriod();
+        _isAppInForeground = false;
+        _triggerGracePeriod();
         break;
 
       case AppLifecycleState.inactive:
@@ -785,48 +796,6 @@ class StudentAttendanceManager {
     );
 
     debugPrint('📱 Monitoreo de lifecycle iniciado');
-  }
-
-  /// Grace period crítico por cierre de app
-  void _startAppClosedGracePeriod() {
-    if (_currentState.trackingStatus != TrackingStatus.active) return;
-
-    debugPrint('⏰ INICIANDO GRACE PERIOD CRÍTICO - App cerrada completamente');
-
-    // Actualizar estado con grace period activo
-    _updateState(_currentState.copyWith(
-      isInGracePeriod: true,
-      gracePeriodRemaining: _gracePeriodSeconds,
-    ));
-
-    // Mostrar notificación crítica con countdown
-    _notificationManager.showAppClosedWarningNotification(_gracePeriodSeconds);
-
-    // Iniciar timer de grace period con countdown
-    _gracePeriodTimer?.cancel();
-    _gracePeriodTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (timer) {
-        final remaining = _currentState.gracePeriodRemaining - 1;
-
-        _updateState(_currentState.copyWith(
-          gracePeriodRemaining: remaining,
-        ));
-
-        // Actualizar notificación cada 5 segundos o cuando quedan ≤ 10s
-        if (remaining % 5 == 0 || remaining <= 10) {
-          _notificationManager.showAppClosedWarningNotification(remaining);
-        }
-
-        debugPrint('⏰ Grace period: ${remaining}s restantes');
-
-        // Si se acaba el tiempo → pérdida automática
-        if (remaining <= 0) {
-          timer.cancel();
-          _triggerAutomaticAttendanceLoss('App cerrada por más de 30 segundos');
-        }
-      },
-    );
   }
 
   /// Manejar app en background

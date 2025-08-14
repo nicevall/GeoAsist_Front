@@ -1,26 +1,24 @@
-// lib/main.dart - FASE C COMPLETA CON INICIALIZACIÓN DE SERVICIOS + LIFECYCLE INTEGRATION
+// lib/main.dart - CORREGIDO SIN ERRORES
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:workmanager/workmanager.dart';
 
 // Importaciones principales del proyecto
 import 'core/app_constants.dart';
-import 'core/app_theme.dart';
 import 'utils/app_router.dart';
+import 'utils/colors.dart';
 import 'services/background_service.dart';
 import 'services/notifications/notification_manager.dart';
 import 'services/permission_service.dart';
 import 'utils/connectivity_manager.dart';
-import 'services/student_attendance_manager.dart'; // ✅ FASE 3: LIFECYCLE INTEGRATION
+import 'services/student_attendance_manager.dart';
 
 /// 🎯 CALLBACK DISPATCHER PARA WORKMANAGER
-/// CRÍTICO: Debe estar en el nivel superior para que WorkManager pueda accederlo
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
       debugPrint('🔄 [BACKGROUND] Ejecutando tarea: $task');
-      debugPrint('📦 [BACKGROUND] Datos: $inputData');
 
       final taskType = inputData?['task_type'] as String?;
       final eventId = inputData?['event_id'] as String?;
@@ -36,14 +34,10 @@ void callbackDispatcher() {
         case 'location_update':
           await _handleBackgroundLocationUpdate(eventId, userId);
           break;
-        case 'lifecycle_monitor':
-          await _handleBackgroundLifecycleMonitor(eventId, userId);
-          break;
         default:
           debugPrint('⚠️ [BACKGROUND] Tipo de tarea desconocido: $taskType');
       }
 
-      debugPrint('✅ [BACKGROUND] Tarea completada: $task');
       return Future.value(true);
     } catch (e) {
       debugPrint('❌ [BACKGROUND] Error en tarea $task: $e');
@@ -55,54 +49,40 @@ void callbackDispatcher() {
 /// 🎯 HANDLERS DE TAREAS BACKGROUND
 Future<void> _handleBackgroundTracking(String? eventId, String? userId) async {
   debugPrint('📍 [BACKGROUND] Ejecutando tracking - Evento: $eventId');
-  // La lógica de tracking se maneja en BackgroundService
-  // Aquí solo validamos que la app sigue activa
 }
 
 Future<void> _handleBackgroundHeartbeat(String? eventId, String? userId) async {
   debugPrint('💓 [BACKGROUND] Enviando heartbeat - Usuario: $userId');
-  // La lógica de heartbeat se maneja en AsistenciaService
-  // Este callback solo confirma que WorkManager está funcionando
 }
 
 Future<void> _handleBackgroundLocationUpdate(
     String? eventId, String? userId) async {
   debugPrint('🌍 [BACKGROUND] Actualizando ubicación en background');
-  // La lógica de ubicación se maneja en LocationService
-}
-
-Future<void> _handleBackgroundLifecycleMonitor(
-    String? eventId, String? userId) async {
-  debugPrint('🔄 [BACKGROUND] Monitoreando lifecycle de app');
-  // Verificar si la app sigue activa para tracking
 }
 
 /// 🚀 FUNCIÓN MAIN CON INICIALIZACIÓN ASÍNCRONA
 void main() async {
-  // ✅ PASO 1: CONFIGURACIÓN INICIAL OBLIGATORIA
+  // ✅ CONFIGURACIÓN INICIAL OBLIGATORIA
   WidgetsFlutterBinding.ensureInitialized();
 
   debugPrint('🚀 Iniciando GeoAsist con servicios de Fase C...');
 
   try {
-    // ✅ PASO 2: CONFIGURAR ORIENTACIÓN DE PANTALLA
+    // ✅ CONFIGURAR ORIENTACIÓN DE PANTALLA
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
 
-    // ✅ PASO 3: INICIALIZAR SERVICIOS CRÍTICOS EN ORDEN
+    // ✅ INICIALIZAR SERVICIOS CRÍTICOS EN ORDEN
     await _initializeCriticalServices();
 
-    // ✅ PASO 4: INICIALIZAR SERVICIOS SECUNDARIOS
+    // ✅ INICIALIZAR SERVICIOS SECUNDARIOS
     await _initializeSecondaryServices();
-
-    // ✅ PASO 5: CONFIGURAR LIFECYCLE OBSERVER GLOBAL
-    _setupGlobalLifecycleObserver();
 
     debugPrint('✅ Inicialización completa - Lanzando aplicación');
 
-    // ✅ PASO 6: LANZAR LA APLICACIÓN
+    // ✅ LANZAR LA APLICACIÓN
     runApp(const GeoAssistApp());
   } catch (e, stackTrace) {
     debugPrint('❌ ERROR CRÍTICO durante inicialización: $e');
@@ -130,10 +110,6 @@ Future<void> _initializeCriticalServices() async {
     final backgroundService = BackgroundService();
     await backgroundService.initialize();
     debugPrint('✅ BackgroundService inicializado');
-
-    // 3. 💾 STORAGE SERVICE (NO REQUIERE INICIALIZACIÓN)
-    debugPrint('💾 StorageService listo (usa SharedPreferences directamente)');
-    // StorageService usa SharedPreferences de forma lazy - no requiere initialize()
 
     debugPrint('✅ Servicios críticos inicializados correctamente');
   } catch (e) {
@@ -174,19 +150,6 @@ Future<void> _initializeSecondaryServices() async {
   }
 }
 
-/// 🎯 CONFIGURAR LIFECYCLE OBSERVER GLOBAL
-void _setupGlobalLifecycleObserver() {
-  debugPrint('🔄 Configurando lifecycle observer global...');
-
-  try {
-    // El lifecycle observer se configurará en GeoAssistApp
-    // Aquí solo registramos que debe configurarse
-    debugPrint('✅ Lifecycle observer configurado');
-  } catch (e) {
-    debugPrint('⚠️ Error configurando lifecycle observer: $e');
-  }
-}
-
 /// 🎯 WIDGET PRINCIPAL DE LA APLICACIÓN
 class GeoAssistApp extends StatefulWidget {
   const GeoAssistApp({super.key});
@@ -198,9 +161,6 @@ class GeoAssistApp extends StatefulWidget {
 /// 🎯 STATE DE LA APLICACIÓN CON LIFECYCLE OBSERVER
 class _GeoAssistAppState extends State<GeoAssistApp>
     with WidgetsBindingObserver {
-  // 🎯 SERVICIOS PARA LIFECYCLE MANAGEMENT
-  final BackgroundService _backgroundService = BackgroundService();
-
   // ✅ FASE 3: REFERENCIA AL STUDENTATTENDANCEMANAGER
   StudentAttendanceManager? _attendanceManager;
 
@@ -274,11 +234,7 @@ class _GeoAssistAppState extends State<GeoAssistApp>
   void _handleAppResumed() {
     debugPrint('✅ [LIFECYCLE] App reabierta - Reactivando tracking');
 
-    // Verificar estado del BackgroundService
     try {
-      final serviceStatus = _backgroundService.getServiceStatus();
-      debugPrint('📊 Estado del servicio: $serviceStatus');
-
       // ✅ FASE 3: Confirmar que AttendanceManager recibió el evento
       if (_attendanceManager != null) {
         final attendanceState = _attendanceManager!.currentState;
@@ -295,13 +251,7 @@ class _GeoAssistAppState extends State<GeoAssistApp>
   void _handleAppPaused() {
     debugPrint('⚠️ [LIFECYCLE] App en background - Continuando tracking');
 
-    // Verificar que el BackgroundService está activo
     try {
-      final isActive =
-          _backgroundService.getServiceStatus()['foreground_service_active'] ??
-              false;
-      debugPrint('🔋 BackgroundService activo: $isActive');
-
       // ✅ FASE 3: Logging del estado de AttendanceManager
       if (_attendanceManager != null) {
         final isTracking = _attendanceManager!.currentState.trackingStatus;
@@ -326,13 +276,6 @@ class _GeoAssistAppState extends State<GeoAssistApp>
           '⏱️ Segundos restantes: ${attendanceState.gracePeriodRemaining}');
     } else {
       debugPrint('❌ CRÍTICO: AttendanceManager no disponible durante detached');
-    }
-
-    // CRÍTICO: Confirmar que se activó el protocolo de grace period
-    try {
-      debugPrint('📱 Grace period debe estar activo ahora');
-    } catch (e) {
-      debugPrint('⚠️ Error durante detached: $e');
     }
   }
 
@@ -364,20 +307,36 @@ class _GeoAssistAppState extends State<GeoAssistApp>
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
 
-      // Material Design 3 Theme
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
-
-      // Navigation Configuration
+      // Navegación
       navigatorKey: AppRouter.navigatorKey,
       onGenerateRoute: AppRouter.generateRoute,
       initialRoute: AppConstants.loginRoute,
 
-      // App-wide configurations
+      // Tema
+      theme: ThemeData(
+        primarySwatch: _createMaterialColor(AppColors.primaryOrange),
+        primaryColor: AppColors.primaryOrange,
+        scaffoldBackgroundColor: AppColors.lightGray,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.primaryOrange,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryOrange,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ),
+
+      // Builder para configuraciones globales
       builder: (context, child) {
         return MediaQuery(
-          // Prevent font scaling from system settings to maintain UI consistency
           data: MediaQuery.of(context).copyWith(
             textScaler: const TextScaler.linear(1.0),
           ),
@@ -385,5 +344,30 @@ class _GeoAssistAppState extends State<GeoAssistApp>
         );
       },
     );
+  }
+
+  // Helper para crear Material Color
+  MaterialColor _createMaterialColor(Color color) {
+    List strengths = <double>[.05];
+    Map<int, Color> swatch = {};
+    final int r = (color.r * 255.0).round() & 0xff;
+    final int g = (color.g * 255.0).round() & 0xff;
+    final int b = (color.b * 255.0).round() & 0xff;
+
+    for (int i = 1; i < 10; i++) {
+      strengths.add(0.1 * i);
+    }
+
+    for (double strength in strengths) {
+      final double ds = 0.5 - strength;
+      swatch[(strength * 1000).round()] = Color.fromRGBO(
+        r + ((ds < 0 ? r : (255 - r)) * ds).round(),
+        g + ((ds < 0 ? g : (255 - g)) * ds).round(),
+        b + ((ds < 0 ? b : (255 - b)) * ds).round(),
+        1,
+      );
+    }
+
+    return MaterialColor((r << 16) | (g << 8) | b | 0xFF000000, swatch);
   }
 }

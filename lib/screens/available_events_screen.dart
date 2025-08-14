@@ -38,6 +38,82 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
     _loadEvents();
   }
 
+  Future<void> _handleJoinEventWithValidations(Evento evento) async {
+    debugPrint(
+        '🔒 Iniciando validaciones de seguridad para evento: ${evento.titulo}');
+
+    if (_isValidatingPermissions) return;
+
+    setState(() => _isValidatingPermissions = true);
+
+    try {
+      // 🔒 PASO 1: VALIDAR UBICACIÓN PRECISA OBLIGATORIA
+      debugPrint('🔒 PASO 1: Validando ubicación precisa...');
+      final hasLocationPrecise = await _validatePreciseLocationPermission();
+      if (!hasLocationPrecise) {
+        await _showLocationPermissionDialog();
+        return;
+      }
+
+      // 🔒 PASO 2: VALIDAR PERMISOS DE BACKGROUND
+      debugPrint('🔒 PASO 2: Validando permisos de background...');
+      final hasBackgroundPermissions = await _validateBackgroundPermissions();
+      if (!hasBackgroundPermissions) {
+        await _showBackgroundPermissionDialog();
+        return;
+      }
+
+      // 🔒 PASO 3: VALIDAR EXENCIÓN DE OPTIMIZACIÓN DE BATERÍA
+      debugPrint('🔒 PASO 3: Validando optimización de batería...');
+      final hasBatteryExemption = await _validateBatteryOptimization();
+      if (!hasBatteryExemption) {
+        await _showBatteryOptimizationDialog();
+        return;
+      }
+
+      // 🔒 PASO 4: VALIDAR SERVICIOS DE UBICACIÓN ACTIVOS
+      debugPrint('🔒 PASO 4: Validando servicios de ubicación...');
+      final hasLocationServices = await _validateLocationServices();
+      if (!hasLocationServices) {
+        await _showLocationServicesDialog();
+        return;
+      }
+
+      // ✅ PASO 5: TODAS LAS VALIDACIONES EXITOSAS - PERMITIR NAVEGACIÓN
+      debugPrint('✅ Todas las validaciones exitosas - Navegando a evento');
+      await _notificationManager.showGeofenceEnteredNotification(evento.titulo);
+      _navigateToEventSafely(evento);
+    } catch (e) {
+      debugPrint('❌ Error durante validaciones: $e');
+      _showErrorDialog('Error validando permisos', 'Ocurrió un error: $e');
+    } finally {
+      setState(() => _isValidatingPermissions = false);
+    }
+  }
+
+  // 🔒 NAVEGACIÓN SEGURA (SOLO DESPUÉS DE VALIDACIONES)
+  void _navigateToEventSafely(Evento evento) {
+    if (!mounted) return;
+
+    debugPrint('🚀 Navegando de forma segura a evento: ${evento.titulo}');
+
+    // Navegar con todos los permisos validados
+    Navigator.pushNamed(
+      context,
+      '/map-view',
+      arguments: {
+        'isAdminMode': false,
+        'userName': 'Estudiante',
+        'eventoId': evento.id,
+        'isStudentMode': true,
+        'permissionsValidated': true,
+        'preciseLocationGranted': true,
+        'backgroundPermissionsGranted': true,
+        'batteryOptimizationDisabled': true,
+      },
+    );
+  }
+
   Future<void> _loadEvents() async {
     setState(() => _isLoading = true);
     try {
@@ -196,77 +272,12 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
     );
   }
 
-  // 🔒 MÉTODO PRINCIPAL - VALIDACIONES SECUENCIALES DE SEGURIDAD
-  Future<void> _handleJoinEventWithValidations(Evento evento) async {
-    debugPrint(
-        '🔒 Iniciando validaciones de seguridad para evento: ${evento.titulo}');
-
-    // Prevenir múltiples ejecuciones
-    if (_isValidatingPermissions) {
-      debugPrint('⚠️ Validaciones ya en progreso');
-      return;
-    }
-
-    setState(() => _isValidatingPermissions = true);
-
-    try {
-      // 🔒 PASO 1: VALIDAR UBICACIÓN PRECISA OBLIGATORIA
-      debugPrint('🔒 PASO 1: Validando ubicación precisa...');
-      final hasLocationPrecise = await _validatePreciseLocationPermission();
-      if (!hasLocationPrecise) {
-        await _showLocationPermissionDialog();
-        return;
-      }
-
-      // 🔒 PASO 2: VALIDAR PERMISOS DE BACKGROUND
-      debugPrint('🔒 PASO 2: Validando permisos de background...');
-      final hasBackgroundPermissions = await _validateBackgroundPermissions();
-      if (!hasBackgroundPermissions) {
-        await _showBackgroundPermissionDialog();
-        return;
-      }
-
-      // 🔒 PASO 3: VALIDAR EXENCIÓN DE OPTIMIZACIÓN DE BATERÍA
-      debugPrint('🔒 PASO 3: Validando optimización de batería...');
-      final hasBatteryExemption = await _validateBatteryOptimization();
-      if (!hasBatteryExemption) {
-        await _showBatteryOptimizationDialog();
-        return;
-      }
-
-      // 🔒 PASO 4: VALIDAR SERVICIOS DE UBICACIÓN ACTIVOS
-      debugPrint('🔒 PASO 4: Validando servicios de ubicación...');
-      final hasLocationServices = await _validateLocationServices();
-      if (!hasLocationServices) {
-        await _showLocationServicesDialog();
-        return;
-      }
-
-      // ✅ PASO 5: TODAS LAS VALIDACIONES EXITOSAS - PERMITIR NAVEGACIÓN
-      debugPrint('✅ Todas las validaciones exitosas - Navegando a evento');
-      if (mounted) {
-        await _notificationManager
-            .showGeofenceEnteredNotification(evento.titulo);
-        _navigateToEventSafely(evento);
-      }
-    } catch (e) {
-      debugPrint('❌ Error durante validaciones: $e');
-      if (mounted) {
-        _showErrorDialog('Error validando permisos', 'Ocurrió un error: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isValidatingPermissions = false);
-      }
-    }
-  }
-
   // 🔒 VALIDACIONES ESPECÍFICAS
 
   Future<bool> _validatePreciseLocationPermission() async {
     try {
       final isPreciseGranted =
-          await _permissionService.isPreciseLocationGranted();
+          await _permissionService.hasLocationPermissions();
       debugPrint('📍 Ubicación precisa: ${isPreciseGranted ? "✅" : "❌"}');
       return isPreciseGranted;
     } catch (e) {
@@ -318,10 +329,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
   }
 
   // 🔒 DIÁLOGOS EDUCATIVOS PARA PERMISOS FALTANTES
-
   Future<void> _showLocationPermissionDialog() async {
-    if (!mounted) return;
-
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -335,7 +343,11 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
         ),
         content: const Text(
           'Para registrar asistencia es obligatorio otorgar permisos de ubicación PRECISA.\n\n'
-          'La ubicación aproximada no es suficiente para el sistema de asistencia.',
+          'Pasos:\n'
+          '1. Ve a Configuración → Aplicaciones\n'
+          '2. Busca "GeoAsist"\n'
+          '3. Toca "Permisos" → "Ubicación"\n'
+          '4. Selecciona "Precisa" (no aproximada)',
         ),
         actions: [
           TextButton(
@@ -345,13 +357,10 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              if (mounted) {
-                await _requestPreciseLocationPermission();
-              }
+              await _requestPreciseLocationPermission();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryOrange,
-              foregroundColor: Colors.white,
             ),
             child: const Text('Configurar'),
           ),
@@ -361,8 +370,6 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
   }
 
   Future<void> _showBackgroundPermissionDialog() async {
-    if (!mounted) return;
-
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -371,12 +378,15 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
           children: [
             Icon(Icons.settings_backup_restore, color: Colors.orange),
             SizedBox(width: 8),
-            Text('Permisos de Background'),
+            Text('Tracking Continuo Requerido'),
           ],
         ),
         content: const Text(
-          'Para el tracking continuo de asistencia es necesario que la app pueda ejecutarse en segundo plano.\n\n'
-          'Esto garantiza que tu asistencia se mantenga registrada aunque uses otras apps.',
+          'Para el tracking necesitas:\n\n'
+          '1. Ve a Configuración → Batería\n'
+          '2. Busca "Optimización de batería"\n'
+          '3. Encuentra "GeoAsist"\n'
+          '4. Selecciona "No optimizar"',
         ),
         actions: [
           TextButton(
@@ -386,13 +396,10 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              if (mounted) {
-                await _requestBackgroundPermissions();
-              }
+              await _requestBackgroundPermissions();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryOrange,
-              foregroundColor: Colors.white,
             ),
             child: const Text('Configurar'),
           ),
@@ -549,30 +556,6 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
         AppRouter.showSnackBar('Error configurando batería: $e', isError: true);
       }
     }
-  }
-
-  // 🔒 NAVEGACIÓN SEGURA (SOLO DESPUÉS DE VALIDACIONES)
-  void _navigateToEventSafely(Evento evento) {
-    if (!mounted) return;
-
-    debugPrint('🚀 Navegando de forma segura a evento: ${evento.titulo}');
-
-    // Navegar con todos los permisos validados
-    Navigator.pushNamed(
-      context,
-      '/map-view',
-      arguments: {
-        'isAdminMode': false,
-        'userName': 'Estudiante',
-        'eventoId': evento.id,
-        'isStudentMode': true,
-        // 🔒 NUEVOS ARGUMENTOS DE VALIDACIÓN
-        'permissionsValidated': true,
-        'preciseLocationGranted': true,
-        'backgroundPermissionsGranted': true,
-        'batteryOptimizationDisabled': true,
-      },
-    );
   }
 
   // 🔒 DIÁLOGO DE ERROR GENÉRICO

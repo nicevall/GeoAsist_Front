@@ -1,9 +1,11 @@
-// lib/screens/map_view/map_view_screen.dart - FASE A1.2 REFACTORIZADO
-// 🎯 ELIMINACIÓN DE VARIABLES HARDCODEADAS - USA StudentAttendanceManager
+// lib/screens/map_view/map_view_screen.dart - FASE C COMPLETA
+// 🎯 INTEGRACIÓN TOTAL CON STUDENTATTENDANCEMANAGER + RESTRICCIONES DE SEGURIDAD
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../services/permission_service.dart';
 import '../../services/student_attendance_manager.dart';
+import '../../services/notifications/notification_manager.dart';
+import '../../services/background_service.dart';
 import '../../utils/colors.dart';
 import '../../services/evento_service.dart';
 import '../../models/evento_model.dart';
@@ -21,6 +23,10 @@ class MapViewScreen extends StatefulWidget {
   final String userName;
   final String? eventoId;
   final bool isStudentMode;
+  final bool? permissionsValidated;
+  final bool? preciseLocationGranted;
+  final bool? backgroundPermissionsGranted;
+  final bool? batteryOptimizationDisabled;
 
   const MapViewScreen({
     super.key,
@@ -28,6 +34,10 @@ class MapViewScreen extends StatefulWidget {
     this.userName = "Usuario",
     this.eventoId,
     this.isStudentMode = false,
+    this.permissionsValidated,
+    this.preciseLocationGranted,
+    this.backgroundPermissionsGranted,
+    this.batteryOptimizationDisabled,
   });
 
   @override
@@ -36,44 +46,55 @@ class MapViewScreen extends StatefulWidget {
 
 class _MapViewScreenState extends State<MapViewScreen>
     with TickerProviderStateMixin {
-  // 🎯 SERVICIOS - StudentAttendanceManager como fuente principal
+  // 🎯 SERVICIOS PRINCIPALES - FASE C
   final StudentAttendanceManager _attendanceManager =
       StudentAttendanceManager();
   final EventoService _eventoService = EventoService();
   final PermissionService _permissionService = PermissionService();
+  final NotificationManager _notificationManager = NotificationManager();
+  final BackgroundService _backgroundService = BackgroundService();
 
-  // 🎯 CONTROLADORES DE ANIMACIÓN (mantenidos para compatibilidad)
+  // 🎯 CONTROLADORES DE ANIMACIÓN
   late AnimationController _pulseController;
   late AnimationController _graceController;
   late Animation<double> _pulseAnimation;
   late Animation<Color?> _graceColorAnimation;
 
-  // 🎯 ESTADO REACTIVO - REEMPLAZA VARIABLES HARDCODEADAS
+  // 🎯 ESTADO REACTIVO REAL - NO MÁS HARDCODED
   AttendanceState _currentAttendanceState = AttendanceState.initial();
   LocationResponseModel? _currentLocationResponse;
 
-  // 🎯 VARIABLES DE UI (mantenidas para widgets existentes)
+  // 🎯 VARIABLES DE UI Y VALIDACIONES
   bool _isLoading = true;
   bool _hasLocationPermissions = false;
   bool _isRegisteringAttendance = false;
+  bool _isTrackingActive = false;
 
   // 🎯 DATOS BÁSICOS
-  List<Evento> _eventos = [];
   Evento? _currentEvento;
 
-  // 🎯 STREAMS SUBSCRIPTIONS
+  // 🎯 STREAMS SUBSCRIPTIONS CRÍTICOS
   StreamSubscription<AttendanceState>? _stateSubscription;
   StreamSubscription<LocationResponseModel>? _locationSubscription;
+
+  // 🎯 TIMERS PARA VALIDACIONES CONTINUAS
+  Timer? _permissionValidationTimer;
+  Timer? _heartbeatValidationTimer;
 
   @override
   void initState() {
     super.initState();
+    debugPrint(
+        '🎯 MapViewScreen iniciando con restricciones de seguridad FASE C');
 
-    // Inicializar controladores de animación
+    // 1. Inicializar animaciones
     _initializeAnimations();
 
-    // Inicializar manager y cargar datos
-    _initializeAttendanceManager();
+    // 2. Validar argumentos de navegación
+    _validateNavigationArguments();
+
+    // 3. Inicializar con restricciones de seguridad
+    _initializeWithSecurityValidations();
   }
 
   void _initializeAnimations() {
@@ -106,46 +127,143 @@ class _MapViewScreenState extends State<MapViewScreen>
     _pulseController.repeat();
   }
 
-  Future<void> _initializeAttendanceManager() async {
-    debugPrint('🎯 Inicializando MapViewScreen con StudentAttendanceManager');
+  void _validateNavigationArguments() {
+    debugPrint('🔍 Validando argumentos de navegación:');
+    debugPrint('   - isStudentMode: ${widget.isStudentMode}');
+    debugPrint('   - eventoId: ${widget.eventoId}');
+    debugPrint('   - permissionsValidated: ${widget.permissionsValidated}');
+    debugPrint('   - preciseLocationGranted: ${widget.preciseLocationGranted}');
+    debugPrint(
+        '   - backgroundPermissionsGranted: ${widget.backgroundPermissionsGranted}');
+    debugPrint(
+        '   - batteryOptimizationDisabled: ${widget.batteryOptimizationDisabled}');
 
-    try {
-      // 1. Verificar permisos de ubicación
-      await _checkLocationPermissions();
-
-      // 2. Inicializar el AttendanceManager
-      await _attendanceManager.initialize();
-
-      // 3. Configurar listeners reactivos
-      _setupAttendanceListeners();
-
-      // 4. Cargar datos básicos
-      await _loadInitialData();
-
-      // 5. Si hay eventoId específico, iniciar tracking
-      if (widget.eventoId != null && widget.eventoId!.isNotEmpty) {
-        await _startTrackingForEvent(widget.eventoId!);
-      }
-    } catch (e) {
-      debugPrint('❌ Error inicializando MapViewScreen: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        _showErrorSnackBar('Error inicializando la pantalla: $e');
-      }
+    // ✅ FASE C: Si no vienen validaciones, es acceso directo (no permitido para estudiantes)
+    if (widget.isStudentMode && widget.permissionsValidated != true) {
+      debugPrint(
+          '🚨 ACCESO DIRECTO NO PERMITIDO - Redirigiendo a validaciones');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacementNamed(context, '/available-events');
+      });
+      return;
     }
   }
 
-  void _setupAttendanceListeners() {
-    // 🎯 LISTENER PRINCIPAL DE ESTADO - REEMPLAZA VARIABLES HARDCODEADAS
+  Future<void> _initializeWithSecurityValidations() async {
+    try {
+      setState(() => _isLoading = true);
+
+      // 🔒 PASO 1: RE-VALIDAR PERMISOS CRÍTICOS (incluso si vinieron validados)
+      debugPrint('🔒 PASO 1: Re-validando permisos críticos...');
+      final permissionsValid = await _revalidateAllPermissions();
+      if (!permissionsValid) {
+        _showCriticalPermissionError();
+        return;
+      }
+
+      // 🔒 PASO 2: INICIALIZAR SERVICIOS BACKGROUND OBLIGATORIOS
+      debugPrint('🔒 PASO 2: Inicializando servicios background...');
+      await _initializeBackgroundServices();
+
+      // 🔒 PASO 3: CONFIGURAR STUDENTATTENDANCEMANAGER CON RESTRICCIONES
+      debugPrint('🔒 PASO 3: Configurando StudentAttendanceManager...');
+      await _initializeAttendanceManagerWithRestrictions();
+
+      // 🔒 PASO 4: CARGAR EVENTO Y VALIDAR DISPONIBILIDAD
+      debugPrint('🔒 PASO 4: Cargando evento...');
+      await _loadEventWithValidation();
+
+      // 🔒 PASO 5: INICIAR TRACKING CON TODAS LAS RESTRICCIONES
+      debugPrint('🔒 PASO 5: Iniciando tracking seguro...');
+      await _startSecureTracking();
+
+      // 🔒 PASO 6: INICIAR VALIDACIONES CONTINUAS
+      debugPrint('🔒 PASO 6: Iniciando validaciones continuas...');
+      _startContinuousValidations();
+
+      setState(() => _isLoading = false);
+      debugPrint('✅ MapViewScreen inicializado con todas las restricciones');
+    } catch (e) {
+      debugPrint('❌ Error crítico en inicialización: $e');
+      _showCriticalInitializationError(e.toString());
+    }
+  }
+
+  Future<bool> _revalidateAllPermissions() async {
+    try {
+      // 1. Ubicación precisa obligatoria
+      final hasLocation = await _permissionService.hasLocationPermissions();
+      if (!hasLocation) {
+        debugPrint('❌ Ubicación precisa no otorgada');
+        return false;
+      }
+
+      // 2. Background permissions obligatorios
+      final hasBackground = await _permissionService.canRunInBackground();
+      if (!hasBackground) {
+        debugPrint('❌ Permisos background no otorgados');
+        return false;
+      }
+
+      // 3. Servicios de ubicación activos
+      final servicesEnabled =
+          await _permissionService.isLocationServiceEnabled();
+      if (!servicesEnabled) {
+        debugPrint('❌ Servicios de ubicación desactivados');
+        return false;
+      }
+
+      setState(() => _hasLocationPermissions = true);
+      debugPrint('✅ Todos los permisos re-validados correctamente');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Error re-validando permisos: $e');
+      return false;
+    }
+  }
+
+  Future<void> _initializeBackgroundServices() async {
+    try {
+      // 1. Inicializar BackgroundService primero
+      await _backgroundService.initialize();
+
+      debugPrint(
+          '✅ Servicios background inicializados (sin ForegroundService aún)');
+
+      // Nota: startForegroundService se llama después en _startSecureTracking()
+      // cuando ya tenemos userId y eventId disponibles
+    } catch (e) {
+      debugPrint('❌ Error inicializando servicios background: $e');
+      throw Exception('No se pudieron inicializar servicios críticos');
+    }
+  }
+
+  Future<void> _initializeAttendanceManagerWithRestrictions() async {
+    try {
+      // 1. Inicializar el manager
+      await _attendanceManager.initialize();
+
+      // 2. Configurar listeners reactivos
+      _setupReactiveListeners();
+
+      debugPrint('✅ StudentAttendanceManager configurado con restricciones');
+    } catch (e) {
+      debugPrint('❌ Error inicializando AttendanceManager: $e');
+      throw Exception('Error en sistema de asistencia');
+    }
+  }
+
+  void _setupReactiveListeners() {
+    // 🎯 LISTENER PRINCIPAL DE ESTADO
     _stateSubscription = _attendanceManager.stateStream.listen(
       (AttendanceState newState) {
         if (mounted) {
           setState(() {
             _currentAttendanceState = newState;
+            _isTrackingActive =
+                newState.trackingStatus == TrackingStatus.active;
 
-            // Actualizar animaciones basadas en el estado real
+            // Actualizar animaciones basadas en estado real
             if (newState.isInGracePeriod) {
               _graceController.repeat();
             } else {
@@ -153,8 +271,12 @@ class _MapViewScreenState extends State<MapViewScreen>
             }
           });
 
-          // Log para debugging
+          // Log crítico para debugging
           debugPrint('🎯 Estado actualizado: ${newState.statusText}');
+          debugPrint('   - Tracking: ${newState.trackingStatus}');
+          debugPrint('   - Dentro de geofence: ${newState.isInsideGeofence}');
+          debugPrint('   - Grace period: ${newState.isInGracePeriod}');
+          debugPrint('   - Puede registrar: ${newState.canRegisterAttendance}');
         }
       },
       onError: (error) {
@@ -165,7 +287,7 @@ class _MapViewScreenState extends State<MapViewScreen>
       },
     );
 
-    // 🎯 LISTENER DE UBICACIÓN - DATOS REALES DEL BACKEND
+    // 🎯 LISTENER DE UBICACIÓN
     _locationSubscription = _attendanceManager.locationStream.listen(
       (LocationResponseModel locationResponse) {
         if (mounted) {
@@ -173,8 +295,11 @@ class _MapViewScreenState extends State<MapViewScreen>
             _currentLocationResponse = locationResponse;
           });
 
+          debugPrint('📍 Ubicación actualizada:');
+          debugPrint('   - Distancia: ${locationResponse.formattedDistance}');
           debugPrint(
-              '📍 Ubicación actualizada: ${locationResponse.formattedDistance}');
+              '   - Dentro geofence: ${locationResponse.insideGeofence}');
+          debugPrint('   - Evento activo: ${locationResponse.eventActive}');
         }
       },
       onError: (error) {
@@ -183,196 +308,343 @@ class _MapViewScreenState extends State<MapViewScreen>
     );
   }
 
-  Future<void> _loadInitialData() async {
+  Future<void> _loadEventWithValidation() async {
     try {
-      // ✅ SIMPLIFICADO: No necesitamos cargar usuario aquí ya que StudentAttendanceManager lo maneja
+      if (widget.eventoId == null || widget.eventoId!.isEmpty) {
+        throw Exception('ID de evento no proporcionado');
+      }
 
-      // ✅ CORREGIDO: EventoService.obtenerEventos() devuelve List<Evento> directamente
+      // 1. Cargar todos los eventos disponibles
       final eventos = await _eventoService.obtenerEventos();
 
+      // 2. Buscar el evento específico
+      final evento = eventos.firstWhere(
+        (e) => e.id == widget.eventoId,
+        orElse: () => throw Exception('Evento no encontrado'),
+      );
+
+      // 3. Validar que el evento esté activo
+      if (!evento.isActive) {
+        throw Exception('Evento no está activo');
+      }
+
+      // 4. Validar horarios del evento
+      final now = DateTime.now();
+      if (now.isBefore(evento.horaInicio)) {
+        throw Exception('Evento aún no ha iniciado');
+      }
+      if (now.isAfter(evento.horaFinal)) {
+        throw Exception('Evento ya terminó');
+      }
+
       setState(() {
-        _eventos = eventos;
+        _currentEvento = evento;
       });
 
-      // Si hay eventoId específico, buscar el evento
-      if (widget.eventoId != null && widget.eventoId!.isNotEmpty) {
-        final evento = _findEventById(widget.eventoId!);
-        if (evento != null) {
-          setState(() {
-            _currentEvento = evento;
-          });
-        }
-      }
-
-      // Marcar como cargado
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      debugPrint('✅ Evento cargado y validado: ${evento.titulo}');
     } catch (e) {
-      debugPrint('❌ Error cargando datos iniciales: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      debugPrint('❌ Error cargando evento: $e');
+      throw Exception('Error cargando evento: $e');
     }
   }
 
-  Future<void> _startTrackingForEvent(String eventoId) async {
-    final evento = _findEventById(eventoId);
-    if (evento != null) {
-      try {
-        await _attendanceManager.startEventTracking(evento);
-        debugPrint('✅ Tracking iniciado para evento: ${evento.titulo}');
-      } catch (e) {
-        debugPrint('❌ Error iniciando tracking: $e');
-        _showErrorSnackBar('Error iniciando tracking: $e');
-      }
-    } else {
-      debugPrint('⚠️ Evento no encontrado: $eventoId');
-    }
-  }
-
-  Evento? _findEventById(String eventoId) {
+  Future<void> _startSecureTracking() async {
     try {
-      return _eventos.firstWhere((evento) => evento.id == eventoId);
+      if (_currentEvento == null) {
+        throw Exception('No hay evento para iniciar tracking');
+      }
+
+      // 1. Obtener userId del AttendanceManager
+      final userId = _attendanceManager.currentState.currentUser?.id;
+      if (userId == null) {
+        throw Exception('No hay usuario para iniciar tracking');
+      }
+
+      // 2. Iniciar ForegroundService con parámetros requeridos
+      await _backgroundService.startForegroundService(
+        userId: userId,
+        eventId: _currentEvento!.id!,
+      );
+
+      // 3. Iniciar tracking con evento real
+      await _attendanceManager.startEventTracking(_currentEvento!);
+
+      // 4. Mostrar notificación de tracking iniciado
+      await _notificationManager.showTrackingActiveNotification();
+
+      setState(() => _isTrackingActive = true);
+      debugPrint('✅ Tracking seguro iniciado para: ${_currentEvento!.titulo}');
     } catch (e) {
-      return null;
+      debugPrint('❌ Error iniciando tracking: $e');
+      throw Exception('Error iniciando tracking: $e');
     }
   }
 
-  Future<void> _checkLocationPermissions() async {
-    // ✅ CORREGIDO: Usar método correcto del PermissionService
-    final hasPermissions = await _permissionService.hasLocationPermissions();
+  void _startContinuousValidations() {
+    // 🔒 VALIDACIÓN DE PERMISOS CADA 10 MINUTOS
+    _permissionValidationTimer = Timer.periodic(
+      const Duration(minutes: 10),
+      (_) => _performPeriodicPermissionValidation(),
+    );
+
+    // 🔒 VALIDACIÓN DE HEARTBEAT CADA 30 SEGUNDOS
+    _heartbeatValidationTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _performHeartbeatValidation(),
+    );
+
+    debugPrint('🔒 Validaciones continuas iniciadas');
+  }
+
+  Future<void> _performPeriodicPermissionValidation() async {
+    debugPrint('🔒 Validación periódica de permisos...');
+
+    final permissionsValid = await _revalidateAllPermissions();
+    if (!permissionsValid) {
+      debugPrint('🚨 Permisos perdidos durante tracking');
+      await _handlePermissionLoss();
+    }
+  }
+
+  Future<void> _performHeartbeatValidation() async {
+    if (!_isTrackingActive) return;
+
+    try {
+      await _attendanceManager.sendHeartbeatToBackend();
+      debugPrint('💓 Heartbeat enviado exitosamente');
+    } catch (e) {
+      debugPrint('❌ Falla en heartbeat: $e');
+      await _handleHeartbeatFailure();
+    }
+  }
+
+  Future<void> _handlePermissionLoss() async {
+    await _notificationManager.showCriticalAppLifecycleWarning();
+
     if (mounted) {
-      setState(() {
-        _hasLocationPermissions = hasPermissions;
-      });
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.error, color: Colors.red),
+              SizedBox(width: 8),
+              Text('Permisos Perdidos'),
+            ],
+          ),
+          content: const Text(
+            'Se han perdido permisos críticos durante el tracking. '
+            'La asistencia se marcará como perdida.',
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Salir de MapView
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Entendido'),
+            ),
+          ],
+        ),
+      );
     }
+
+    await _attendanceManager.stopTracking();
   }
 
-  // 🎯 MÉTODOS DE CONTROL - USANDO ATTENDANCEMANAGER
+  Future<void> _handleHeartbeatFailure() async {
+    await _notificationManager.showAppClosedWarningNotification(30);
+
+    // Intentar reconectarse 3 veces
+    int attempts = 0;
+    while (attempts < 3 && _isTrackingActive) {
+      await Future.delayed(Duration(seconds: 10 * (attempts + 1)));
+      try {
+        await _attendanceManager.sendHeartbeatToBackend();
+        debugPrint('✅ Heartbeat recuperado en intento ${attempts + 1}');
+        return;
+      } catch (e) {
+        attempts++;
+        debugPrint('❌ Falla en reconexión $attempts: $e');
+      }
+    }
+
+    // Si no se pudo reconectar, marcar como perdida
+    debugPrint(
+        '🚨 No se pudo reconectar heartbeat - marcando asistencia perdida');
+    await _attendanceManager.stopTracking();
+  }
+
+  // 🎯 MÉTODOS DE ACCIÓN PRINCIPALES
+
+  Future<void> _registerAttendance() async {
+    if (_isRegisteringAttendance) return;
+
+    setState(() => _isRegisteringAttendance = true);
+
+    try {
+      debugPrint('📝 Registrando asistencia con backend real...');
+
+      final success = await _attendanceManager.registerAttendanceWithBackend();
+
+      if (success) {
+        await _notificationManager.showAttendanceRegisteredNotification();
+        _showSuccessSnackBar('✅ Asistencia registrada exitosamente');
+      } else {
+        _showErrorSnackBar('❌ Error registrando asistencia');
+      }
+    } catch (e) {
+      debugPrint('❌ Error registrando asistencia: $e');
+      _showErrorSnackBar('Error: $e');
+    } finally {
+      setState(() => _isRegisteringAttendance = false);
+    }
+  }
 
   Future<void> _startBreak() async {
     try {
       await _attendanceManager.pauseTracking();
-      _showSuccessSnackBar('Período de descanso iniciado');
+      await _notificationManager.showBreakStartedNotification();
+      _showSuccessSnackBar('⏸️ Receso iniciado');
     } catch (e) {
-      _showErrorSnackBar('Error iniciando descanso: $e');
+      debugPrint('❌ Error iniciando receso: $e');
+      _showErrorSnackBar('Error iniciando receso: $e');
     }
   }
 
   Future<void> _endBreak() async {
     try {
       await _attendanceManager.resumeTracking();
-      _showSuccessSnackBar('Período de descanso terminado');
+      await _notificationManager.showBreakEndedNotification();
+      _showSuccessSnackBar('▶️ Receso terminado');
     } catch (e) {
-      _showErrorSnackBar('Error terminando descanso: $e');
-    }
-  }
-
-  Future<void> _registerAttendance() async {
-    if (!_currentAttendanceState.canRegisterAttendance) {
-      _showErrorSnackBar('No se puede registrar asistencia en este momento');
-      return;
-    }
-
-    setState(() => _isRegisteringAttendance = true);
-
-    try {
-      final success = await _attendanceManager.registerAttendance();
-
-      if (success) {
-        _showSuccessSnackBar('Asistencia registrada exitosamente');
-      } else {
-        _showErrorSnackBar('Error registrando asistencia');
-      }
-    } catch (e) {
-      _showErrorSnackBar('Error registrando asistencia: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isRegisteringAttendance = false);
-      }
+      debugPrint('❌ Error terminando receso: $e');
+      _showErrorSnackBar('Error terminando receso: $e');
     }
   }
 
   Future<void> _refreshData() async {
-    setState(() => _isLoading = true);
-    await _loadInitialData();
+    try {
+      // Forzar actualización del AttendanceManager
+      if (_isTrackingActive) {
+        // El manager se actualiza automáticamente, solo forzamos un refresh de UI
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint('❌ Error refrescando datos: $e');
+    }
   }
 
-  void _showSettingsDialog() {
+  // 🎯 UTILIDADES UI
+
+  void _showSuccessSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 5),
+      ),
+    );
+  }
+
+  void _showCriticalPermissionError() {
+    if (!mounted) return;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Configuraciones'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Row(
           children: [
-            ListTile(
-              leading: const Icon(Icons.location_on),
-              title: const Text('Permisos de ubicación'),
-              trailing: Icon(
-                _hasLocationPermissions ? Icons.check : Icons.close,
-                color: _hasLocationPermissions ? Colors.green : Colors.red,
-              ),
-              onTap: _checkLocationPermissions,
-            ),
-            ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text('Estado del tracking'),
-              subtitle: Text(_currentAttendanceState.statusText),
-            ),
+            Icon(Icons.error, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Permisos Críticos'),
           ],
         ),
+        content: const Text(
+          'No tienes los permisos necesarios para el tracking de asistencia. '
+          'Por favor regresa a la lista de eventos y configura los permisos.',
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cerrar'),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.pushReplacementNamed(context, '/available-events');
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Volver a Eventos'),
           ),
         ],
       ),
     );
   }
 
-  // 🎯 MÉTODOS AUXILIARES
+  void _showCriticalInitializationError(String error) {
+    if (!mounted) return;
 
-  void _showSuccessSnackBar(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✅ $message'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
-  }
+    setState(() => _isLoading = false);
 
-  void _showErrorSnackBar(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ $message'),
-          backgroundColor: Colors.red,
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.error, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Error Crítico'),
+          ],
         ),
-      );
-    }
+        content: Text('Error inicializando tracking:\n\n$error'),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Salir de MapView
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Salir'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   void dispose() {
-    // Limpiar controladores de animación
-    _pulseController.dispose();
-    _graceController.dispose();
+    debugPrint('🧹 Limpiando MapViewScreen...');
 
     // Cancelar subscriptions
     _stateSubscription?.cancel();
     _locationSubscription?.cancel();
 
-    // Limpiar AttendanceManager si es necesario
-    // No llamamos dispose() aquí porque puede ser usado por otras pantallas
+    // Cancelar timers
+    _permissionValidationTimer?.cancel();
+    _heartbeatValidationTimer?.cancel();
+
+    // Limpiar animaciones
+    _pulseController.dispose();
+    _graceController.dispose();
+
+    // Si es estudiante y tracking activo, detener servicios
+    if (widget.isStudentMode && _isTrackingActive) {
+      _attendanceManager.stopTracking();
+      _backgroundService.stopForegroundService();
+    }
 
     super.dispose();
   }
@@ -380,82 +652,192 @@ class _MapViewScreenState extends State<MapViewScreen>
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: AppColors.lightGray,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: AppColors.primaryOrange),
-              SizedBox(height: 20),
-              Text('Inicializando sistema de asistencia...'),
-            ],
-          ),
-        ),
-      );
+      return _buildLoadingScreen();
     }
 
     return Scaffold(
       backgroundColor: AppColors.lightGray,
-      appBar: AppBar(
-        title: Text(
-          widget.isAdminMode ? 'Panel de Administrador' : 'Mi Asistencia',
+      appBar: _buildAppBar(),
+      body: _buildMainContent(),
+    );
+  }
+
+  Widget _buildLoadingScreen() {
+    return Scaffold(
+      backgroundColor: AppColors.lightGray,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(
+              valueColor:
+                  AlwaysStoppedAnimation<Color>(AppColors.primaryOrange),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Inicializando tracking seguro...',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.darkGray,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: const Text(
+                'Validando permisos, inicializando servicios background '
+                'y configurando restricciones de seguridad.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textGray,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
         ),
-        backgroundColor: AppColors.primaryOrange,
-        foregroundColor: AppColors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshData,
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _showSettingsDialog,
-          ),
-        ],
       ),
-      body: Column(
-        children: [
-          // 🎯 NUEVO WIDGET DE ESTADO DE ASISTENCIA - DATOS REALES
-          AttendanceStatusWidget(
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: Text(
+        _currentEvento?.titulo ?? 'Tracking de Asistencia',
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      foregroundColor: Colors.black,
+      elevation: 0.5,
+      actions: [
+        // Estado del tracking
+        Container(
+          margin: const EdgeInsets.only(right: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: _isTrackingActive ? Colors.green : Colors.grey,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _isTrackingActive ? Icons.my_location : Icons.location_off,
+                size: 16,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                _isTrackingActive ? 'Activo' : 'Inactivo',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMainContent() {
+    return Stack(
+      children: [
+        // 🎯 MAPA PRINCIPAL - DATOS REALES
+        MapArea(
+          currentEvento: _currentEvento,
+          userLat: _currentAttendanceState.userLatitude,
+          userLng: _currentAttendanceState.userLongitude,
+          isInsideGeofence: _currentAttendanceState.isInsideGeofence,
+          isOnBreak:
+              _currentAttendanceState.trackingStatus == TrackingStatus.paused,
+          pulseAnimation: _pulseAnimation,
+        ),
+
+        // 🎯 WIDGET DE ESTADO DE ASISTENCIA
+        Positioned(
+          top: 16,
+          left: 16,
+          right: 16,
+          child: AttendanceStatusWidget(
             attendanceState: _currentAttendanceState,
             locationResponse: _currentLocationResponse,
             userName: widget.userName,
             currentEvento: _currentEvento,
           ),
+        ),
 
-          // 🎯 WIDGET DE PERÍODO DE GRACIA - SOLO SI APLICA
-          if (_currentAttendanceState.isInGracePeriod)
-            GracePeriodWidget(
+        // 🎯 WIDGET DE GRACE PERIOD (si está activo)
+        if (_currentAttendanceState.isInGracePeriod)
+          Positioned(
+            top: 80,
+            left: 16,
+            right: 16,
+            child: GracePeriodWidget(
               gracePeriodSeconds: _currentAttendanceState.gracePeriodRemaining,
               graceColorAnimation: _graceColorAnimation,
             ),
+          ),
 
-          // 🎯 MAPA - USANDO COORDENADAS REALES DEL MANAGER
-          Expanded(
-            child: MapArea(
-              // Datos reales del evento
-              currentEvento: _currentEvento,
-              // Estados reales del manager
-              isOnBreak: _currentAttendanceState.trackingStatus ==
-                  TrackingStatus.paused,
-              isInsideGeofence: _currentAttendanceState.isInsideGeofence,
-              pulseAnimation: _pulseAnimation,
-              // Coordenadas reales del usuario
-              userLat: _currentAttendanceState.userLatitude,
-              userLng: _currentAttendanceState.userLongitude,
+        // 🎯 CONTROLES INFERIORES
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: _buildBottomControls(),
+        ),
+
+        // 🎯 OVERLAY DE NOTIFICACIONES - NUEVO
+        NotificationOverlayWidget(
+          attendanceState: _currentAttendanceState,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomControls() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Indicador de estado superior
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
 
-          // 🎯 INDICADOR GPS - ESTADO REAL
+          const SizedBox(height: 16),
+
+          // Estado de conexión y GPS
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: (_hasLocationPermissions ? Colors.green : Colors.red)
-                  .withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: _hasLocationPermissions ? Colors.green : Colors.red,
                 width: 1,
@@ -490,35 +872,41 @@ class _MapViewScreenState extends State<MapViewScreen>
             ),
           ),
 
+          const SizedBox(height: 16),
+
           // 🎯 BOTÓN DE ASISTENCIA PARA ESTUDIANTES - ESTADO REAL
-          if (widget.isStudentMode &&
-              _currentAttendanceState.currentEvent != null)
-            AttendanceButtonWidget(
-              attendanceState: _currentAttendanceState,
-              locationResponse: _currentLocationResponse,
-              isLoading: _isRegisteringAttendance,
-              onPressed: _registerAttendance,
+          if (widget.isStudentMode && _currentEvento != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: AttendanceButtonWidget(
+                attendanceState: _currentAttendanceState,
+                locationResponse: _currentLocationResponse,
+                isLoading: _isRegisteringAttendance,
+                onPressed: _registerAttendance,
+              ),
             ),
 
+          const SizedBox(height: 16),
+
           // 🎯 PANEL DE CONTROL - USANDO ESTADOS REALES
-          ControlPanel(
-            isAdminMode: widget.isAdminMode,
-            isOnBreak:
-                _currentAttendanceState.trackingStatus == TrackingStatus.paused,
-            isAttendanceActive:
-                _currentAttendanceState.trackingStatus == TrackingStatus.active,
-            isInsideGeofence: _currentAttendanceState.isInsideGeofence,
-            currentEvento: _currentEvento,
-            onStartBreak: _startBreak,
-            onEndBreak: _endBreak,
-            onRegisterAttendance: _registerAttendance,
-            onRefreshData: _refreshData,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ControlPanel(
+              isAdminMode: widget.isAdminMode,
+              isOnBreak: _currentAttendanceState.trackingStatus ==
+                  TrackingStatus.paused,
+              isAttendanceActive: _currentAttendanceState.trackingStatus ==
+                  TrackingStatus.active,
+              isInsideGeofence: _currentAttendanceState.isInsideGeofence,
+              currentEvento: _currentEvento,
+              onStartBreak: _startBreak,
+              onEndBreak: _endBreak,
+              onRegisterAttendance: _registerAttendance,
+              onRefreshData: _refreshData,
+            ),
           ),
 
-          // 🎯 OVERLAY DE NOTIFICACIONES - NUEVO WIDGET
-          NotificationOverlayWidget(
-            attendanceState: _currentAttendanceState,
-          ),
+          const SizedBox(height: 32),
         ],
       ),
     );

@@ -13,6 +13,7 @@ import '../models/evento_model.dart';
 import '../screens/available_events_screen.dart';
 import '../screens/attendance/attendance_tracking_screen.dart';
 import '../screens/location_picker_screen.dart';
+import '../screens/events/event_monitor_screen.dart';
 
 class AppRouter {
   // Private constructor to prevent instantiation
@@ -60,6 +61,28 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => DashboardScreen(
             userName: args?['userName'] ?? 'Usuario',
+          ),
+        );
+
+      case AppConstants.eventMonitorRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final eventId = args?['eventId'] as String?;
+        final teacherName = args?['teacherName'] as String?;
+
+        if (eventId == null || teacherName == null) {
+          return MaterialPageRoute(
+            builder: (_) => const Scaffold(
+              body: Center(
+                child: Text('Error: Faltan parámetros para monitorear evento'),
+              ),
+            ),
+          );
+        }
+
+        return MaterialPageRoute(
+          builder: (_) => EventMonitorScreen(
+            eventId: eventId,
+            teacherName: teacherName,
           ),
         );
 
@@ -377,6 +400,19 @@ class AppRouter {
           ),
         ],
       ),
+    );
+  }
+
+  static void goToEventMonitor({
+    required String eventId,
+    required String teacherName,
+  }) {
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppConstants.eventMonitorRoute,
+      arguments: {
+        'eventId': eventId,
+        'teacherName': teacherName,
+      },
     );
   }
 
