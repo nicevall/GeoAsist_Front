@@ -1,5 +1,5 @@
 // REEMPLAZAR CONTENIDO DE: android/app/src/main/kotlin/com/example/geo_asist_front/MainActivity.kt
-package com.example.geo_asist_front
+package ec.edu.uide.geo_asist_front
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine

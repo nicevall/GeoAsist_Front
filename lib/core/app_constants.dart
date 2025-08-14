@@ -103,7 +103,7 @@ class AppConstants {
 
   // ✅ MANTENER COMPATIBILIDAD TEMPORAL
   static const String studentDashboardRoute =
-      '/attendance-tracking'; // Alias para attendanceTrackingRoute
+      '/student-dashboard'; // Dashboard de estudiante
 
   // Error Messages
   static const String networkErrorMessage =

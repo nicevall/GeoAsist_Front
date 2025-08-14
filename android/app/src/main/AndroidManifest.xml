@@ -98,11 +98,6 @@
         <meta-data 
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyB7aK19MzXW4bBXvvyoAH9OqeXDwa4zbOU" />
-            
-        <!-- 🔥 CONFIGURACIÓN PARA BATTERY OPTIMIZATION -->
-        <meta-data
-            android:name="com.google.android.gms.car.application"
-            android:resource="@xml/automotive_app_desc"/>
     </application>
     
     <queries>

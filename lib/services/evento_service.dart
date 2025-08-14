@@ -655,6 +655,22 @@ class EventoService {
     }
   }
 
+  Future<bool> toggleEventoActive(String eventoId, bool isActive) async {
+    try {
+      debugPrint(
+          '🔄 Alternando estado del evento $eventoId a: ${isActive ? "ACTIVO" : "INACTIVO"}');
+
+      if (isActive) {
+        return await activarEvento(eventoId);
+      } else {
+        return await desactivarEvento(eventoId);
+      }
+    } catch (e) {
+      debugPrint('❌ Error alternando estado del evento: $e');
+      return false;
+    }
+  }
+
   /// Obtener métricas en tiempo real de un evento específico
   Future<Map<String, dynamic>> obtenerMetricasEvento(String eventoId) async {
     try {

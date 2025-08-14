@@ -1,15 +1,15 @@
-// lib/utils/app_router.dart - VERSIÓN COMPLETA CON EVENTOS
+// lib/utils/app_router.dart - VERSIÓN CORREGIDA CON NAVEGACIÓN UNIFICADA
 import 'package:flutter/material.dart';
 import '../core/app_constants.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/map_view/map_view_screen.dart';
 import '../screens/create_professor_screen.dart';
-import '../screens/dashboard_screen.dart';
+import '../screens/dashboard_screen.dart'; // ✅ DASHBOARD UNIFICADO
 import '../screens/professor_management_screen.dart';
-import '../screens/create_event_screen.dart'; // ✅ AGREGADO
+import '../screens/create_event_screen.dart';
 import '../services/storage_service.dart';
-import '../models/evento_model.dart'; // ✅ AGREGADO
+import '../models/evento_model.dart';
 import '../screens/available_events_screen.dart';
 import '../screens/attendance/attendance_tracking_screen.dart';
 import '../screens/location_picker_screen.dart';
@@ -45,11 +45,32 @@ class AppRouter {
           ),
         );
 
+      // ✅ DASHBOARD UNIFICADO PARA TODOS LOS ROLES
       case AppConstants.dashboardRoute:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
           builder: (_) => DashboardScreen(
             userName: args?['userName'] ?? 'Usuario',
+          ),
+        );
+
+      // ✅ CORREGIDO: Eliminar caso duplicado - estudiante va al dashboard unificado
+      case AppConstants.studentDashboardRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => DashboardScreen(
+            // ✅ Dashboard unificado
+            userName: args?['userName'] ?? 'Usuario',
+          ),
+        );
+
+      // ✅ ATTENDANCE TRACKING COMO PANTALLA ESPECIALIZADA
+      case AppConstants.attendanceTrackingRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => AttendanceTrackingScreen(
+            userName: args?['userName'] ?? 'Usuario',
+            eventoId: args?['eventoId'],
           ),
         );
 
@@ -62,14 +83,6 @@ class AppRouter {
 
       case AppConstants.availableEventsRoute:
         return MaterialPageRoute(builder: (_) => const AvailableEventsScreen());
-
-      case AppConstants.studentDashboardRoute:
-        final args = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(
-          builder: (_) => AttendanceTrackingScreen(
-            userName: args?['userName'] ?? 'Usuario',
-          ),
-        );
 
       case AppConstants.createEventRoute:
         final args = settings.arguments as Map<String, dynamic>?;
@@ -147,17 +160,21 @@ class AppRouter {
     }
   }
 
-  // Navigation helper methods
+  // ✅ MÉTODOS DE NAVEGACIÓN CORREGIDOS
+
+  /// Navegar al login
   static void goToLogin() {
     Navigator.of(navigatorKey.currentContext!)
         .pushReplacementNamed(AppConstants.loginRoute);
   }
 
+  /// Navegar al registro
   static void goToRegister() {
     Navigator.of(navigatorKey.currentContext!)
         .pushNamed(AppConstants.registerRoute);
   }
 
+  /// ✅ DASHBOARD UNIFICADO PARA ADMIN Y DOCENTE
   static void goToDashboard({String userName = 'Usuario'}) {
     Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
       AppConstants.dashboardRoute,
@@ -165,6 +182,48 @@ class AppRouter {
     );
   }
 
+  /// ✅ CORREGIDO: Estudiante también va al dashboard unificado
+  static void goToStudentDashboard({String userName = 'Usuario'}) {
+    Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
+      AppConstants
+          .dashboardRoute, // ✅ CAMBIO: Usar dashboardRoute en lugar de studentDashboardRoute
+      arguments: {'userName': userName},
+    );
+  }
+
+  /// ✅ NUEVO: Navegar a tracking especializado
+  static void goToAttendanceTracking({
+    String userName = 'Usuario',
+    String? eventoId,
+  }) {
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppConstants.attendanceTrackingRoute,
+      arguments: {
+        'userName': userName,
+        if (eventoId != null) 'eventoId': eventoId,
+      },
+    );
+  }
+
+  /// Navegar al map view
+  static void goToMapView({
+    bool isAdminMode = false,
+    bool isStudentMode = false,
+    String userName = 'Usuario',
+    String? eventoId,
+  }) {
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppConstants.mapViewRoute,
+      arguments: {
+        'isAdminMode': isAdminMode,
+        'isStudentMode': isStudentMode,
+        'userName': userName,
+        if (eventoId != null) 'eventoId': eventoId,
+      },
+    );
+  }
+
+  /// Gestión de profesores
   static void goToCreateProfessor() {
     Navigator.of(navigatorKey.currentContext!)
         .pushNamed(AppConstants.createProfessorRoute);
@@ -175,25 +234,7 @@ class AppRouter {
         .pushNamed(AppConstants.professorManagementRoute);
   }
 
-  static void goToMapView(
-      {bool isAdminMode = false, String userName = 'Usuario'}) {
-    Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
-      AppConstants.mapViewRoute,
-      arguments: {
-        'isAdminMode': isAdminMode,
-        'userName': userName,
-      },
-    );
-  }
-
-  static void goToStudentDashboard({String userName = 'Usuario'}) {
-    Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
-      AppConstants.studentDashboardRoute,
-      arguments: {'userName': userName},
-    );
-  }
-
-  // ✅ NUEVOS MÉTODOS DE NAVEGACIÓN PARA EVENTOS
+  /// ✅ NAVEGACIÓN DE EVENTOS
   static void goToCreateEvent({Evento? editEvent}) {
     Navigator.of(navigatorKey.currentContext!).pushNamed(
       AppConstants.createEventRoute,
@@ -218,7 +259,21 @@ class AppRouter {
     );
   }
 
-  // Back navigation
+  /// ✅ NAVEGACIÓN BASADA EN ROL - UNIFICADA
+  static void navigateByRole(String userRole, String userName) {
+    switch (userRole) {
+      case AppConstants.adminRole:
+      case AppConstants.docenteRole:
+      case AppConstants.estudianteRole:
+        // ✅ TODOS VAN AL MISMO DASHBOARD UNIFICADO
+        goToDashboard(userName: userName);
+        break;
+      default:
+        goToLogin();
+    }
+  }
+
+  /// Navegación hacia atrás
   static void goBack() {
     if (Navigator.of(navigatorKey.currentContext!).canPop()) {
       Navigator.of(navigatorKey.currentContext!).pop();
@@ -227,24 +282,37 @@ class AppRouter {
     }
   }
 
-  // Navigate based on user role - ACTUALIZADO PARA NUEVOS ROLES
-  static void navigateByRole(String userRole, String userName) {
-    switch (userRole) {
-      case AppConstants.adminRole:
-        goToDashboard(userName: userName);
-        break;
-      case AppConstants.docenteRole:
-        goToDashboard(userName: userName);
-        break;
-      case AppConstants.estudianteRole:
-        goToStudentDashboard(userName: userName);
-        break;
-      default:
-        goToLogin();
-    }
+  /// ✅ UTILIDADES DE NAVEGACIÓN
+
+  /// Location picker con resultado
+  static Future<Map<String, dynamic>?> goToLocationPicker({
+    double initialLatitude = -0.1805,
+    double initialLongitude = -78.4680,
+    double initialRange = 100.0,
+    String initialLocationName = 'UIDE Campus Principal',
+  }) async {
+    return await Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppConstants.locationPickerRoute,
+      arguments: {
+        'initialLatitude': initialLatitude,
+        'initialLongitude': initialLongitude,
+        'initialRange': initialRange,
+        'initialLocationName': initialLocationName,
+      },
+    ) as Map<String, dynamic>?;
   }
 
-  // Show snackbar using navigator context
+  /// Navegación genérica
+  static void navigateTo(String route, {Map<String, dynamic>? arguments}) {
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      route,
+      arguments: arguments,
+    );
+  }
+
+  /// ✅ UTILIDADES DE UI
+
+  /// Mostrar snackbar
   static void showSnackBar(String message, {bool isError = false}) {
     final context = navigatorKey.currentContext;
     if (context != null) {
@@ -266,24 +334,7 @@ class AppRouter {
     }
   }
 
-  static Future<Map<String, dynamic>?> goToLocationPicker({
-    double initialLatitude = -0.1805,
-    double initialLongitude = -78.4680,
-    double initialRange = 100.0,
-    String initialLocationName = 'UIDE Campus Principal',
-  }) async {
-    return await Navigator.of(navigatorKey.currentContext!).pushNamed(
-      AppConstants.locationPickerRoute,
-      arguments: {
-        'initialLatitude': initialLatitude,
-        'initialLongitude': initialLongitude,
-        'initialRange': initialRange,
-        'initialLocationName': initialLocationName,
-      },
-    ) as Map<String, dynamic>?;
-  }
-
-  // Show dialog using navigator context
+  /// Mostrar diálogo de confirmación
   static Future<bool?> showConfirmDialog({
     required String title,
     required String content,
@@ -312,7 +363,9 @@ class AppRouter {
     );
   }
 
-  // Check if user is authenticated
+  /// ✅ GESTIÓN DE SESIÓN
+
+  /// Verificar si está autenticado
   static Future<bool> get isAuthenticated async {
     try {
       final user = await _storageService.getUser();
@@ -323,7 +376,7 @@ class AppRouter {
     }
   }
 
-  // Get current user role
+  /// Obtener rol del usuario actual
   static Future<String?> get currentUserRole async {
     try {
       return await _storageService.getUserRole();
@@ -332,7 +385,7 @@ class AppRouter {
     }
   }
 
-  // Auto-navigate based on stored session
+  /// Auto-navegación basada en sesión almacenada
   static Future<void> autoNavigateFromSession() async {
     try {
       final user = await _storageService.getUser();
@@ -346,7 +399,7 @@ class AppRouter {
     }
   }
 
-  // Logout and clear session
+  /// Cerrar sesión y limpiar datos
   static Future<void> logout() async {
     try {
       await _storageService.clearAll();
@@ -355,12 +408,5 @@ class AppRouter {
     } catch (e) {
       showSnackBar('Error al cerrar sesión', isError: true);
     }
-  }
-
-  static void navigateTo(String route, {Map<String, dynamic>? arguments}) {
-    Navigator.of(navigatorKey.currentContext!).pushNamed(
-      route,
-      arguments: arguments,
-    );
   }
 }
