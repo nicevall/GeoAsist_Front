@@ -703,15 +703,27 @@ class EventoService {
 
   // Validación de datos de evento del backend
   bool _isValidBackendEventData(Map<String, dynamic> data) {
-    final requiredFields = ['id', 'nombre', 'coordenadas'];
-    for (final field in requiredFields) {
-      if (!data.containsKey(field) || data[field] == null) {
-        debugPrint('❌ Missing required field: $field');
-        return false;
-      }
+    // ✅ CORREGIDO: Verificar tanto '_id' como 'id'
+    final hasId = data.containsKey('_id') || data.containsKey('id');
+    if (!hasId || (data['_id'] == null && data['id'] == null)) {
+      debugPrint('❌ Missing required field: _id or id');
+      return false;
     }
 
-    // Validar coordenadas
+    // ✅ CORREGIDO: Verificar tanto 'nombre' como 'titulo'
+    final hasTitle = data.containsKey('nombre') || data.containsKey('titulo');
+    if (!hasTitle || (data['nombre'] == null && data['titulo'] == null)) {
+      debugPrint('❌ Missing required field: nombre or titulo');
+      return false;
+    }
+
+    // ✅ MANTENER: Validar coordenadas (está bien)
+    if (!data.containsKey('coordenadas') || data['coordenadas'] == null) {
+      debugPrint('❌ Missing required field: coordenadas');
+      return false;
+    }
+
+    // Validar estructura de coordenadas
     final coordenadas = data['coordenadas'];
     if (coordenadas is! Map<String, dynamic> ||
         !coordenadas.containsKey('latitud') ||

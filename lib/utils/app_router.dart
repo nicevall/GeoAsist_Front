@@ -54,12 +54,11 @@ class AppRouter {
           ),
         );
 
-      // ✅ CORREGIDO: Eliminar caso duplicado - estudiante va al dashboard unificado
+      // ✅ ESTUDIANTE - REDIRIGIR AL DASHBOARD UNIFICADO
       case AppConstants.studentDashboardRoute:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
           builder: (_) => DashboardScreen(
-            // ✅ Dashboard unificado
             userName: args?['userName'] ?? 'Usuario',
           ),
         );
@@ -182,13 +181,9 @@ class AppRouter {
     );
   }
 
-  /// ✅ CORREGIDO: Estudiante también va al dashboard unificado
+  /// ✅ SIMPLIFICADO: Todos van al mismo dashboard
   static void goToStudentDashboard({String userName = 'Usuario'}) {
-    Navigator.of(navigatorKey.currentContext!).pushReplacementNamed(
-      AppConstants
-          .dashboardRoute, // ✅ CAMBIO: Usar dashboardRoute en lugar de studentDashboardRoute
-      arguments: {'userName': userName},
-    );
+    goToDashboard(userName: userName); // ✅ Llama al método unificado
   }
 
   /// ✅ NUEVO: Navegar a tracking especializado
@@ -273,12 +268,34 @@ class AppRouter {
     }
   }
 
-  /// Navegación hacia atrás
+  /// ✅ NAVEGACIÓN HACIA ATRÁS CON CONTEXTO INTELIGENTE
   static void goBack() {
-    if (Navigator.of(navigatorKey.currentContext!).canPop()) {
-      Navigator.of(navigatorKey.currentContext!).pop();
-    } else {
-      goToLogin();
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      } else {
+        // ✅ LÓGICA INTELIGENTE: Verificar si está autenticado
+        _handleNoBackStack();
+      }
+    }
+  }
+
+  /// ✅ MANEJO CUANDO NO HAY STACK DE NAVEGACIÓN
+  static Future<void> _handleNoBackStack() async {
+    try {
+      final isAuth = await isAuthenticated;
+      if (isAuth) {
+        // Si está autenticado, se queda donde está
+        debugPrint('🏠 Usuario autenticado - permaneciendo en pantalla actual');
+      } else {
+        // Solo va al login si NO está autenticado
+        goToLogin();
+      }
+    } catch (e) {
+      // En caso de error, se queda donde está
+      debugPrint(
+          '🏠 Error verificando autenticación - permaneciendo en pantalla actual');
     }
   }
 

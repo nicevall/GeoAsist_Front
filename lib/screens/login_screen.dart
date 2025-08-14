@@ -250,22 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _navigateByRole(String rol, String userName) {
-    switch (rol) {
-      case AppConstants.adminRole:
-        // Admin va al dashboard inteligente
-        AppRouter.goToDashboard(userName: userName);
-        break;
-      case AppConstants.docenteRole:
-        // Docente va al dashboard
-        AppRouter.goToDashboard(userName: userName);
-        break;
-      case AppConstants.estudianteRole:
-        // Estudiante va al dashboard
-        AppRouter.goToStudentDashboard(userName: userName);
-        break;
-      default:
-        AppRouter.goToLogin();
-    }
+    AppRouter.goToDashboard(userName: userName);
   }
 
   bool _isValidEmail(String email) {

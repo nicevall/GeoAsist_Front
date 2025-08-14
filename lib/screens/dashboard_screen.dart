@@ -588,24 +588,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(
-                  child: _buildActionButton(
-                    'Crear Evento',
-                    Icons.add_circle,
-                    AppColors.primaryOrange,
-                    () => Navigator.pushNamed(
-                        context, AppConstants.createEventRoute),
-                  ),
+                _buildActionButton(
+                  'Crear Evento',
+                  Icons.add_circle,
+                  AppColors.primaryOrange,
+                  () => Navigator.pushNamed(
+                      context, AppConstants.createEventRoute),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionButton(
-                    'Mis Eventos',
-                    Icons.event_note,
-                    AppColors.secondaryTeal,
-                    () => Navigator.pushNamed(
-                        context, AppConstants.availableEventsRoute),
-                  ),
+                _buildActionButton(
+                  'Mis Eventos',
+                  Icons.event_note,
+                  AppColors.secondaryTeal,
+                  () => Navigator.pushNamed(
+                      context, AppConstants.availableEventsRoute),
                 ),
               ],
             ),
@@ -756,63 +752,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ✅ WIDGETS ESTUDIANTE CON DATOS REALES
   // ===========================================
 
-  /// ✅ SALUDO PERSONALIZADO ESTUDIANTE
+  /// ✅ SALUDO PERSONALIZADO ESTUDIANTE - ESTILO ELEGANTE
   Widget _buildStudentWelcomeCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primaryOrange, AppColors.secondaryTeal],
+        gradient: LinearGradient(
+          colors: [
+            const Color.fromARGB(255, 42, 71, 201),
+            const Color.fromARGB(255, 30, 79, 214).withValues(alpha: 0.8),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppColors.secondaryTeal.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '¡Hola Estudiante!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _currentUser?.nombre ?? widget.userName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Gestiona tu asistencia inteligentemente',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+          // ✅ ÍCONO CENTRADO ARRIBA (como admin/profesor)
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.school,
+              color: AppColors.white,
+              size: 40,
             ),
           ),
-          const Icon(
-            Icons.school,
-            color: Colors.white,
-            size: 64,
+          const SizedBox(height: 16),
+
+          // ✅ TEXTO CENTRADO (como admin/profesor)
+          const Text(
+            'Bienvenido',
+            style: TextStyle(
+              fontSize: 16,
+              color: AppColors.white,
+              fontWeight: FontWeight.w400,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _capitalizeUserName(
+                _currentUser?.nombre ?? widget.userName ?? 'Estudiante'),
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppColors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Panel Estudiante',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.white,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -1114,23 +1124,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         Row(
           children: [
-            Expanded(
-              child: _buildActionButton(
-                'Ver Eventos',
-                Icons.event_available,
-                AppColors.primaryOrange,
-                () => Navigator.pushNamed(
-                    context, AppConstants.availableEventsRoute),
-              ),
+            _buildActionButton(
+              'Ver Eventos',
+              Icons.event_available,
+              AppColors.primaryOrange,
+              () => Navigator.pushNamed(
+                  context, AppConstants.availableEventsRoute),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: _buildActionButton(
-                'Mi Tracking',
-                Icons.location_on,
-                AppColors.secondaryTeal,
-                _navigateToTracking,
-              ),
+            _buildActionButton(
+              'Mi Tracking',
+              Icons.location_on,
+              AppColors.secondaryTeal,
+              _navigateToTracking,
             ),
           ],
         ),
@@ -1241,19 +1247,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ✅ BOTÓN DE ACCIÓN REUTILIZABLE
+  /// ✅ BOTÓN DE ACCIÓN REUTILIZABLE - CORREGIDO
   Widget _buildActionButton(
       String title, IconData icon, Color color, VoidCallback onPressed) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 20),
-      label: Text(title),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+    return Expanded(
+      // ✅ AGREGADO: Expanded automático
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 20),
+        label: Text(
+          title,
+          overflow:
+              TextOverflow.ellipsis, // ✅ AGREGADO: Prevenir overflow de texto
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
       ),
     );
@@ -1769,6 +1782,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  String _capitalizeUserName(String name) {
+    if (name.isEmpty) return name;
+
+    return name.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
   }
 
   /// ✅ DIÁLOGO DE LOGOUT LIMPIO

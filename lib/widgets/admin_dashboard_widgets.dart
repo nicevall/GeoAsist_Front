@@ -18,8 +18,8 @@ class AdminDashboardWidgets {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primaryOrange,
-            AppColors.primaryOrange.withValues(alpha: 0.8),
+            const Color.fromARGB(255, 142, 36, 170),
+            const Color.fromARGB(255, 156, 39, 176).withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -27,7 +27,8 @@ class AdminDashboardWidgets {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryOrange.withValues(alpha: 0.3),
+            color:
+                const Color.fromARGB(255, 142, 36, 170).withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -49,21 +50,34 @@ class AdminDashboardWidgets {
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Bienvenido, $userName',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.white,
-            ),
-          ),
           const Text(
-            'Panel de Administración',
+            'Bienvenido',
             style: TextStyle(
               fontSize: 16,
               color: AppColors.white,
+              fontWeight: FontWeight.w400,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _capitalizeUserName(userName),
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppColors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Panel de Administración',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.white,
               fontWeight: FontWeight.w500,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -448,5 +462,14 @@ class AdminDashboardWidgets {
     } catch (e) {
       AppRouter.showSnackBar('Error eliminando evento: $e', isError: true);
     }
+  }
+
+  static String _capitalizeUserName(String name) {
+    if (name.isEmpty) return name;
+
+    return name.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
   }
 }

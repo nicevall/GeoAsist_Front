@@ -17,8 +17,8 @@ class ProfessorDashboardWidgets {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.secondaryTeal,
-            AppColors.secondaryTeal.withValues(alpha: 0.8),
+            const Color.fromARGB(255, 46, 125, 50),
+            const Color.fromARGB(255, 67, 160, 71).withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -26,7 +26,8 @@ class ProfessorDashboardWidgets {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.secondaryTeal.withValues(alpha: 0.3),
+            color:
+                const Color.fromARGB(255, 46, 125, 50).withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -48,21 +49,34 @@ class ProfessorDashboardWidgets {
             ),
           ),
           const SizedBox(height: 16),
-          Text(
-            'Bienvenido, $userName',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.white,
-            ),
-          ),
           const Text(
-            'Panel de Docente',
+            'Bienvenido',
             style: TextStyle(
               fontSize: 16,
               color: AppColors.white,
+              fontWeight: FontWeight.w400,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _capitalizeUserName(userName),
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppColors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Panel de Docente',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.white,
               fontWeight: FontWeight.w500,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -552,5 +566,14 @@ class ProfessorDashboardWidgets {
     } catch (e) {
       AppRouter.showSnackBar('Error eliminando evento: $e', isError: true);
     }
+  }
+
+  static String _capitalizeUserName(String name) {
+    if (name.isEmpty) return name;
+
+    return name.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
   }
 }
