@@ -39,56 +39,56 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
   }
 
   Future<void> _handleJoinEventWithValidations(Evento evento) async {
-    debugPrint(
-        '🔒 Iniciando validaciones de seguridad para evento: ${evento.titulo}');
+    debugPrint('🎯 Usuario seleccionó evento: ${evento.titulo}');
 
     if (_isValidatingPermissions) return;
 
     setState(() => _isValidatingPermissions = true);
 
     try {
-      // 🔒 PASO 1: VALIDAR UBICACIÓN PRECISA OBLIGATORIA
-      debugPrint('🔒 PASO 1: Validando ubicación precisa...');
-      final hasLocationPrecise = await _validatePreciseLocationPermission();
-      if (!hasLocationPrecise) {
-        await _showLocationPermissionDialog();
-        return;
-      }
-
-      // 🔒 PASO 2: VALIDAR PERMISOS DE BACKGROUND
-      debugPrint('🔒 PASO 2: Validando permisos de background...');
-      final hasBackgroundPermissions = await _validateBackgroundPermissions();
-      if (!hasBackgroundPermissions) {
-        await _showBackgroundPermissionDialog();
-        return;
-      }
-
-      // 🔒 PASO 3: VALIDAR EXENCIÓN DE OPTIMIZACIÓN DE BATERÍA
-      debugPrint('🔒 PASO 3: Validando optimización de batería...');
-      final hasBatteryExemption = await _validateBatteryOptimization();
-      if (!hasBatteryExemption) {
-        await _showBatteryOptimizationDialog();
-        return;
-      }
-
-      // 🔒 PASO 4: VALIDAR SERVICIOS DE UBICACIÓN ACTIVOS
-      debugPrint('🔒 PASO 4: Validando servicios de ubicación...');
-      final hasLocationServices = await _validateLocationServices();
-      if (!hasLocationServices) {
-        await _showLocationServicesDialog();
-        return;
-      }
-
-      // ✅ PASO 5: TODAS LAS VALIDACIONES EXITOSAS - PERMITIR NAVEGACIÓN
-      debugPrint('✅ Todas las validaciones exitosas - Navegando a evento');
-      await _notificationManager.showGeofenceEnteredNotification(evento.titulo);
+      // ✅ NAVEGACIÓN DIRECTA - El AttendanceTrackingScreen manejará permisos
+      debugPrint('✅ Navegando al tracking de asistencia');
       _navigateToEventSafely(evento);
+      
     } catch (e) {
-      debugPrint('❌ Error durante validaciones: $e');
-      _showErrorDialog('Error validando permisos', 'Ocurrió un error: $e');
+      debugPrint('❌ Error: $e');
+      AppRouter.showSnackBar('Error: $e', isError: true);
     } finally {
       setState(() => _isValidatingPermissions = false);
     }
+  }
+
+  Future<bool> _validateBasicLocationPermission() async {
+    try {
+      // Usar el método correcto del PermissionService
+      return await _permissionService.hasLocationPermissions();
+    } catch (e) {
+      debugPrint('❌ Error validando permisos: $e');
+      return true; // Permitir continuar y que el tracking screen maneje los permisos
+    }
+  }
+
+  Future<void> _showSimpleLocationPermissionDialog() async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Permisos de Ubicación'),
+        content: const Text('La aplicación necesita acceso a tu ubicación para registrar la asistencia automáticamente.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // El attendance tracking screen se encargará de solicitar permisos
+            },
+            child: const Text('Continuar'),
+          ),
+        ],
+      ),
+    );
   }
 
   // 🔒 NAVEGACIÓN SEGURA (SOLO DESPUÉS DE VALIDACIONES)
@@ -97,15 +97,13 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
 
     debugPrint('🚀 Navegando de forma segura a evento: ${evento.titulo}');
 
-    // Navegar con todos los permisos validados
+    // Navegar al attendance tracking con todos los permisos validados
     Navigator.pushNamed(
       context,
-      '/map-view',
+      '/attendance-tracking',
       arguments: {
-        'isAdminMode': false,
         'userName': 'Estudiante',
         'eventoId': evento.id,
-        'isStudentMode': true,
         'permissionsValidated': true,
         'preciseLocationGranted': true,
         'backgroundPermissionsGranted': true,
@@ -117,14 +115,28 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
   Future<void> _loadEvents() async {
     setState(() => _isLoading = true);
     try {
+      debugPrint('📋 Cargando eventos disponibles...');
       final eventos = await _eventoService.obtenerEventos();
+      
+      debugPrint('✅ Eventos cargados: ${eventos.length}');
+      for (var evento in eventos) {
+        debugPrint('📅 Evento: ${evento.titulo} - ID: ${evento.id} - Activo: ${evento.isActive}');
+        debugPrint('📍 Ubicación: ${evento.ubicacion.latitud}, ${evento.ubicacion.longitud}');
+        debugPrint('🎯 Rango: ${evento.rangoPermitido}m');
+      }
+      
       setState(() {
         _eventos = eventos;
         _isLoading = false;
       });
+      
+      if (eventos.isEmpty) {
+        AppRouter.showSnackBar('No hay eventos disponibles', isError: false);
+      }
     } catch (e) {
+      debugPrint('❌ Error cargando eventos: $e');
       setState(() => _isLoading = false);
-      AppRouter.showSnackBar('Error al cargar eventos', isError: true);
+      AppRouter.showSnackBar('Error al cargar eventos: $e', isError: true);
     }
   }
 

@@ -40,7 +40,7 @@ class AppConstants {
   static const String registerEndpoint = '/usuarios/registrar';
   static const String profileEndpoint = '/usuarios/perfil';
   static const String eventosEndpoint = '/eventos';
-  static const String asistenciaEndpoint = '/asistencia/registrar';
+  static const String asistenciaEndpoint = '/asistencia/registrar-new';
   static const String locationEndpoint = '/location/update';
   static const String dashboardEndpoint = '/dashboard/metrics';
 

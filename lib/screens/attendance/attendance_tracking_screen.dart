@@ -442,11 +442,102 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Entraste al área del evento'),
+          content: Text('Entraste al área del evento - Registrando asistencia...'),
           backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
+          duration: Duration(seconds: 3),
         ),
       );
+    }
+
+    // 🎯 REGISTRAR ASISTENCIA AUTOMÁTICAMENTE
+    _registerAttendanceAutomatically();
+  }
+
+  /// 🎯 NUEVO: Registra asistencia automáticamente cuando entra al geofence
+  Future<void> _registerAttendanceAutomatically() async {
+    if (_currentPosition == null ||
+        _activeEvent == null ||
+        _currentUser?.id == null) {
+      debugPrint('❌ Faltan datos para registro automático');
+      return;
+    }
+
+    try {
+      debugPrint('📝 Registrando asistencia automáticamente');
+
+      final response = await _asistenciaService.registrarAsistencia(
+        eventoId: _activeEvent!.id!,
+        usuarioId: _currentUser!.id,
+        latitud: _currentPosition!.latitude,
+        longitud: _currentPosition!.longitude,
+        estado: 'presente',
+        observaciones: 'Registro automático - entrada al área del evento',
+      );
+
+      if (response.success) {
+        // El backend ahora devuelve los datos en response.data
+        if (response.data != null && response.data is Map<String, dynamic>) {
+          try {
+            final asistenciaData = response.data as Map<String, dynamic>;
+            final nuevaAsistencia = Asistencia.fromJson(asistenciaData);
+            setState(() {
+              _attendanceHistory.insert(0, nuevaAsistencia);
+            });
+          } catch (e) {
+            debugPrint('❌ Error parsing asistencia automática: $e');
+          }
+        }
+
+        HapticFeedback.mediumImpact();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Asistencia registrada automáticamente'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+
+        debugPrint('✅ Asistencia automática registrada exitosamente');
+      } else {
+        debugPrint('❌ Error en registro automático: ${response.error}');
+        
+        // Si ya está registrado, no es un error crítico
+        if (response.error?.contains('ya registró') == true) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Ya tienes asistencia registrada para este evento'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        } else {
+          // Solo mostrar error si es algo diferente
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error en registro automático: ${response.error}'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Excepción en registro automático: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error registrando asistencia automáticamente'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -603,10 +694,19 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         estado: _isInGeofence ? 'presente' : 'fuera_area',
       );
 
-      if (response.success && response.data != null) {
-        setState(() {
-          _attendanceHistory.insert(0, response.data! as Asistencia);
-        });
+      if (response.success) {
+        // El backend ahora devuelve los datos en response.data
+        if (response.data != null && response.data is Map<String, dynamic>) {
+          try {
+            final asistenciaData = response.data as Map<String, dynamic>;
+            final nuevaAsistencia = Asistencia.fromJson(asistenciaData);
+            setState(() {
+              _attendanceHistory.insert(0, nuevaAsistencia);
+            });
+          } catch (e) {
+            debugPrint('❌ Error parsing asistencia response: $e');
+          }
+        }
 
         HapticFeedback.selectionClick();
         if (mounted) {
@@ -728,6 +828,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 🎯 NUEVO: Panel de instrucciones para el usuario
+          _buildInstructionsPanel(),
+          const SizedBox(height: 16),
           _buildEventPanel(),
           const SizedBox(height: 16),
           _buildTrackingStatusPanel(),
@@ -1451,6 +1554,125 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
               _isTrackingActive ? Colors.red : AppColors.primaryOrange,
           icon: Icon(_isTrackingActive ? Icons.stop : Icons.play_arrow),
           label: Text(_isTrackingActive ? 'Detener' : 'Iniciar'),
+        ),
+      ],
+    );
+  }
+
+  // 🎯 NUEVO: Panel de instrucciones para el usuario
+  Widget _buildInstructionsPanel() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            _isTrackingActive ? Colors.green.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1),
+            _isTrackingActive ? Colors.green.withValues(alpha: 0.05) : Colors.blue.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _isTrackingActive ? Colors.green.withValues(alpha: 0.3) : Colors.blue.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                _isTrackingActive ? Icons.check_circle : Icons.info_outline,
+                color: _isTrackingActive ? Colors.green : Colors.blue,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _isTrackingActive ? '¡Tracking Activo!' : 'Cómo funciona',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: _isTrackingActive ? Colors.green : Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (!_isTrackingActive) ...[
+            _buildInstructionStep(
+              '1.',
+              'Presiona "Iniciar" para activar el tracking GPS',
+              Icons.play_arrow,
+              Colors.orange,
+            ),
+            const SizedBox(height: 8),
+            _buildInstructionStep(
+              '2.',
+              'Dirígete hacia el área del evento',
+              Icons.directions_walk,
+              Colors.blue,
+            ),
+            const SizedBox(height: 8),
+            _buildInstructionStep(
+              '3.',
+              'Tu asistencia se registrará automáticamente al entrar',
+              Icons.check_circle,
+              Colors.green,
+            ),
+          ] else ...[
+            Text(
+              '• GPS monitoreando tu ubicación cada 5 segundos\n'
+              '• Distancia al evento: ${_distanceFromCenter.toStringAsFixed(0)}m\n'
+              '• Tu asistencia se registrará automáticamente al entrar al área',
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.green,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstructionStep(String number, String text, IconData icon, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textGray,
+              height: 1.3,
+            ),
+          ),
         ),
       ],
     );

@@ -619,7 +619,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Container(
+                  child: SizedBox(
                     height: 50,
                     child: TextButton.icon(
                       onPressed: () => Navigator.pushNamed(
@@ -642,7 +642,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Container(
+                  child: SizedBox(
                     height: 50,
                     child: TextButton.icon(
                       onPressed: () => Navigator.pushNamed(
@@ -949,7 +949,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // ✅ BOTÓN CON TAMAÑO FIJO - SOLUCIÓN DEFINITIVA
                     Align(
                       alignment: Alignment.centerRight,
-                      child: Container(
+                      child: SizedBox(
                         width: 100,
                         height: 36,
                         child: TextButton(
@@ -1203,7 +1203,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         // ✅ BOTÓN 1 CON RESTRICCIONES EXPLÍCITAS
         Expanded(
-          child: Container(
+          child: SizedBox(
             height: 50,
             child: TextButton.icon(
               onPressed: () => Navigator.pushNamed(
@@ -1227,7 +1227,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(width: 12),
         // ✅ BOTÓN 2 CON RESTRICCIONES EXPLÍCITAS
         Expanded(
-          child: Container(
+          child: SizedBox(
             height: 50,
             child: TextButton.icon(
               onPressed: _navigateToTracking,
@@ -1260,9 +1260,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_eventoActivo != null) {
       Navigator.pushNamed(
         context,
-        AppConstants.mapViewRoute,
+        AppConstants.attendanceTrackingRoute,
         arguments: {
-          'isStudentMode': true,
           'userName': widget.userName,
           'eventoId': _eventoActivo!.id,
         },
@@ -1354,32 +1353,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ✅ BOTÓN DE ACCIÓN REUTILIZABLE - SOLUCIÓN DEFINITIVA
-  Widget _buildActionButton(
-      String title, IconData icon, Color color, VoidCallback onPressed) {
-    return Expanded(
-      child: Container(
-        height: 50, // ✅ ALTURA FIJA
-        child: TextButton.icon(
-          onPressed: onPressed,
-          icon: Icon(icon, size: 16),
-          label: Text(
-            title,
-            style: const TextStyle(fontSize: 12),
-            overflow: TextOverflow.ellipsis,
-          ),
-          style: TextButton.styleFrom(
-            backgroundColor: color,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   /// ✅ ITEM DE EVENTO REUTILIZABLE
   Widget _buildEventListItem(Evento evento) {
@@ -1517,7 +1490,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           // ✅ BOTÓN CON TAMAÑO FIJO - SOLUCIÓN DEFINITIVA
-          Container(
+          SizedBox(
             width: 80,
             height: 32,
             child: TextButton(
@@ -1571,10 +1544,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       eventoNombre = evento.titulo;
     } catch (e) {
       // ✅ INTERPOLACIÓN CORREGIDA Y SEGURA
-      if (asistencia.eventoId != null && asistencia.eventoId!.isNotEmpty) {
-        final shortId = asistencia.eventoId!.length > 8
-            ? asistencia.eventoId!.substring(0, 8)
-            : asistencia.eventoId!;
+      if (asistencia.eventoId.isNotEmpty) {
+        final shortId = asistencia.eventoId.length > 8
+            ? asistencia.eventoId.substring(0, 8)
+            : asistencia.eventoId;
         eventoNombre = 'Evento $shortId';
       } else {
         eventoNombre = 'Evento sin ID';
@@ -1729,9 +1702,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _joinEvent(Evento evento) async {
     Navigator.pushNamed(
       context,
-      AppConstants.mapViewRoute,
+      AppConstants.attendanceTrackingRoute,
       arguments: {
-        'isStudentMode': true,
         'userName': widget.userName,
         'eventoId': evento.id,
       },
