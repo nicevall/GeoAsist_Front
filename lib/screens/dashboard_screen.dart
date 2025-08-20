@@ -68,16 +68,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     try {
-      // ✅ Cargar todo sin setState intermedios
+      // ✅ Cargar usuario primero, luego eventos según rol
+      final user = await _loadUserDataSync();
+      
       final results = await Future.wait([
-        _loadUserDataSync(),
         _loadMetricsSync(),
-        _loadEventsSync(),
+        _loadEventsForUserSync(user),
       ]);
 
-      final user = results[0] as Usuario?;
-      final metrics = results[1] as List<DashboardMetric>?;
-      final eventos = results[2] as List<Evento>;
+      final metrics = results[0] as List<DashboardMetric>?;
+      final eventos = results[1] as List<Evento>;
 
       // ✅ Procesar datos sin setState
       List<Asistencia> asistencias = [];
@@ -97,13 +97,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         eventoActivo = eventosActivos.isNotEmpty ? eventosActivos.first : null;
       }
 
-      // ✅ Filtrar eventos para docentes usando el método existente
-      if (user?.rol == AppConstants.docenteRole) {
-        // Establecer datos temporalmente para usar _filterEventsByUser()
-        _currentUser = user;
-        _eventos = eventos;
-        _filterEventsByUser(); // ✅ USAR EL MÉTODO EXISTENTE
-        userEvents = _userEvents; // Copiar resultado
+      // ✅ NUEVOS: Eventos específicos para docentes/admin
+      if (user?.rol == AppConstants.docenteRole || user?.rol == 'admin') {
+        // Los eventos ya vienen filtrados por getEventosByCreador()
+        userEvents = eventos;
+        debugPrint('✅ Eventos del profesor ${user?.nombre} procesados: ${userEvents.length}');
       }
 
       // ✅ UN SOLO setState con todos los datos
@@ -164,16 +162,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+
   /// Carga eventos sin setState
-  Future<List<Evento>> _loadEventsSync() async {
+  Future<List<Evento>> _loadEventsForUserSync(Usuario? user) async {
     try {
       List<Evento> eventos;
       
       // ✅ CARGAR EVENTOS SEGÚN EL ROL DEL USUARIO
-      if (_currentUser?.rol == 'docente' || _currentUser?.rol == 'admin') {
+      if (user?.rol == 'docente' || user?.rol == 'admin') {
         // Para docentes: solo sus eventos
-        eventos = await _eventoService.obtenerEventosDocente(_currentUser!.id);
-        debugPrint('Eventos del docente ${_currentUser!.nombre} cargados: ${eventos.length}');
+        eventos = await _eventoService.getEventosByCreador(user!.id);
+        debugPrint('Eventos del docente ${user.nombre} cargados: ${eventos.length}');
       } else {
         // Para estudiantes: todos los eventos públicos
         eventos = await _eventoService.obtenerEventos();
@@ -201,20 +200,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  /// Filtra eventos creados por el usuario actual (solo para docentes)
-  void _filterEventsByUser() {
-    if (_currentUser != null) {
-      _userEvents = _eventos
-          .where((evento) => evento.creadoPor == _currentUser!.id)
-          .toList();
-      debugPrint('Eventos del docente: ${_userEvents.length}');
-    }
-  }
 
   /// Maneja el refresh de todos los datos
   Future<void> _handleRefresh() async {
     await _initializeData();
   }
+
+  /// Refresca el dashboard después de operaciones CRUD
 
   @override
   Widget build(BuildContext context) {
@@ -668,7 +660,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     height: 50,
                     child: TextButton.icon(
                       onPressed: () => Navigator.pushNamed(
-                          context, AppConstants.availableEventsRoute),
+                          context, AppConstants.myEventsManagementRoute),
                       icon: const Icon(Icons.event_note, size: 16),
                       label: const Text(
                         'Mis Eventos',
@@ -742,7 +734,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ✅ MIS EVENTOS REALES CON CONTROLES
+
+  /// ✅ MIS EVENTOS REALES CON CONTROLES (método original)
   Widget _buildRealMyEvents() {
     if (_userEvents.isEmpty) {
       return _buildEmptyEventsState('No has creado eventos aún');
@@ -1399,6 +1392,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+
   /// ✅ OBTENER VALOR DE MÉTRICA REAL
   String _getMetricValue(String key, String defaultValue) {
     try {
@@ -1437,7 +1431,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       AppConstants.eventMonitorRoute,
       arguments: {
         'eventId': evento.id!,
-        'teacherName': widget.userName,
+        'teacherName': _currentUser?.nombre ?? 'Profesor',
       },
     );
   }

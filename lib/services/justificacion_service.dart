@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/justificacion_model.dart';
 import '../models/api_response_model.dart';
-import '../models/asistencia_model.dart';
-import '../models/evento_model.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../services/asistencia_service.dart';
@@ -58,7 +56,7 @@ class JustificacionService {
       // Crear justificación usando el servicio de asistencia existente
       final resultado = await _asistenciaService.enviarJustificacion(
         eventoId: eventoId,
-        usuarioId: usuario.id!,
+        usuarioId: usuario.id,
         linkDocumento: linkDocumento,
         motivo: motivo,
       );
@@ -86,7 +84,7 @@ class JustificacionService {
         return ApiResponse.error('No hay sesión activa');
       }
 
-      return await obtenerJustificacionesUsuario(usuario.id!);
+      return await obtenerJustificacionesUsuario(usuario.id);
     } catch (e) {
       debugPrint('❌ Error obteniendo mis justificaciones: $e');
       return ApiResponse.error('Error de conexión: $e');

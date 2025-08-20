@@ -77,6 +77,21 @@ dev_dependencies:
   
   # 🧪 TESTING DEPENDENCIES - Para Fase B.4
   mockito: ^5.4.4                 # MANTENER - Para unit tests con mocks
+  
+  # Enhanced testing dependencies for comprehensive coverage
+  mocktail: ^1.0.4                # Alternative to mockito without code generation
+  fake_async: ^1.3.1              # For testing Timer and Stream operations
+  test: ^1.25.8                   # Enhanced testing capabilities
+  
+  # Widget and Golden testing
+  golden_toolkit: ^0.15.0         # For golden file testing
+  patrol: ^3.10.0                 # For advanced integration testing
+  
+  # Network and HTTP mocking
+  http_mock_adapter: ^0.6.1       # For mocking HTTP requests
+  
+  # Additional testing utilities
+  leak_tracker_flutter_testing: ^3.0.8  # Memory leak detection
 
 flutter:
   uses-material-design: true

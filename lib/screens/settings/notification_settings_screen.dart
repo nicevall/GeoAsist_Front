@@ -116,11 +116,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   Widget build(BuildContext context) {
     return PopScope(
       canPop: !_hasChanges,
-      onPopInvoked: (didPop) async {
-        if (!didPop && _hasChanges) {
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (_hasChanges) {
+          final navigator = Navigator.of(context);
           final shouldDiscard = await _mostrarDialogoDescarte();
           if (shouldDiscard == true && mounted) {
-            Navigator.of(context).pop();
+            navigator.pop();
           }
         }
       },
@@ -283,7 +285,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         gradient: LinearGradient(
           colors: [
             _settings!.enabled ? AppColors.secondaryTeal : Colors.grey,
-            (_settings!.enabled ? AppColors.secondaryTeal : Colors.grey).withOpacity(0.8),
+            (_settings!.enabled ? AppColors.secondaryTeal : Colors.grey).withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -291,7 +293,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: (_settings!.enabled ? AppColors.secondaryTeal : Colors.grey).withOpacity(0.3),
+            color: (_settings!.enabled ? AppColors.secondaryTeal : Colors.grey).withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -1106,7 +1108,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -1163,7 +1165,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1386,7 +1388,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: AppColors.primaryOrange.withOpacity(0.1),
+          color: AppColors.primaryOrange.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(

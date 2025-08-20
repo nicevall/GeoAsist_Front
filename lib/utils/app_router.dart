@@ -17,6 +17,8 @@ import '../screens/events/event_monitor_screen.dart';
 import '../screens/justifications/justifications_screen.dart';
 import '../screens/justifications/create_justification_screen.dart';
 import '../screens/settings/notification_settings_screen.dart';
+import '../screens/my_events_management_screen.dart';
+import '../screens/admin/system_events_management_screen.dart';
 
 class AppRouter {
   // Private constructor to prevent instantiation
@@ -133,9 +135,15 @@ class AppRouter {
           );
         }
         return MaterialPageRoute(
-          builder: (_) => EventMonitorScreen(
-            eventId: eventoId,
-            teacherName: 'Profesor', // TODO: obtener nombre real del usuario logueado
+          builder: (_) => FutureBuilder<String>(
+            future: _getUserName(),
+            builder: (context, snapshot) {
+              final teacherName = snapshot.data ?? 'Profesor';
+              return EventMonitorScreen(
+                eventId: eventoId,
+                teacherName: teacherName,
+              );
+            },
           ),
         );
 
@@ -182,6 +190,11 @@ class AppRouter {
           builder: (_) => const AvailableEventsScreen(), // Usar pantalla de eventos disponibles
         );
 
+      case AppConstants.myEventsManagementRoute:
+        return MaterialPageRoute(
+          builder: (_) => const MyEventsManagementScreen(),
+        );
+
       case AppConstants.adminUsersRoute:
         return MaterialPageRoute(
           builder: (_) => const ProfessorManagementScreen(),
@@ -189,7 +202,12 @@ class AppRouter {
 
       case AppConstants.adminEventsRoute:
         return MaterialPageRoute(
-          builder: (_) => const CreateEventScreen(), // Usar pantalla de crear eventos para gestión
+          builder: (_) => const SystemEventsManagementScreen(), // ✅ PANTALLA ESPECÍFICA PARA ADMIN
+        );
+
+      case '/system-events-view': // ✅ NUEVA RUTA PARA SOLO VISUALIZACIÓN
+        return MaterialPageRoute(
+          builder: (_) => const AvailableEventsScreen(), // Solo ver eventos
         );
 
       case AppConstants.adminStatsRoute:
@@ -341,7 +359,11 @@ class AppRouter {
   }
 
   static void goToSystemEvents() {
-    navigatorKey.currentState?.pushNamed(AppConstants.adminEventsRoute);
+    navigatorKey.currentState?.pushNamed('/system-events-view'); // ✅ SOLO VISUALIZACIÓN
+  }
+
+  static void goToSystemEventsManagement() {
+    navigatorKey.currentState?.pushNamed(AppConstants.adminEventsRoute); // ✅ GESTIÓN COMPLETA
   }
 
   static void goToAdvancedStats() {
@@ -363,6 +385,10 @@ class AppRouter {
 
   static void navigateToAllMyEvents() {
     navigatorKey.currentState?.pushNamed(AppConstants.allMyEventsRoute);
+  }
+
+  static void navigateToMyEventsManagement() {
+    navigatorKey.currentState?.pushNamed(AppConstants.myEventsManagementRoute);
   }
 
   /// 📄 NAVEGACIÓN DE JUSTIFICACIONES
@@ -543,6 +569,16 @@ class AppRouter {
       }
     } catch (e) {
       goToLogin();
+    }
+  }
+
+  /// Obtener nombre real del usuario logueado
+  static Future<String> _getUserName() async {
+    try {
+      final user = await _storageService.getUser();
+      return user?.nombre ?? 'Usuario';
+    } catch (e) {
+      return 'Usuario';
     }
   }
 

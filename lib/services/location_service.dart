@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import '../models/location_response_model.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
-import 'dart:math' as math;
 
 class LocationService {
   static final LocationService _instance = LocationService._internal();

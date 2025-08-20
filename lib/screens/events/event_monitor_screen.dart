@@ -75,7 +75,6 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   int _totalStudentsExpected = 0;
   int _studentsPresent = 0;
   int _previousAttendanceCount = 0;
-  DateTime? _lastAttendanceUpdate;
 
   // 🎯 TIMER PARA ACTUALIZACIÓN EN TIEMPO REAL
   Timer? _realtimeUpdateTimer;
@@ -334,7 +333,6 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           .length;
       
       _previousAttendanceCount = _studentsPresent;
-      _lastAttendanceUpdate = DateTime.now();
       
       debugPrint('📊 Métricas inicializadas - Esperados: $_totalStudentsExpected, Presentes: $_studentsPresent');
     } catch (e) {
@@ -389,7 +387,6 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       
       // Actualizar métricas
       _studentsPresent = newStudentsPresent;
-      _lastAttendanceUpdate = DateTime.now();
       
       debugPrint('📊 Métricas actualizadas - Presentes: $_studentsPresent/$_totalStudentsExpected');
     } catch (e) {
@@ -1655,7 +1652,6 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     try {
       final String updateType = data['updateType'] ?? 'general';
       final String studentName = data['studentName'] ?? 'Estudiante';
-      final String? studentId = data['studentId'];
       final String action = data['action'] ?? 'unknown';
       
       debugPrint('📊 Tipo de actualización: $updateType, Acción: $action, Estudiante: $studentName');

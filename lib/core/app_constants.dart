@@ -111,6 +111,7 @@ class AppConstants {
   // ✅ NUEVAS RUTAS PARA ADMINISTRACIÓN Y PROFESORES
   static const String reportsRoute = '/reports';
   static const String allMyEventsRoute = '/professor/events';
+  static const String myEventsManagementRoute = '/professor/my-events-management';
   static const String adminUsersRoute = '/admin/users';
   static const String adminEventsRoute = '/admin/events';
   static const String adminStatsRoute = '/admin/stats';
@@ -126,6 +127,19 @@ class AppConstants {
       'Correo o contraseña incorrectos.';
   static const String genericErrorMessage =
       'Ocurrió un error inesperado. Inténtalo de nuevo.';
+  
+  // ✅ NUEVO: Constantes de ubicación por defecto
+  static const double defaultLatitude = -0.1805;
+  static const double defaultLongitude = -78.4680;
+  static const String defaultAddress = 'UIDE Campus Principal';
+  static const double defaultRange = 100.0;
+  
+  // ✅ NUEVO: Método de validación de ubicación
+  static bool isValidLocation(double? lat, double? lng) {
+    return lat != null && lng != null && 
+           lat >= -90 && lat <= 90 && 
+           lng >= -180 && lng <= 180;
+  }
 
   // ✅ NUEVOS MENSAJES DÍA 4 - APP LIFECYCLE VALIDATION
   static const String appClosedWarningMessage =

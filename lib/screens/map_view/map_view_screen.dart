@@ -16,7 +16,6 @@ import 'widgets/control_panel.dart';
 import 'widgets/attendance_status_widget.dart';
 import 'widgets/grace_period_widget.dart';
 import 'widgets/notification_overlay_widget.dart';
-import '../../widgets/attendance_button_widget.dart';
 
 class MapViewScreen extends StatefulWidget {
   final bool isAdminMode;
@@ -801,6 +800,9 @@ class _MapViewScreenState extends State<MapViewScreen>
 
   Widget _buildBottomControls() {
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.4,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -815,9 +817,10 @@ class _MapViewScreenState extends State<MapViewScreen>
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
           // Indicador de estado superior
           Container(
             margin: const EdgeInsets.only(top: 8),
@@ -834,7 +837,7 @@ class _MapViewScreenState extends State<MapViewScreen>
           // Estado de conexión y GPS
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(20),
@@ -849,23 +852,29 @@ class _MapViewScreenState extends State<MapViewScreen>
               children: [
                 Icon(
                   _hasLocationPermissions ? Icons.gps_fixed : Icons.gps_off,
-                  size: 12,
+                  size: 10,
                   color: _hasLocationPermissions ? Colors.green : Colors.red,
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  _hasLocationPermissions ? 'GPS Activo' : 'GPS Desactivado',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: _hasLocationPermissions ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.w500,
+                Flexible(
+                  child: Text(
+                    _hasLocationPermissions ? 'GPS Activo' : 'GPS Desactivado',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: _hasLocationPermissions ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (_currentLocationResponse != null) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    '• ${_currentLocationResponse!.formattedDistance}',
-                    style: const TextStyle(fontSize: 10),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      '• ${_currentLocationResponse!.formattedDistance}',
+                      style: const TextStyle(fontSize: 9),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ],
@@ -879,17 +888,17 @@ class _MapViewScreenState extends State<MapViewScreen>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: _currentAttendanceState.isInsideGeofence 
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.orange.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: _currentAttendanceState.isInsideGeofence 
                         ? Colors.green 
                         : Colors.orange,
-                    width: 2,
+                    width: 1,
                   ),
                 ),
                 child: Row(
@@ -901,31 +910,36 @@ class _MapViewScreenState extends State<MapViewScreen>
                       color: _currentAttendanceState.isInsideGeofence 
                           ? Colors.green 
                           : Colors.orange,
-                      size: 24,
+                      size: 20,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             _currentAttendanceState.isInsideGeofence 
-                                ? '✅ Dentro del área del evento'
-                                : '📍 Fuera del área del evento',
+                                ? 'Dentro del área del evento'
+                                : 'Fuera del área del evento',
                             style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             _currentAttendanceState.isInsideGeofence 
                                 ? 'Tu asistencia se registra automáticamente'
                                 : 'Acércate al área para registrar asistencia',
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 12,
                               color: Colors.grey,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -957,7 +971,8 @@ class _MapViewScreenState extends State<MapViewScreen>
           ),
 
           const SizedBox(height: 32),
-        ],
+          ],
+        ),
       ),
     );
   }

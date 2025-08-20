@@ -3,8 +3,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:geolocator/geolocator.dart';
-import '../core/app_constants.dart';
-import 'api_service.dart';
 import 'storage_service.dart';
 import 'location_service.dart';
 import 'dart:async';
@@ -28,7 +26,6 @@ class BackgroundLocationService {
   // ✅ ENHANCED: Performance optimization
   static const Duration _normalFrequency = Duration(seconds: 30);
   static const Duration _pausedFrequency = Duration(minutes: 5);
-  static const Duration _criticalFrequency = Duration(seconds: 15);
 
   // This method has been moved and enhanced above
 
@@ -204,15 +201,11 @@ class BackgroundLocationService {
   }
   
   /// ✅ ENHANCED: Initialize background service with recovery
-  @override
   Future<void> initialize() async {
     try {
       debugPrint('🚀 Initializing enhanced background location service');
       
-      await Workmanager().initialize(
-        callbackDispatcher,
-        isInDebugMode: kDebugMode,
-      );
+      await Workmanager().initialize(callbackDispatcher);
       
       // ✅ ENHANCED: Recover tracking state if app was restarted
       await _recoverTrackingState();

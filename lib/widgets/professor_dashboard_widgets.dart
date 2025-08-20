@@ -204,7 +204,7 @@ class ProfessorDashboardWidgets {
             TextButton(
               onPressed: () {
                 // ✅ NAVEGAR A TODOS LOS EVENTOS DEL PROFESOR
-                AppRouter.navigateToAllMyEvents();
+                AppRouter.navigateToMyEventsManagement();
               },
               child: const Text('Ver todos'),
             ),
@@ -614,6 +614,320 @@ class ProfessorDashboardWidgets {
     } catch (e) {
       AppRouter.showSnackBar('❌ Error de conexión: $e', isError: true);
     }
+  }
+
+  /// 🎯 NUEVO: Widget de eventos con controles CRUD completos
+  static Widget buildMyEventsWithFullControls(
+    List<Evento> eventos, {
+    required Function(Evento) onEdit,
+    required Function(Evento) onDelete,
+    required Function(Evento) onView,
+  }) {
+    if (eventos.isEmpty) {
+      return _buildEmptyEvents();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.lightGray),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header con título y contador
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Mis Eventos',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkGray,
+                    ),
+                  ),
+                  Text(
+                    '${eventos.length} evento${eventos.length != 1 ? 's' : ''} creado${eventos.length != 1 ? 's' : ''}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textGray,
+                    ),
+                  ),
+                ],
+              ),
+              // Botón para crear nuevo evento
+              ElevatedButton.icon(
+                onPressed: () => AppRouter.goToCreateEvent(),
+                icon: const Icon(Icons.add, size: 20),
+                label: const Text('Nuevo'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryOrange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 20),
+          
+          // Lista de eventos con controles CRUD
+          ...eventos.map((evento) => _buildEventCardWithControls(
+            evento,
+            onEdit: onEdit,
+            onDelete: onDelete,
+            onView: onView,
+          )),
+          
+          // Botón para ver todos si hay muchos eventos
+          if (eventos.length > 3)
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              width: double.infinity,
+              child: TextButton.icon(
+                onPressed: () => AppRouter.navigateToMyEventsManagement(),
+                icon: const Icon(Icons.list_alt),
+                label: const Text('Ver todos mis eventos'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.secondaryTeal,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Widget individual para cada evento con controles CRUD
+  static Widget _buildEventCardWithControls(
+    Evento evento, {
+    required Function(Evento) onEdit,
+    required Function(Evento) onDelete,
+    required Function(Evento) onView,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: evento.isActive 
+            ? Colors.green.withValues(alpha: 0.05)
+            : AppColors.lightGray.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: evento.isActive 
+              ? Colors.green.withValues(alpha: 0.3)
+              : AppColors.lightGray,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Fila superior: Título y estado
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      evento.titulo,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkGray,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 14,
+                          color: AppColors.textGray,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            evento.lugar ?? 'Sin ubicación',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textGray,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Badge de estado
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: evento.isActive ? Colors.green : Colors.grey,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  evento.isActive ? 'ACTIVO' : 'INACTIVO',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Información del evento
+          Row(
+            children: [
+              Expanded(
+                child: _buildEventInfo(
+                  Icons.calendar_today,
+                  _formatEventDate(evento),
+                ),
+              ),
+              Expanded(
+                child: _buildEventInfo(
+                  Icons.access_time,
+                  '${_formatTime(evento.horaInicio)} - ${_formatTime(evento.horaFinal)}',
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Botones de acción CRUD
+          Row(
+            children: [
+              // Botón Ver/Monitorear
+              Expanded(
+                child: _buildActionButton(
+                  icon: Icons.visibility,
+                  label: 'Ver',
+                  color: AppColors.secondaryTeal,
+                  onPressed: () => onView(evento),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Botón Editar
+              Expanded(
+                child: _buildActionButton(
+                  icon: Icons.edit,
+                  label: 'Editar',
+                  color: AppColors.primaryOrange,
+                  onPressed: () => onEdit(evento),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Botón Eliminar
+              Expanded(
+                child: _buildActionButton(
+                  icon: Icons.delete,
+                  label: 'Eliminar',
+                  color: Colors.red,
+                  onPressed: () => onDelete(evento),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Widget para mostrar información del evento con icono
+  static Widget _buildEventInfo(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 14,
+          color: AppColors.textGray,
+        ),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textGray,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Botón de acción personalizado
+  static Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        minimumSize: const Size(0, 36),
+      ),
+    );
+  }
+
+  /// Formatear fecha del evento
+  static String _formatEventDate(Evento evento) {
+    final now = DateTime.now();
+    final eventDate = evento.fecha;
+    
+    if (eventDate.year == now.year &&
+        eventDate.month == now.month &&
+        eventDate.day == now.day) {
+      return 'Hoy';
+    }
+    
+    final tomorrow = now.add(const Duration(days: 1));
+    if (eventDate.year == tomorrow.year &&
+        eventDate.month == tomorrow.month &&
+        eventDate.day == tomorrow.day) {
+      return 'Mañana';
+    }
+    
+    return '${eventDate.day}/${eventDate.month}/${eventDate.year}';
+  }
+
+  /// Formatear hora
+  static String _formatTime(DateTime time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   static String _capitalizeUserName(String name) {

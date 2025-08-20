@@ -7,6 +7,8 @@ import '../utils/app_router.dart';
 import '../services/evento_service.dart';
 import '../models/evento_model.dart';
 import '../core/app_constants.dart';
+import '../utils/location_helper.dart';
+import 'package:flutter/foundation.dart';
 
 // ✅ NUEVO: Modelo para día específico del evento
 class EventDay {
@@ -75,10 +77,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   List<EventDay> _eventDays = [];
 
   // ✅ CORREGIDO: Variables de ubicación que se pueden cambiar
-  double _selectedLatitude = -0.1805; // Valor inicial, pero modificable
-  double _selectedLongitude = -78.4680; // Valor inicial, pero modificable
-  double _selectedRange = 100.0;
-  String _selectedLocationName = 'UIDE Campus Principal';
+  double _selectedLatitude = AppConstants.defaultLatitude; // Valor inicial, pero modificable
+  double _selectedLongitude = AppConstants.defaultLongitude; // Valor inicial, pero modificable
+  double _selectedRange = AppConstants.defaultRange;
+  String _selectedLocationName = AppConstants.defaultAddress;
 
   // ✅ NUEVO: Tipos de evento disponibles
   final List<String> _tiposEvento = [
@@ -136,14 +138,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       _isMultiDay = !fechaInicio.isAtSameMomentAs(fechaFinal);
 
       if (_isMultiDay) {
-        // TODO: Implementar carga de múltiples días desde el backend
-        _eventDays = [
-          EventDay(
-            fecha: fechaInicio,
-            horaInicio: TimeOfDay.fromDateTime(evento.horaInicio),
-            horaFinal: TimeOfDay.fromDateTime(evento.horaFinal),
-          ),
-        ];
+        // ✅ Implementación básica de múltiples días
+        _eventDays = _generateDaysFromRange(fechaInicio, fechaFinal, evento.horaInicio, evento.horaFinal);
       } else {
         _fechaUnica = fechaInicio;
         _horaInicio = TimeOfDay.fromDateTime(evento.horaInicio);
@@ -323,6 +319,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
         // ✅ MEJORADO: Información de ubicación con rango
         _buildLocationInfo(),
+        
+        // ✅ DEBUG: Widget de depuración (solo en modo debug)
+        if (kDebugMode) _buildLocationDebugInfo(),
+        
         // ✅ NUEVO: Configuraciones de política de asistencia
         _buildAttendancePolicyConfig(),
       ],
@@ -917,8 +917,87 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     );
   }
 
+  /// ✅ DEBUG: Widget temporal para verificar datos de ubicación (solo debug)
+  Widget _buildLocationDebugInfo() {
+    if (!kDebugMode) return const SizedBox.shrink(); // Solo en debug
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.red, width: 2),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.red.withValues(alpha: 0.1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'DEBUG - Ubicación seleccionada:',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text('Latitud: $_selectedLatitude'),
+          Text('Longitud: $_selectedLongitude'),
+          Text('Nombre: $_selectedLocationName'),
+          Text('Rango: $_selectedRange m'),
+          Text('¿Es ubicación por defecto?: ${LocationHelper.isDefaultLocation(_selectedLatitude, _selectedLongitude)}'),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    debugPrint('=== DEBUG MANUAL ===');
+                    debugPrint(_validateLocationDataBeforeSending() 
+                        ? 'Validación exitosa' 
+                        : 'Validación falló');
+                    debugPrint('==================');
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: const Text(
+                    'Debug Validation',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedLatitude = -0.2;
+                      _selectedLongitude = -78.5;
+                      _selectedLocationName = 'Ubicación de prueba';
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                  child: const Text(
+                    'Test Custom',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   /// ✅ NUEVO: Método para abrir el selector de ubicación
   Future<void> _openLocationPicker() async {
+    debugPrint('=== DEPURACIÓN UBICACIÓN FRONTEND ===');
+    debugPrint('Ubicación inicial antes del picker:');
+    debugPrint('  - Lat: $_selectedLatitude');
+    debugPrint('  - Lng: $_selectedLongitude');
+    debugPrint('  - Range: $_selectedRange');
+    debugPrint('  - Name: $_selectedLocationName');
+    
     final result = await Navigator.of(context).pushNamed(
       AppConstants.locationPickerRoute,
       arguments: {
@@ -929,18 +1008,53 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       },
     );
 
+    debugPrint('Resultado del LocationPicker: $result');
+    debugPrint('Tipo del resultado: ${result.runtimeType}');
+
     // Actualizar las variables si el usuario seleccionó una ubicación
     if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        _selectedLatitude = result['latitude'] ?? _selectedLatitude;
-        _selectedLongitude = result['longitude'] ?? _selectedLongitude;
-        _selectedRange = result['range'] ?? _selectedRange;
-        _selectedLocationName = result['locationName'] ?? _selectedLocationName;
-      });
+      final previousLat = _selectedLatitude;
+      final previousLng = _selectedLongitude;
+      final previousName = _selectedLocationName;
+      
+      // Usar LocationHelper para normalizar los datos
+      final normalizedResult = LocationHelper.normalizeLocationPickerResult(result);
+      debugPrint('Datos normalizados: $normalizedResult');
+      
+      // Validar datos antes de usar
+      if (LocationHelper.isLocationValid(normalizedResult)) {
+        setState(() {
+          _selectedLatitude = normalizedResult['latitude'];
+          _selectedLongitude = normalizedResult['longitude'];
+          _selectedRange = normalizedResult['range'];
+          _selectedLocationName = normalizedResult['address'];
+        });
 
-      debugPrint(
-          '📍 Ubicación actualizada: $_selectedLatitude, $_selectedLongitude');
-      debugPrint('📏 Rango actualizado: $_selectedRange m');
+        debugPrint('Ubicación después de la selección:');
+        debugPrint('  - Lat: $_selectedLatitude (anterior: $previousLat)');
+        debugPrint('  - Lng: $_selectedLongitude (anterior: $previousLng)');
+        debugPrint('  - Range: $_selectedRange');
+        debugPrint('  - Name: $_selectedLocationName (anterior: $previousName)');
+        
+        final bool locationChanged = (previousLat != _selectedLatitude || 
+                                    previousLng != _selectedLongitude ||
+                                    previousName != _selectedLocationName);
+        debugPrint('¿Ubicación cambió?: $locationChanged');
+        
+        // Mostrar resumen completo usando LocationHelper
+        debugPrint(LocationHelper.getLocationSummary(
+          latitude: _selectedLatitude,
+          longitude: _selectedLongitude,
+          locationName: _selectedLocationName,
+          range: _selectedRange,
+        ));
+      } else {
+        debugPrint('❌ Datos de ubicación inválidos recibidos del picker');
+      }
+      debugPrint('=====================================');
+    } else {
+      debugPrint('❌ Resultado del picker es null o formato inválido');
+      debugPrint('=====================================');
     }
   }
 
@@ -1080,8 +1194,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         fechaInicio = firstDay.fechaInicioCompleta;
         fechaFinal = lastDay.fechaFinalCompleta;
 
-        // TODO: Aquí necesitarías enviar todos los días al backend
-        // Por ahora enviamos solo el primero y último para compatibilidad
+        // ✅ Para múltiples días, enviamos el rango completo al backend
+        // El backend puede manejar eventos de múltiples días usando fecha inicio y final
       } else {
         fechaInicio = DateTime(
           _fechaUnica!.year,
@@ -1136,6 +1250,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           );
         }
       } else {
+        // ✅ VALIDACIÓN ROBUSTA: Verificar datos de ubicación antes de envío
+        if (!_validateLocationDataBeforeSending()) {
+          return; // No proceder si los datos son inválidos
+        }
+
         final response = await _eventoService.crearEvento(
           titulo: _tituloController.text.trim(),
           descripcion: _descripcionController.text.trim().isEmpty
@@ -1270,6 +1389,72 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     }
 
     return true;
+  }
+
+  /// ✅ NUEVO: Validación robusta de datos de ubicación antes del envío
+  bool _validateLocationDataBeforeSending() {
+    debugPrint('=== VALIDACIÓN ROBUSTA DE UBICACIÓN ===');
+    
+    final lugar = _lugarController.text.trim().isEmpty 
+        ? _selectedLocationName 
+        : _lugarController.text.trim();
+    
+    // Usar LocationHelper para validación completa
+    final validationResult = LocationHelper.validateLocationBeforeSend(
+      latitude: _selectedLatitude,
+      longitude: _selectedLongitude,
+      locationName: lugar,
+      range: _selectedRange,
+    );
+    
+    debugPrint('Datos de ubicación a validar:');
+    debugPrint('  - Título: ${_tituloController.text.trim()}');
+    debugPrint('  - Lugar: $lugar');
+    debugPrint('  - Latitud: $_selectedLatitude');
+    debugPrint('  - Longitud: $_selectedLongitude');
+    debugPrint('  - Rango: $_selectedRange');
+    debugPrint('  - Tipo: $_selectedTipo');
+    
+    // Mostrar resumen completo
+    debugPrint(LocationHelper.getLocationSummary(
+      latitude: _selectedLatitude,
+      longitude: _selectedLongitude,
+      locationName: lugar,
+      range: _selectedRange,
+    ));
+    
+    debugPrint('Resultado de validación: ${validationResult.isValid}');
+    if (!validationResult.isValid) {
+      debugPrint('Errores encontrados: ${validationResult.errors}');
+      AppRouter.showSnackBar(
+        'Error en ubicación: ${validationResult.errorMessage}',
+        isError: true,
+      );
+      debugPrint('======================================');
+      return false;
+    }
+    
+    debugPrint('✅ Validación exitosa - Procediendo con creación del evento');
+    debugPrint('======================================');
+    return true;
+  }
+
+  /// ✅ Generar días de evento desde un rango de fechas
+  List<EventDay> _generateDaysFromRange(DateTime startDate, DateTime endDate, DateTime startTime, DateTime endTime) {
+    final List<EventDay> days = [];
+    DateTime currentDate = DateTime(startDate.year, startDate.month, startDate.day);
+    final DateTime lastDate = DateTime(endDate.year, endDate.month, endDate.day);
+
+    while (currentDate.isBefore(lastDate) || currentDate.isAtSameMomentAs(lastDate)) {
+      days.add(EventDay(
+        fecha: currentDate,
+        horaInicio: TimeOfDay.fromDateTime(startTime),
+        horaFinal: TimeOfDay.fromDateTime(endTime),
+      ));
+      currentDate = currentDate.add(const Duration(days: 1));
+    }
+
+    return days;
   }
 
   @override

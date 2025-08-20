@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/teacher_notification_model.dart';
 import '../models/evento_model.dart';
-import '../models/usuario_model.dart';
 import '../services/storage_service.dart';
 import '../services/notifications/notification_manager.dart';
 
@@ -30,7 +29,6 @@ class TeacherNotificationService {
   TeacherNotificationSettings _settings = TeacherNotificationSettings.defaultSettings;
   
   // 📊 CONTADORES PARA AGRUPACIÓN
-  final Map<String, int> _attendanceCounters = {};
   final Map<String, Timer> _attendanceTimers = {};
   final Map<String, List<String>> _studentsLeftBuffer = {};
 

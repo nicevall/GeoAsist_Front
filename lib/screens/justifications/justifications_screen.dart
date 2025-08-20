@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import '../../models/justificacion_model.dart';
 import '../../services/justificacion_service.dart';
-import '../../services/storage_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/app_router.dart';
 import '../../widgets/loading_skeleton.dart';
@@ -23,13 +22,11 @@ class JustificationsScreen extends StatefulWidget {
 class _JustificationsScreenState extends State<JustificationsScreen>
     with TickerProviderStateMixin {
   final JustificacionService _justificacionService = JustificacionService();
-  final StorageService _storageService = StorageService();
 
   // Estado
   List<Justificacion> _justificaciones = [];
   JustificacionStats? _stats;
   bool _isLoading = true;
-  String? _userRole;
 
   // Filtros
   JustificacionEstado? _filtroEstado;
@@ -69,10 +66,6 @@ class _JustificationsScreenState extends State<JustificationsScreen>
     setState(() => _isLoading = true);
 
     try {
-      // Obtener rol del usuario
-      final usuario = await _storageService.getUser();
-      _userRole = usuario?.rol;
-
       // Cargar justificaciones
       final response = await _justificacionService.obtenerMisJustificaciones();
       
@@ -237,7 +230,7 @@ class _JustificationsScreenState extends State<JustificationsScreen>
         gradient: LinearGradient(
           colors: [
             AppColors.secondaryTeal,
-            AppColors.secondaryTeal.withOpacity(0.8),
+            AppColors.secondaryTeal.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -245,7 +238,7 @@ class _JustificationsScreenState extends State<JustificationsScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.secondaryTeal.withOpacity(0.3),
+            color: AppColors.secondaryTeal.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -354,7 +347,7 @@ class _JustificationsScreenState extends State<JustificationsScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -376,7 +369,7 @@ class _JustificationsScreenState extends State<JustificationsScreen>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: justificacion.tipo.color.withOpacity(0.1),
+                        color: justificacion.tipo.color.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -403,7 +396,7 @@ class _JustificationsScreenState extends State<JustificationsScreen>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: justificacion.estado.color.withOpacity(0.1),
+                        color: justificacion.estado.color.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -533,7 +526,7 @@ class _JustificationsScreenState extends State<JustificationsScreen>
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: AppColors.secondaryTeal.withOpacity(0.1),
+                color: AppColors.secondaryTeal.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -707,7 +700,7 @@ class _JustificationsScreenState extends State<JustificationsScreen>
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => onTap(),
-      selectedColor: AppColors.primaryOrange.withOpacity(0.2),
+      selectedColor: AppColors.primaryOrange.withValues(alpha: 0.2),
       checkmarkColor: AppColors.primaryOrange,
     );
   }

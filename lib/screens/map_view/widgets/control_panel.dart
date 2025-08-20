@@ -32,8 +32,8 @@ class ControlPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
@@ -51,16 +51,18 @@ class ControlPanel extends StatelessWidget {
 
   Widget _buildAdminControls() {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         const Text(
           '🔧 Controles de Administrador',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: AppColors.darkGray,
           ),
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
@@ -70,7 +72,7 @@ class ControlPanel extends StatelessWidget {
                 isPrimary: !isOnBreak,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Expanded(
               child: CustomButton(
                 text: 'Registrar Asistencia',
@@ -79,11 +81,14 @@ class ControlPanel extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 10),
-        CustomButton(
-          text: 'Actualizar Eventos',
-          onPressed: onRefreshData,
-          isPrimary: false,
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: CustomButton(
+            text: 'Actualizar Eventos',
+            onPressed: onRefreshData,
+            isPrimary: false,
+          ),
         ),
       ],
     );
@@ -91,25 +96,30 @@ class ControlPanel extends StatelessWidget {
 
   Widget _buildAttendeeControls() {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         const Text(
           '📱 Estado de Asistencia',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: AppColors.darkGray,
           ),
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: 12),
         AttendanceStatusCards(
           isAttendanceActive: isAttendanceActive,
           isInsideGeofence: isInsideGeofence,
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: 12),
         if (currentEvento != null && isInsideGeofence && !isOnBreak)
-          CustomButton(
-            text: 'Registrar Mi Asistencia',
-            onPressed: onRegisterAttendance,
+          SizedBox(
+            width: double.infinity,
+            child: CustomButton(
+              text: 'Registrar Mi Asistencia',
+              onPressed: onRegisterAttendance,
+            ),
           ),
       ],
     );

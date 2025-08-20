@@ -159,7 +159,7 @@ class AdminDashboardWidgets {
                 ),
                 const Spacer(),
                 TextButton(
-                  onPressed: () => AppRouter.goToSystemEvents(),
+                  onPressed: () => AppRouter.goToSystemEvents(), // ✅ DIFERENCIADO: Solo visualización
                   child: const Text('Ver todos'),
                 ),
               ],
@@ -224,7 +224,7 @@ class AdminDashboardWidgets {
   }
 
   /// Sección de acciones rápidas para admin
-  /// 📊 EXPANDIDO: Acciones rápidas del administrador con más opciones
+  /// 📊 CORREGIDO: Acciones rápidas sin duplicados y con navegación diferenciada
   static Widget buildQuickActions() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,26 +266,26 @@ class AdminDashboardWidgets {
         
         const SizedBox(height: 12),
         
-        // Segunda fila - Monitoreo y eventos
+        // Segunda fila - Eventos diferenciados
         Row(
           children: [
             Expanded(
               child: _buildActionCard(
-                icon: Icons.event,
-                title: 'Eventos Sistema',
-                subtitle: 'Ver todos los eventos',
+                icon: Icons.event_available,
+                title: 'Ver Eventos',
+                subtitle: 'Supervisar eventos activos',
                 color: AppColors.primaryOrange,
-                onTap: () => AppRouter.goToSystemEvents(),
+                onTap: () => AppRouter.goToSystemEvents(), // ✅ Solo visualización
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildActionCard(
-                icon: Icons.analytics,
-                title: 'Estadísticas',
-                subtitle: 'Métricas avanzadas',
-                color: Colors.purple,
-                onTap: () => AppRouter.goToAdvancedStats(),
+                icon: Icons.admin_panel_settings,
+                title: 'Gestionar Eventos',
+                subtitle: 'Administrar todos los eventos',
+                color: Colors.deepOrange,
+                onTap: () => AppRouter.goToSystemEventsManagement(), // ✅ Gestión completa
               ),
             ),
           ],
@@ -293,9 +293,19 @@ class AdminDashboardWidgets {
         
         const SizedBox(height: 12),
         
-        // Tercera fila - Configuración y alertas
+        // Tercera fila - Monitoreo y reportes
         Row(
           children: [
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.analytics,
+                title: 'Estadísticas',
+                subtitle: 'Métricas del sistema',
+                color: Colors.purple,
+                onTap: () => AppRouter.goToAdvancedStats(),
+              ),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: _buildActionCard(
                 icon: Icons.warning_amber,
@@ -305,7 +315,14 @@ class AdminDashboardWidgets {
                 onTap: () => AppRouter.goToSystemAlerts(),
               ),
             ),
-            const SizedBox(width: 12),
+          ],
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Cuarta fila - Configuración y reportes
+        Row(
+          children: [
             Expanded(
               child: _buildActionCard(
                 icon: Icons.settings,
@@ -315,27 +332,13 @@ class AdminDashboardWidgets {
                 onTap: () => AppRouter.goToSystemConfig(),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionCard(
-                icon: Icons.event_note,
-                title: 'Eventos del Sistema',
-                subtitle: 'Ver todos los eventos',
-                color: AppColors.primaryOrange,
-                onTap: () => AppRouter.goToEventManagement(), // ✅ CORREGIDO
-              ),
-            ),
             const SizedBox(width: 12),
             Expanded(
               child: _buildActionCard(
-                icon: Icons.analytics,
+                icon: Icons.assessment,
                 title: 'Reportes',
                 subtitle: 'Generar reportes',
-                color: Colors.purple,
+                color: Colors.indigo,
                 onTap: () => AppRouter.navigateToReports(),
               ),
             ),
@@ -369,7 +372,7 @@ class AdminDashboardWidgets {
               ),
             ),
             TextButton(
-              onPressed: () => AppRouter.goToEventManagement(), // ✅ CORREGIDO
+              onPressed: () => AppRouter.goToSystemEvents(), // ✅ DIFERENCIADO: Ver vs Gestionar
               child: const Text('Ver todos'),
             ),
           ],

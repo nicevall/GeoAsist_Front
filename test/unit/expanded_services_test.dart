@@ -5,7 +5,6 @@ import 'package:geo_asist_front/services/asistencia_service.dart';
 import 'package:geo_asist_front/services/evento_service.dart';
 import 'package:geo_asist_front/services/location_service.dart';
 import 'package:geo_asist_front/services/background_location_service.dart';
-import 'package:geo_asist_front/models/api_response_model.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

@@ -7,7 +7,6 @@ import '../../services/justificacion_service.dart';
 import '../../services/evento_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/app_router.dart';
-import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/loading_skeleton.dart';
 
@@ -179,7 +178,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
         gradient: LinearGradient(
           colors: [
             AppColors.secondaryTeal,
-            AppColors.secondaryTeal.withOpacity(0.8),
+            AppColors.secondaryTeal.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -187,7 +186,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.secondaryTeal.withOpacity(0.3),
+            color: AppColors.secondaryTeal.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -232,7 +231,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -271,7 +270,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
             maxLength: 500,
             decoration: InputDecoration(
               hintText: 'Describe detalladamente el motivo de tu ausencia...',
-              hintStyle: TextStyle(color: AppColors.textGray.withOpacity(0.7)),
+              hintStyle: TextStyle(color: AppColors.textGray.withValues(alpha: 0.7)),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: AppColors.lightGray),
@@ -281,7 +280,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
                 borderSide: const BorderSide(color: AppColors.secondaryTeal, width: 2),
               ),
               filled: true,
-              fillColor: AppColors.lightGray.withOpacity(0.3),
+              fillColor: AppColors.lightGray.withValues(alpha: 0.3),
             ),
             style: const TextStyle(
               fontSize: 14,
@@ -306,7 +305,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
             keyboardType: TextInputType.url,
             decoration: InputDecoration(
               hintText: 'https://ejemplo.com/documento.pdf',
-              hintStyle: TextStyle(color: AppColors.textGray.withOpacity(0.7)),
+              hintStyle: TextStyle(color: AppColors.textGray.withValues(alpha: 0.7)),
               prefixIcon: const Icon(Icons.link, color: AppColors.secondaryTeal),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -317,7 +316,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
                 borderSide: const BorderSide(color: AppColors.secondaryTeal, width: 2),
               ),
               filled: true,
-              fillColor: AppColors.lightGray.withOpacity(0.3),
+              fillColor: AppColors.lightGray.withValues(alpha: 0.3),
             ),
             style: const TextStyle(
               fontSize: 14,
@@ -340,7 +339,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
             controller: _documentoNombreController,
             decoration: InputDecoration(
               hintText: 'Ej: Certificado médico Dr. López',
-              hintStyle: TextStyle(color: AppColors.textGray.withOpacity(0.7)),
+              hintStyle: TextStyle(color: AppColors.textGray.withValues(alpha: 0.7)),
               prefixIcon: const Icon(Icons.description, color: AppColors.secondaryTeal),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -351,7 +350,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
                 borderSide: const BorderSide(color: AppColors.secondaryTeal, width: 2),
               ),
               filled: true,
-              fillColor: AppColors.lightGray.withOpacity(0.3),
+              fillColor: AppColors.lightGray.withValues(alpha: 0.3),
             ),
             style: const TextStyle(
               fontSize: 14,
@@ -384,7 +383,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.lightGray),
               borderRadius: BorderRadius.circular(12),
-              color: AppColors.lightGray.withOpacity(0.3),
+              color: AppColors.lightGray.withValues(alpha: 0.3),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
@@ -448,7 +447,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -477,8 +476,8 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected 
-                        ? tipo.color.withOpacity(0.2)
-                        : AppColors.lightGray.withOpacity(0.5),
+                        ? tipo.color.withValues(alpha: 0.2)
+                        : AppColors.lightGray.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected ? tipo.color : Colors.transparent,
@@ -523,7 +522,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -585,7 +584,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -598,7 +597,7 @@ class _CreateJustificationScreenState extends State<CreateJustificationScreen>
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),

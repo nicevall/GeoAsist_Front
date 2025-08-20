@@ -7,7 +7,6 @@ import '../models/teacher_notification_model.dart';
 import '../models/evento_model.dart';
 import '../services/storage_service.dart';
 import '../services/teacher_notification_service.dart';
-import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 
 /// Programador inteligente de notificaciones para docentes
@@ -90,7 +89,7 @@ class TeacherNotificationScheduler {
           scheduledTime: dayBeforeTime,
           type: TeacherNotificationType.dayBeforeEvent,
           title: '📅 Evento Mañana',
-          message: '\"${evento.titulo}\" mañana a las ${_formatTime(eventStart)}',
+          message: '"${evento.titulo}" mañana a las ${_formatTime(eventStart)}',
           metadata: {
             'eventTitle': evento.titulo,
             'eventStart': eventStart.toIso8601String(),
@@ -110,7 +109,7 @@ class TeacherNotificationScheduler {
           scheduledTime: reminderTime,
           type: TeacherNotificationType.eventStartingSoon,
           title: '📅 Evento Próximo',
-          message: '\"${evento.titulo}\" inicia en 15 minutos',
+          message: '"${evento.titulo}" inicia en 15 minutos',
           metadata: {
             'eventTitle': evento.titulo,
             'minutesUntilStart': 15,
@@ -131,7 +130,7 @@ class TeacherNotificationScheduler {
           scheduledTime: eventStart,
           type: TeacherNotificationType.eventReminder,
           title: '🎯 ¡Evento Iniciando!',
-          message: '\"${evento.titulo}\" debe comenzar ahora',
+          message: '"${evento.titulo}" debe comenzar ahora',
           metadata: {
             'eventTitle': evento.titulo,
             'eventId': evento.id,
@@ -153,7 +152,7 @@ class TeacherNotificationScheduler {
           scheduledTime: endWarningTime,
           type: TeacherNotificationType.eventEndingSoon,
           title: '⏰ Evento Terminando',
-          message: '\"${evento.titulo}\" termina en 10 minutos',
+          message: '"${evento.titulo}" termina en 10 minutos',
           metadata: {
             'eventTitle': evento.titulo,
             'eventId': evento.id,
@@ -173,7 +172,7 @@ class TeacherNotificationScheduler {
           scheduledTime: eventEnd,
           type: TeacherNotificationType.suggestEndEvent,
           title: '🏁 Evento Debe Terminar',
-          message: '\"${evento.titulo}\" llegó a su hora de finalización',
+          message: '"${evento.titulo}" llegó a su hora de finalización',
           metadata: {
             'eventTitle': evento.titulo,
             'eventId': evento.id,
@@ -229,7 +228,7 @@ class TeacherNotificationScheduler {
           scheduledTime: currentTime,
           type: type,
           title: title,
-          message: '$message (${count})',
+          message: '$message ($count)',
           isRecurring: true,
           recurringInterval: interval,
         );

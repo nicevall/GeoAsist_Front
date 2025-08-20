@@ -186,7 +186,6 @@ class TeacherNotification {
     String? trend,
   }) {
     final percentage = ((presentStudents / totalStudents) * 100).round();
-    final priority = percentage < 60 ? NotificationPriority.high : NotificationPriority.normal;
     
     return TeacherNotification(
       id: 'attendance_update_${eventId}_${DateTime.now().millisecondsSinceEpoch}',

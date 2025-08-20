@@ -60,7 +60,7 @@ class EmailVerificationService {
       );
 
       if (response.success) {
-        return ApiResponse.success(true, message: response.message ?? 'Código enviado');
+        return ApiResponse.success(true, message: response.message);
       } else {
         return ApiResponse.error(response.error ?? 'Error al enviar código');
       }

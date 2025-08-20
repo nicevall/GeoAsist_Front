@@ -306,8 +306,8 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false, // No permite cerrar con back
+        return PopScope(
+          canPop: false, // No permite cerrar con back
           child: AlertDialog(
             title: Row(
               children: [
@@ -390,8 +390,8 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
+        return PopScope(
+          canPop: false,
           child: AlertDialog(
             title: Row(
               children: [
@@ -486,8 +486,8 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
+        return PopScope(
+          canPop: false,
           child: AlertDialog(
             title: Row(
               children: [
@@ -582,8 +582,8 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
+        return PopScope(
+          canPop: false,
           child: AlertDialog(
             title: Row(
               children: [

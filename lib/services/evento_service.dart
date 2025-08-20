@@ -430,10 +430,10 @@ class EventoService {
       };
 
       debugPrint('📦 Edit event payload: ${jsonEncode(body)}');
-      debugPrint('🌐 Edit endpoint: /eventos/$eventoId');
+      debugPrint('🌐 Edit endpoint: ${AppConstants.eventosEndpoint}/$eventoId');
 
       final response = await _apiService.put(
-        '/eventos/$eventoId',
+        '${AppConstants.eventosEndpoint}/$eventoId',
         body: body,
         headers: AppConstants.getAuthHeaders(token),
       );
@@ -474,7 +474,7 @@ class EventoService {
       debugPrint('🎫 Token found, proceeding with deletion');
 
       final response = await _apiService.delete(
-        '/eventos/$eventoId',
+        '${AppConstants.eventosEndpoint}/$eventoId',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -508,7 +508,7 @@ class EventoService {
       debugPrint('🎫 Token found, loading teacher events');
 
       final response = await _apiService.get(
-        '/eventos/mis',
+        '${AppConstants.eventosEndpoint}/mis',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -544,7 +544,7 @@ class EventoService {
       debugPrint('🎫 Token found, proceeding with finalization');
 
       final response = await _apiService.post(
-        '/eventos/$eventoId/finalizar',
+        '${AppConstants.eventosEndpoint}/$eventoId/finalizar',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -625,7 +625,7 @@ class EventoService {
       }
 
       final response = await _apiService.put(
-        '/eventos/$eventoId/activar',
+        '${AppConstants.eventosEndpoint}/$eventoId/activar',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -654,7 +654,7 @@ class EventoService {
       }
 
       final response = await _apiService.put(
-        '/eventos/$eventoId/desactivar',
+        '${AppConstants.eventosEndpoint}/$eventoId/desactivar',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -689,7 +689,7 @@ class EventoService {
       };
 
       final response = await _apiService.post(
-        '/eventos/$eventoId/receso/iniciar',
+        '${AppConstants.eventosEndpoint}/$eventoId/receso/iniciar',
         body: requestData,
         headers: AppConstants.getAuthHeaders(token),
       );
@@ -724,7 +724,7 @@ class EventoService {
       };
 
       final response = await _apiService.post(
-        '/eventos/$eventoId/receso/terminar',
+        '${AppConstants.eventosEndpoint}/$eventoId/receso/terminar',
         body: requestData,
         headers: AppConstants.getAuthHeaders(token),
       );
@@ -770,7 +770,7 @@ class EventoService {
       }
 
       final response = await _apiService.get(
-        '/eventos/$eventoId/metricas',
+        '${AppConstants.eventosEndpoint}/$eventoId/metricas',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -928,6 +928,11 @@ class EventoService {
       debugPrint('❌ Public events exception: $e');
       return [];
     }
+  }
+
+  /// 🎯 ALIAS: Obtener eventos por creador (para dashboard del profesor)
+  Future<List<Evento>> getEventosByCreador(String creadorId) async {
+    return await obtenerEventosDocente(creadorId);
   }
 
   /// Dispose resources and cleanup

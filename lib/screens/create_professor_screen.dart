@@ -235,7 +235,9 @@ class _CreateProfessorScreenState extends State<CreateProfessorScreen> {
           );
           
           // Después de la verificación exitosa, regresar
-          Navigator.of(context).pop();
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
         }
       } else {
         AppRouter.showSnackBar(

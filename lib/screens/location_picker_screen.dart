@@ -325,6 +325,17 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       'range': _selectedRange,
       'locationName': _selectedLocationName,
     };
+    
+    // Debug: Log datos que se van a retornar
+    debugPrint('=== LOCATION PICKER SAVING ===');
+    debugPrint('Datos a retornar:');
+    debugPrint('  - latitude: ${result['latitude']}');
+    debugPrint('  - longitude: ${result['longitude']}');
+    debugPrint('  - range: ${result['range']}');
+    debugPrint('  - locationName: ${result['locationName']}');
+    debugPrint('Resultado completo: $result');
+    debugPrint('==============================');
+    
     Navigator.of(context).pop(result);
   }
 }
