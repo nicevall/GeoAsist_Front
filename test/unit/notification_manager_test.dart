@@ -11,7 +11,20 @@ import '../utils/test_helpers.dart';
 // Mock classes
 class MockFlutterLocalNotificationsPlugin extends Mock implements FlutterLocalNotificationsPlugin {}
 
+// Fake classes for mocktail fallback values
+class FakeInitializationSettings extends Fake implements InitializationSettings {}
+class FakeAndroidInitializationSettings extends Fake implements AndroidInitializationSettings {}
+class FakeDarwinInitializationSettings extends Fake implements DarwinInitializationSettings {}
+class FakeNotificationDetails extends Fake implements NotificationDetails {}
+
 void main() {
+  setUpAll(() {
+    // Register fallback values for mocktail
+    registerFallbackValue(FakeInitializationSettings());
+    registerFallbackValue(FakeAndroidInitializationSettings());
+    registerFallbackValue(FakeDarwinInitializationSettings());
+    registerFallbackValue(FakeNotificationDetails());
+  });
   group('NotificationManager Tests', () {
     late NotificationManager notificationManager;
     late MockFlutterLocalNotificationsPlugin mockNotificationPlugin;
@@ -19,11 +32,6 @@ void main() {
     setUp(() {
       notificationManager = NotificationManager();
       mockNotificationPlugin = MockFlutterLocalNotificationsPlugin();
-      
-      // Register fallback values
-      registerFallbackValue(const NotificationDetails());
-      registerFallbackValue(const AndroidNotificationDetails('test', 'test'));
-      registerFallbackValue(const DarwinNotificationDetails());
     });
 
     tearDown(() {

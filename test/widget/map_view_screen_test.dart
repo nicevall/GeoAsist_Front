@@ -12,6 +12,7 @@ import 'package:geo_asist_front/services/evento_service.dart';
 import 'package:geo_asist_front/services/notifications/notification_manager.dart';
 import 'package:geo_asist_front/models/attendance_state_model.dart';
 import '../utils/test_helpers.dart';
+import '../utils/test_config.dart';
 
 // Mock classes
 class MockStudentAttendanceManager extends Mock implements StudentAttendanceManager {}
@@ -32,9 +33,9 @@ void main() {
       registerFallbackValue(TestHelpers.createMockEvento());
     });
 
-    setUpAll(() {
-      // Setup test environment
-      TestWidgetsFlutterBinding.ensureInitialized();
+    setUpAll(() async {
+      // Setup test environment with providers
+      await TestConfig.initialize();
     });
 
     tearDown(() {

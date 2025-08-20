@@ -13,6 +13,10 @@ import 'package:geo_asist_front/models/usuario_model.dart';
 import 'package:geo_asist_front/models/attendance_state_model.dart';
 import 'package:geo_asist_front/models/location_response_model.dart';
 import 'package:geo_asist_front/models/api_response_model.dart';
+import 'package:geo_asist_front/utils/app_router.dart';
+import 'package:geo_asist_front/core/app_constants.dart';
+import 'package:geo_asist_front/services/student_attendance_manager.dart';
+import 'test_config.dart';
 import 'package:geo_asist_front/models/ubicacion_model.dart';
 
 class TestHelpers {
@@ -194,13 +198,54 @@ class TestHelpers {
     WidgetTester tester, {
     required Widget child,
     List<ChangeNotifierProvider>? providers,
+    List<Provider>? simpleProviders,
+  }) async {
+    // Usar TestConfig para configuración completa con providers
+    await tester.pumpWidget(
+      TestConfig.wrapWithProvidersOnly(child),
+    );
+    
+    // Wait for providers to initialize
+    await tester.pumpAndSettle();
+  }
+
+  /// Helper específico para screens que necesitan providers
+  static Future<void> pumpScreenWithProviders(
+    WidgetTester tester, {
+    required Widget screen,
+  }) async {
+    await tester.pumpWidget(
+      TestConfig.wrapWithProvidersOnly(screen),
+    );
+    
+    // Wait for providers to initialize
+    await tester.pumpAndSettle();
+  }
+
+  /// Helper para tests de navegación con routing completo
+  static Future<void> pumpAppForNavigation(
+    WidgetTester tester, {
+    String initialRoute = AppConstants.loginRoute,
   }) async {
     await tester.pumpWidget(
       MultiProvider(
-        providers: providers ?? [],
-        child: MaterialApp(home: child),
+        providers: TestConfig.getTestProviders(),
+        child: MaterialApp(
+          navigatorKey: AppRouter.navigatorKey,
+          onGenerateRoute: AppRouter.generateRoute,
+          initialRoute: initialRoute,
+        ),
       ),
     );
+    
+    await tester.pumpAndSettle();
+  }
+
+  /// Mock para StudentAttendanceManager en tests
+  static StudentAttendanceManager createMockAttendanceManager() {
+    final manager = StudentAttendanceManager();
+    // Configurar estado inicial para tests
+    return manager;
   }
 
   /// Wait for stream to emit a specific value

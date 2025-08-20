@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:geo_asist_front/main.dart' as app;
@@ -19,7 +18,8 @@ class MockPermissionService extends Mock implements PermissionService {}
 class MockNotificationManager extends Mock implements NotificationManager {}
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  // NOTA: No usar IntegrationTestWidgetsFlutterBinding.ensureInitialized() aquí 
+  // porque ya está inicializado en flutter_test_config.dart
 
   group('Complete Attendance Flow Integration Tests', () {
     late MockLocationService mockLocationService;

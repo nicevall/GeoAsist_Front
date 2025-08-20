@@ -11,9 +11,27 @@ import 'dart:async';
 class LocationService {
   static final LocationService _instance = LocationService._internal();
   factory LocationService() => _instance;
-  LocationService._internal();
+  LocationService._internal() : _apiService = ApiService();
+  
+  // 🧪 Test-specific constructor to create fresh instances
+  LocationService._testInstance({ApiService? apiService}) : _apiService = apiService ?? ApiService() {
+    _lastKnownPosition = null;
+    _lastPositionUpdate = null;
+    _lastLocationResponse = null;
+    _lastBackendUpdate = null;
+    _isOnline = true;
+    _offlineQueue.clear();
+    _performanceMetrics.clear();
+    _performanceCleanupTimer?.cancel();
+    _performanceCleanupTimer = null;
+  }
+  
+  // 🧪 Public method to create test instances (bypasses singleton)
+  static LocationService createTestInstance({ApiService? apiService}) {
+    return LocationService._testInstance(apiService: apiService);
+  }
 
-  final ApiService _apiService = ApiService();
+  late final ApiService _apiService;
   
   // ✅ ENHANCED: Location caching and consistency management
   Position? _lastKnownPosition;

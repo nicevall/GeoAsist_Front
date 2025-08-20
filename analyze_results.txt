@@ -1,0 +1,3 @@
+Analyzing geo_asist_front...                                    
+No issues found! (ran in 5.9s)
+=== ANÁLISIS FLUTTER COMPLETADO ===

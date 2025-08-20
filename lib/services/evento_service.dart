@@ -46,6 +46,16 @@ class EventoService {
   static final EventoService _instance = EventoService._internal();
   factory EventoService() => _instance;
   EventoService._internal();
+  
+  // 🧪 Test-specific constructor to create fresh instances
+  EventoService._testInstance() {
+    _loadingStates.clear();
+  }
+  
+  // 🧪 Public method to create test instances (bypasses singleton)
+  static EventoService createTestInstance() {
+    return EventoService._testInstance();
+  }
 
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();

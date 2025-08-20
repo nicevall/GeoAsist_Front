@@ -19,6 +19,24 @@ class StudentAttendanceManager {
       StudentAttendanceManager._internal();
   factory StudentAttendanceManager() => _instance;
   StudentAttendanceManager._internal();
+  
+  // 🧪 Test-specific constructor to create fresh instances
+  StudentAttendanceManager._testInstance() {
+    _currentState = AttendanceState.initial();
+    _lastLocationResponse = null;
+    _currentPolicies = null;
+    _trackingTimer = null;
+    _gracePeriodTimer = null;
+    _heartbeatTimer = null;
+    _lifecycleTimer = null;
+    _heartbeatFailureTimer = null;
+    _isAppInForeground = true;
+  }
+  
+  // 🧪 Public method to create test instances (bypasses singleton)
+  static StudentAttendanceManager createTestInstance() {
+    return StudentAttendanceManager._testInstance();
+  }
 
   // 🎯 DEPENDENCIAS
   final LocationService _locationService = LocationService();

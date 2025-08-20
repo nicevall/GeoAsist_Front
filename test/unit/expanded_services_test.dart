@@ -16,12 +16,12 @@ void main() {
       service = AsistenciaService();
     });
 
-    test('should be singleton', () {
+    test('should create separate instances (not singleton)', () {
       final instance1 = AsistenciaService();
       final instance2 = AsistenciaService();
-      // Test that they are the same instance (singleton pattern)
-      expect(instance1, equals(instance2));
-      expect(instance1.hashCode, equals(instance2.hashCode));
+      // AsistenciaService is NOT a singleton - should be different instances
+      expect(identical(instance1, instance2), isFalse);
+      expect(instance1.runtimeType, equals(instance2.runtimeType));
     });
 
     test('should have all required methods', () {
@@ -54,7 +54,7 @@ void main() {
     test('should be singleton', () {
       final instance1 = EventoService();
       final instance2 = EventoService();
-      expect(instance1, equals(instance2));
+      expect(identical(instance1, instance2), isTrue);
     });
 
     test('should have enhanced loading state management', () {
@@ -103,7 +103,7 @@ void main() {
     test('should be singleton', () {
       final instance1 = LocationService();
       final instance2 = LocationService();
-      expect(instance1, equals(instance2));
+      expect(identical(instance1, instance2), isTrue);
     });
 
     test('should have optimized location methods', () {
@@ -147,7 +147,7 @@ void main() {
     test('should be singleton', () {
       final instance1 = BackgroundLocationService();
       final instance2 = BackgroundLocationService();
-      expect(instance1, equals(instance2));
+      expect(identical(instance1, instance2), isTrue);
     });
 
     test('should have enhanced tracking methods', () {
@@ -197,21 +197,23 @@ void main() {
       expect(backgroundService, isNotNull);
     });
 
-    test('services should maintain singleton behavior across tests', () {
+    test('services should maintain correct instance behavior across tests', () {
       // Create multiple instances across different tests
-      final services = [
-        AsistenciaService(),
-        AsistenciaService(),
-        EventoService(),
-        EventoService(),
-        LocationService(),
-        LocationService(),
-      ];
+      final asistencia1 = AsistenciaService();
+      final asistencia2 = AsistenciaService();
+      final evento1 = EventoService();
+      final evento2 = EventoService();
+      final location1 = LocationService();
+      final location2 = LocationService();
 
-      // Verify singleton behavior with equals instead of identical
-      expect(services[0], equals(services[1])); // AsistenciaService
-      expect(services[2], equals(services[3])); // EventoService
-      expect(services[4], equals(services[5])); // LocationService
+      // AsistenciaService is NOT a singleton - should be different instances
+      expect(identical(asistencia1, asistencia2), isFalse);
+      
+      // EventoService IS a singleton - should be same instance  
+      expect(identical(evento1, evento2), isTrue);
+      
+      // LocationService IS a singleton - should be same instance
+      expect(identical(location1, location2), isTrue);
     });
 
     test('services should handle concurrent access', () async {

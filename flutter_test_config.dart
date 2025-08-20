@@ -7,8 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'test/utils/test_config.dart';
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
-  // Setup global test environment
-  await TestConfig.setupCompleteTestEnvironment();
+  // Setup global test environment with providers
+  await TestConfig.initialize();
   
   // Setup golden file comparator for consistent golden tests
   if (goldenFileComparator is LocalFileComparator) {
