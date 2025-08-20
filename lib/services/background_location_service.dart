@@ -9,13 +9,46 @@ import 'dart:async';
 import 'dart:convert';
 
 class BackgroundLocationService {
-  static final BackgroundLocationService _instance =
-      BackgroundLocationService._internal();
-  factory BackgroundLocationService() => _instance;
+  // ✅ SINGLETON SEGURO - No más inicialización inmediata
+  static BackgroundLocationService? _instance;
+  static final Completer<BackgroundLocationService> _completer = Completer<BackgroundLocationService>();
+  
+  // Constructor privado
   BackgroundLocationService._internal();
+  
+  // ✅ MÉTODO SEGURO DE OBTENCIÓN DE INSTANCIA
+  static Future<BackgroundLocationService> getInstance() async {
+    if (_instance != null && _instance!._isInitialized) {
+      return _instance!;
+    }
+    
+    if (!_completer.isCompleted) {
+      _instance = BackgroundLocationService._internal();
+      try {
+        await _instance!._initialize();
+        _completer.complete(_instance!);
+      } catch (e) {
+        debugPrint('❌ Error en inicialización de BackgroundService: $e');
+        _completer.completeError(e);
+        rethrow;
+      }
+    }
+    
+    return _completer.future;
+  }
+  
+  // ✅ MÉTODO SÍNCRONO PARA CASOS QUE NO PUEDEN ESPERAR
+  static BackgroundLocationService? getInstanceIfInitialized() {
+    return _instance != null && _instance!._isInitialized ? _instance : null;
+  }
   
   // ✅ MOCK WORKMANAGER FOR TESTS
   Workmanager? _mockWorkmanager;
+  
+  // Campos internos con inicialización segura
+  Timer? _trackingTimer;
+  StreamSubscription<Position>? _positionSubscription;
+  LocationService? _locationService;
   bool _isInitialized = false;
   
   /// ✅ FACTORY FOR TESTS WITH MOCK WORKMANAGER
@@ -34,6 +67,10 @@ class BackgroundLocationService {
     _isPaused = false;
     _currentEventId = null;
     _lastBackgroundUpdate = null;
+    _isInitialized = false;
+    _locationService = null;
+    _trackingTimer = null;
+    _positionSubscription = null;
   }
   
   // 🧪 Public method to create test instances (bypasses singleton)
@@ -130,6 +167,81 @@ class BackgroundLocationService {
     }
   }
 
+  /// ✅ NUEVO: Método de tracking continuo con Timer
+  Future<bool> startContinuousTracking({
+    required String userId,
+    required String eventoId,
+    Duration interval = const Duration(minutes: 2),
+  }) async {
+    if (!_isInitialized) {
+      debugPrint('❌ BackgroundService no inicializado');
+      return false;
+    }
+    
+    if (_isTracking) {
+      debugPrint('⚠️ Tracking ya está activo');
+      return true;
+    }
+    
+    try {
+      debugPrint('🎯 Iniciando tracking continuo para evento: $eventoId');
+      
+      _trackingTimer = Timer.periodic(interval, (timer) async {
+        await _performBackgroundLocationUpdate(userId, eventoId);
+      });
+      
+      _isTracking = true;
+      _currentEventId = eventoId;
+      debugPrint('✅ Tracking continuo iniciado');
+      return true;
+      
+    } catch (e) {
+      debugPrint('❌ Error iniciando tracking continuo: $e');
+      return false;
+    }
+  }
+
+  /// ✅ NUEVO: Realizar actualización de ubicación en background
+  Future<void> _performBackgroundLocationUpdate(String userId, String eventoId) async {
+    if (!_isInitialized || _locationService == null) {
+      debugPrint('⚠️ Servicio no disponible para update background');
+      return;
+    }
+    
+    try {
+      final position = await _locationService!.getCurrentPosition();
+      if (position != null) {
+        await _locationService!.updateUserLocationComplete(
+          userId: userId,
+          latitude: position.latitude,
+          longitude: position.longitude,
+          eventoId: eventoId,
+          backgroundUpdate: true,
+        );
+        debugPrint('✅ Update background exitoso');
+      }
+    } catch (e) {
+      debugPrint('❌ Error en update background: $e');
+      // No detener tracking por un error individual
+    }
+  }
+
+  /// ✅ NUEVO: Detener tracking con limpieza
+  void stopTracking() {
+    if (_trackingTimer != null) {
+      _trackingTimer!.cancel();
+      _trackingTimer = null;
+    }
+    
+    if (_positionSubscription != null) {
+      _positionSubscription!.cancel();
+      _positionSubscription = null;
+    }
+    
+    _isTracking = false;
+    debugPrint('🛑 Tracking background detenido');
+  }
+
   /// ✅ ENHANCED: Pause tracking with reduced frequency during breaks
   Future<void> pauseTracking() async {
     try {
@@ -196,15 +308,18 @@ class BackgroundLocationService {
     }
   }
   
-  /// ✅ ENHANCED: Get current tracking status
+  /// ✅ MÉTODO DE ESTADO Y DEBUGGING
   Map<String, dynamic> getTrackingStatus() {
     return {
+      'isInitialized': _isInitialized,
       'isTracking': _isTracking,
       'isPaused': _isPaused,
+      'hasActiveTimer': _trackingTimer != null && _trackingTimer!.isActive,
+      'hasLocationService': _locationService != null,
       'currentEventId': _currentEventId,
       'lastUpdate': _lastBackgroundUpdate?.toIso8601String(),
       'frequency': _isPaused ? _pausedFrequency.inSeconds : _normalFrequency.inSeconds,
-      'isInitialized': _isInitialized,
+      'instanceHash': hashCode,
     };
   }
   
@@ -212,6 +327,21 @@ class BackgroundLocationService {
   bool get isTracking => _isTracking;
   bool get isInitialized => _isInitialized;
   String? get currentEventId => _currentEventId;
+  
+  /// ✅ MÉTODO DE DISPOSE PARA LIMPIAR RECURSOS
+  Future<void> dispose() async {
+    debugPrint('🧹 Disposing BackgroundLocationService...');
+    
+    stopTracking();
+    
+    if (_locationService != null) {
+      _locationService!.dispose();
+      _locationService = null;
+    }
+    
+    _isInitialized = false;
+    debugPrint('✅ BackgroundLocationService disposed');
+  }
   
   /// ✅ ENHANCED: Force immediate background update
   Future<bool> forceBackgroundUpdate() async {
@@ -233,25 +363,59 @@ class BackgroundLocationService {
     }
   }
   
-  /// ✅ ENHANCED: Initialize background service with recovery
-  Future<void> initialize() async {
+  /// ✅ INICIALIZACIÓN ROBUSTA CON ERROR HANDLING
+  Future<void> _initialize() async {
+    if (_isInitialized) {
+      debugPrint('✅ BackgroundLocationService ya inicializado');
+      return;
+    }
+    
     try {
-      debugPrint('🚀 Initializing enhanced background location service');
+      debugPrint('🚀 Inicializando BackgroundLocationService...');
       
-      await _workmanager.initialize(
-        callbackDispatcher,
-      );
-      _isInitialized = true;
+      // 1. Inicializar LocationService
+      _locationService = LocationService();
       
-      // ✅ ENHANCED: Recover tracking state if app was restarted
+      // 2. Verificar permisos básicos
+      final hasPermissions = await _checkBasicPermissions();
+      if (!hasPermissions) {
+        throw Exception('Permisos de ubicación no otorgados');
+      }
+      
+      // 3. Inicializar Workmanager
+      await _workmanager.initialize(callbackDispatcher);
+      
+      // 4. Configurar tracking parameters
+      _configureTrackingParameters();
+      
+      // 5. Recover tracking state if app was restarted
       await _recoverTrackingState();
       
-      debugPrint('✅ Background location service initialized');
+      _isInitialized = true;
+      debugPrint('✅ BackgroundLocationService inicializado correctamente');
+      
     } catch (e) {
-      debugPrint('❌ Error initializing background service: $e');
+      debugPrint('❌ Error inicializando BackgroundLocationService: $e');
       _isInitialized = false;
-      // ✅ NO RETHROW - Handle error internally for tests
+      rethrow;
     }
+  }
+  
+  /// ✅ VERIFICAR PERMISOS BÁSICOS
+  Future<bool> _checkBasicPermissions() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      return permission == LocationPermission.always || 
+             permission == LocationPermission.whileInUse;
+    } catch (e) {
+      debugPrint('❌ Error verificando permisos: $e');
+      return false;
+    }
+  }
+  
+  /// ✅ CONFIGURAR PARÁMETROS DE TRACKING
+  void _configureTrackingParameters() {
+    debugPrint('⚙️ Configurando parámetros de tracking background');
   }
   
   /// ✅ ENHANCED: Recover tracking state after app restart

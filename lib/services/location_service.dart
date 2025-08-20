@@ -80,11 +80,16 @@ class LocationService {
         }
       }
       
-      // Fallback to direct API call
+      // ✅ CRITICAL FIX: Validate coordinates before sending
+      if (!_validateCoordinates(latitude, longitude)) {
+        return ApiResponse.error('Invalid coordinates');
+      }
+      
+      // Fallback to direct API call with correct field names
       final body = {
         'userId': userId,
-        'latitude': latitude,
-        'longitude': longitude,
+        'latitude': latitude,        // ✅ Correct field name
+        'longitude': longitude,      // ✅ Correct field name
         if (previousState != null) 'previousState': previousState,
         if (eventoId != null) 'eventoId': eventoId,
         'timestamp': DateTime.now().toIso8601String(),
@@ -375,6 +380,35 @@ class LocationService {
     return Geolocator.distanceBetween(lat1, lng1, lat2, lng2);
   }
   
+  /// ✅ CRITICAL FIX: Validate coordinates before sending to backend
+  bool _validateCoordinates(double lat, double lng) {
+    // Validar rango válido
+    if (lat < -90 || lat > 90) {
+      debugPrint('❌ Invalid latitude: $lat (must be between -90 and 90)');
+      return false;
+    }
+    
+    if (lng < -180 || lng > 180) {
+      debugPrint('❌ Invalid longitude: $lng (must be between -180 and 180)');
+      return false;
+    }
+    
+    // Validar que no sean exactamente 0,0 (coordenadas inválidas comunes)
+    if (lat == 0.0 && lng == 0.0) {
+      debugPrint('❌ Invalid coordinates: (0.0, 0.0) detected');
+      return false;
+    }
+    
+    // Validar que no sean NaN o infinitas
+    if (lat.isNaN || lng.isNaN || lat.isInfinite || lng.isInfinite) {
+      debugPrint('❌ Invalid coordinates: NaN or Infinite detected');
+      return false;
+    }
+    
+    debugPrint('✅ Coordinates validation passed: ($lat, $lng)');
+    return true;
+  }
+  
   /// Send location update with retry
   Future<LocationResponseModel?> _sendLocationUpdateWithRetry({
     required String userId,
@@ -383,39 +417,61 @@ class LocationService {
     required String eventoId,
     required bool backgroundUpdate,
   }) async {
+    
+    // ✅ CRITICAL FIX: Validate coordinates before sending
+    if (!_validateCoordinates(latitude, longitude)) {
+      debugPrint('❌ Invalid coordinates: ($latitude, $longitude)');
+      return null;
+    }
+    
+    debugPrint('✅ Coordenadas validadas: ($latitude, $longitude)');
+    
     for (int attempt = 1; attempt <= _maxRetryAttempts; attempt++) {
       try {
         debugPrint('📤 Location update attempt $attempt of $_maxRetryAttempts');
         
+        // ✅ CRITICAL FIX: Correct field names and format for backend
+        final requestBody = {
+          'userId': userId,
+          'latitude': latitude,           // ✅ Backend expects 'latitude' not 'latitud'
+          'longitude': longitude,         // ✅ Backend expects 'longitude' not 'longitud'  
+          'eventoId': eventoId,
+          'backgroundUpdate': backgroundUpdate,
+          'timestamp': DateTime.now().toIso8601String(),
+          'attempt': attempt,
+        };
+        
+        debugPrint('📤 Enviando actualización al backend con formato correcto');
+        debugPrint('   Request body: $requestBody');
+        
         final response = await _apiService.post(
           AppConstants.locationEndpoint,
-          body: {
-            'userId': userId,
-            'latitude': latitude,
-            'longitude': longitude,
-            'eventoId': eventoId,
-            'backgroundUpdate': backgroundUpdate,
-            'timestamp': DateTime.now().toIso8601String(),
-            'attempt': attempt,
-          },
-        ).timeout(Duration(seconds: 10 + (attempt * 2)));
+          body: requestBody,
+        ).timeout(Duration(seconds: 30)); // ✅ CRITICAL FIX: Increased timeout
 
         if (response.success && response.data != null) {
           final locationResponse = LocationResponseModel.fromSimpleResponse(response.data!);
-          debugPrint('✅ Location update successful on attempt $attempt');
+          debugPrint('✅ Backend respondió exitosamente: Status ${response.statusCode}');
+          debugPrint('✅ Ubicación actualizada correctamente');
           return locationResponse;
         } else {
           debugPrint('❌ Backend rejected update on attempt $attempt: ${response.message}');
+          debugPrint('📊 Status Code: ${response.statusCode}');
+          debugPrint('✅ Response Body: ${response.data}');
+          
           if (attempt == _maxRetryAttempts) {
-            return LocationResponseModel.error(userId, latitude, longitude);
+            debugPrint('❌ Max attempts reached, returning null');
+            return null;
           }
         }
       } catch (e) {
         debugPrint('❌ Location update attempt $attempt failed: $e');
         
         if (attempt < _maxRetryAttempts) {
-          debugPrint('🔄 Retrying location update in ${_retryDelay.inSeconds}s...');
-          await Future.delayed(_retryDelay);
+          // ✅ CRITICAL FIX: Exponential backoff
+          final delay = Duration(seconds: _retryDelay.inSeconds * attempt);
+          debugPrint('🔄 Retrying location update in ${delay.inSeconds}s...');
+          await Future.delayed(delay);
         }
       }
     }

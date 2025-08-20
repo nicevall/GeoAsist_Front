@@ -12,7 +12,11 @@ class AppConstants {
   static const String baseUrl =
       'http://44.211.171.188/api'; // Nueva IP del servidor
   static const String apiVersion = 'v1';
+  // ✅ CRITICAL FIX: Timeout configuration
   static const Duration apiTimeout = Duration(seconds: 30);
+  static const Duration defaultTimeout = Duration(seconds: 15);
+  static const Duration locationTimeout = Duration(seconds: 30);
+  static const Duration criticalTimeout = Duration(seconds: 45);
 
   // ✅ ACTUALIZADO: WebSocket para tiempo real - Nueva IP
   static const String baseUrlWebSocket = 'ws://44.211.171.188';
@@ -42,6 +46,7 @@ class AppConstants {
   static const String eventosEndpoint = '/eventos';
   static const String asistenciaEndpoint = '/asistencia/registrar-new';
   static const String locationEndpoint = '/location/update';
+  static const String locationUpdateEndpoint = '/api/location/update'; // ✅ CRITICAL FIX: Specific endpoint
   static const String dashboardEndpoint = '/dashboard/metrics';
 
   // ✅ NUEVOS ENDPOINTS DÍA 4 - BACKEND INTEGRATION

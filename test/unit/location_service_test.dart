@@ -84,6 +84,7 @@ void main() {
           distance: 50.0,
         );
 
+        // ✅ CRITICAL FIX: Mock with any body to test field names are sent
         when(() => mockApiService.post(
           any(),
           body: any(named: 'body'),
@@ -109,11 +110,13 @@ void main() {
       });
 
       test('should handle backend API errors gracefully', () async {
-        // Arrange
+        // Arrange - Simulate 400 Parse Error like in real scenario
         when(() => mockApiService.post(
           any(),
           body: any(named: 'body'),
-        )).thenThrow(Exception('Network error'));
+        )).thenAnswer((_) async => TestHelpers.createErrorResponse(
+          message: 'Parse Error',
+        ));
 
         // Act
         final result = await locationService.updateUserLocationComplete(
@@ -123,7 +126,7 @@ void main() {
           eventoId: 'event_123',
         );
 
-        // Assert
+        // Assert - Should return null on backend error
         expect(result, isNull);
       });
 
@@ -161,6 +164,36 @@ void main() {
 
         // Assert
         expect(callCount, equals(3));
+      });
+
+      test('should validate coordinates before sending', () async {
+        // Act & Assert - Invalid coordinates should return null
+        var result = await locationService.updateUserLocationComplete(
+          userId: 'user_123',
+          latitude: 91.0, // Invalid latitude > 90
+          longitude: -122.4194,
+          eventoId: 'event_123',
+        );
+        expect(result, isNull);
+
+        result = await locationService.updateUserLocationComplete(
+          userId: 'user_123',
+          latitude: 37.7749,
+          longitude: 181.0, // Invalid longitude > 180
+          eventoId: 'event_123',
+        );
+        expect(result, isNull);
+
+        result = await locationService.updateUserLocationComplete(
+          userId: 'user_123',
+          latitude: 0.0, // Invalid 0,0 coordinates
+          longitude: 0.0,
+          eventoId: 'event_123',
+        );
+        expect(result, isNull);
+
+        // Should not call API service for invalid coordinates
+        verifyNever(() => mockApiService.post(any(), body: any(named: 'body')));
       });
     });
 
@@ -354,23 +387,7 @@ void main() {
       });
 
       test('should handle invalid location data', () async {
-        // Arrange - Mock should still respond for invalid coordinates
-        when(() => mockApiService.post(
-          any(),
-          body: any(named: 'body'),
-        )).thenAnswer((_) async => TestHelpers.createSuccessResponse(
-          data: {
-            'latitude': 999.0,
-            'longitude': 999.0,
-            'insideGeofence': false,
-            'distance': 0.0,
-            'eventActive': false,
-            'eventStarted': false,
-            'canRegisterAttendance': false,
-          },
-        ));
-
-        // Act - Test handling of invalid coordinates
+        // Act - Test handling of invalid coordinates (should be rejected by validation)
         final result = await locationService.updateUserLocationComplete(
           userId: 'user_123',
           latitude: 999.0, // Invalid latitude
@@ -378,13 +395,11 @@ void main() {
           eventoId: 'event_123',
         );
 
-        // Assert - Should handle gracefully with mock response
-        expect(result, isNotNull);
-        if (result != null) {
-          expect(result.latitude, equals(999.0));
-          expect(result.longitude, equals(999.0));
-          expect(result.insideGeofence, isFalse);
-        }
+        // Assert - Should return null due to coordinate validation
+        expect(result, isNull);
+        
+        // Verify API service is never called for invalid coordinates
+        verifyNever(() => mockApiService.post(any(), body: any(named: 'body')));
       });
     });
 

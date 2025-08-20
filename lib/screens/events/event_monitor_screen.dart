@@ -6,10 +6,8 @@ import '../../services/evento_service.dart';
 import '../../services/asistencia_service.dart'; // ✅ NUEVO para backend real
 import '../../models/evento_model.dart';
 import '../../models/asistencia_model.dart'; // ✅ NUEVO para datos reales
-import 'dart:convert';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import '../../services/websocket_service.dart';
 import '../../services/notifications/notification_manager.dart';
-import '../../services/storage_service.dart';
 import '../../services/teacher_notification_service.dart'; // ✅ NUEVO para notificaciones docente
 import '../../services/teacher_notification_scheduler.dart'; // ✅ NUEVO para programaciones
 
@@ -35,7 +33,6 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
   // 🎯 SERVICIOS ADICIONALES PARA NOTIFICACIONES
   final NotificationManager _notificationManager = NotificationManager();
-  final StorageService _storageService = StorageService();
   
   // 🔔 SERVICIOS DE NOTIFICACIONES PARA DOCENTES
   final TeacherNotificationService _teacherNotificationService = TeacherNotificationService();
@@ -46,17 +43,8 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   DateTime? _breakStartTime;
   Timer? _breakDurationTimer;
 
-  // 🎯 WEBSOCKET REAL - ENHANCED CONNECTION MANAGEMENT
-  WebSocketChannel? _wsChannel;
-  StreamSubscription? _wsSubscription;
-  Timer? _reconnectionTimer;
-  Timer? _heartbeatTimer;
-  bool _isConnecting = false;
-  bool _shouldReconnect = true;
-  int _reconnectionAttempts = 0;
-  static const int _maxReconnectionAttempts = 5;
-  static const Duration _reconnectionDelay = Duration(seconds: 3);
-  static const Duration _heartbeatInterval = Duration(seconds: 30);
+  // ✅ NUEVO WEBSOCKET ROBUSTO
+  late StreamSubscription<Map<String, dynamic>> _wsSubscription;
 
   // 🎯 CONTROLADORES DE ANIMACIÓN
   late AnimationController _refreshController;
@@ -96,9 +84,6 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   void dispose() {
     debugPrint('🧹 Disposing EventMonitorScreen resources');
     
-    // Stop reconnection attempts
-    _shouldReconnect = false;
-    
     // Cancel all timers
     _refreshController.dispose();
     _pulseController.dispose();
@@ -106,13 +91,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     _realtimeUpdateTimer = null;
     _breakDurationTimer?.cancel();
     _breakDurationTimer = null;
-    _reconnectionTimer?.cancel();
-    _reconnectionTimer = null;
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = null;
 
-    // ✅ ENHANCED: Clean WebSocket with proper error handling
-    _cleanupWebSocket();
+    // ✅ NUEVO: Limpiar WebSocket robusto
+    _cleanupWebSocketConnection();
     
     // ✅ NUEVO: Limpiar servicios de notificaciones docentes
     _disposeTeacherNotificationServices();
@@ -202,8 +183,8 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       // 3. Iniciar actualización en tiempo real cada 30 segundos
       _startRealtimeUpdates();
       
-      // 4. ✅ ENHANCED: Connect WebSocket with improved error handling
-      await _connectWebSocketWithRetry();
+      // 4. ✅ NUEVO: Conectar WebSocket robusto
+      await _initializeWebSocketConnection();
       
       // 5. ✅ NUEVO: Iniciar actualización periódica de asistencia (cada 15 min)
       _startAttendanceUpdateNotifications();
@@ -852,111 +833,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     );
   }
 
-  /// ✅ ENHANCED: Connect WebSocket with retry mechanism
-  Future<void> _connectWebSocketWithRetry() async {
-    if (_isConnecting || !_shouldReconnect) {
-      debugPrint('🔌 WebSocket connection already in progress or stopped');
-      return;
-    }
 
-    _isConnecting = true;
-    
-    try {
-      await _connectWebSocket();
-      _reconnectionAttempts = 0; // Reset on successful connection
-    } catch (e) {
-      debugPrint('❌ WebSocket connection failed: $e');
-      _scheduleReconnection();
-    } finally {
-      _isConnecting = false;
-    }
-  }
-
-  /// ✅ ENHANCED: Core WebSocket connection logic
-  Future<void> _connectWebSocket() async {
-    debugPrint('🔌 Connecting WebSocket with enhanced stability');
-
-    // ✅ ENHANCED: Validate prerequisites
-    final token = await _storageService.getToken();
-    if (token == null) {
-      debugPrint('❌ No JWT token available for WebSocket authentication');
-      throw Exception('No authentication token available');
-    }
-
-    if (widget.eventId.isEmpty) {
-      debugPrint('❌ No eventId provided for WebSocket connection');
-      throw Exception('Invalid event ID');
-    }
-
-    // ✅ ENHANCED: Build WebSocket URL with proper authentication
-    final wsUrl = 'ws://44.211.171.188?token=$token&eventId=${widget.eventId}&role=docente';
-    debugPrint('📡 Connecting to WebSocket: ws://44.211.171.188?token=***&eventId=${widget.eventId}&role=docente');
-
-    // ✅ ENHANCED: Connect with timeout
-    _wsChannel = WebSocketChannel.connect(
-      Uri.parse(wsUrl),
-      protocols: ['chat'], // Optional: specify protocols if needed
-    );
-
-    // ✅ ENHANCED: Send subscription message with additional metadata
-    final user = await _storageService.getUser();
-    final subscriptionMessage = jsonEncode({
-      'action': 'subscribe_event_monitor',
-      'eventId': widget.eventId,
-      'userRole': 'docente',
-      'userId': user?.id ?? 'unknown',
-      'teacherName': widget.teacherName,
-      'timestamp': DateTime.now().toIso8601String(),
-      'clientType': 'flutter_event_monitor',
-      'version': '1.0.0',
-      'capabilities': ['attendance_updates', 'event_control', 'metrics', 'break_management'],
-    });
-
-    _wsChannel!.sink.add(subscriptionMessage);
-    debugPrint('📤 Enhanced subscription message sent');
-
-    // ✅ ENHANCED: Setup message handling with robust error handling
-    _wsSubscription = _wsChannel!.stream.listen(
-      _handleWebSocketMessage,
-      onError: _handleWebSocketError,
-      onDone: _handleWebSocketClosed,
-      cancelOnError: false, // Keep connection alive on individual message errors
-    );
-
-    // ✅ ENHANCED: Start heartbeat to maintain connection
-    _startHeartbeat();
-
-    // ✅ ENHANCED: Show connection success with more info
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.wifi, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('📡 Conexión tiempo real activada',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text('Evento: ${_monitoredEvent?.titulo ?? widget.eventId}',
-                        style: const TextStyle(fontSize: 12)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-
-    debugPrint('✅ WebSocket connected successfully with enhanced features');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1581,114 +1458,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     );
   }
 
-  /// ✅ ENHANCED: WebSocket message handling with validation and acknowledgment
-  void _handleWebSocketMessage(dynamic message) {
-    try {
-      // ✅ ENHANCED: Validate message format
-      if (message == null || message.toString().isEmpty) {
-        debugPrint('⚠️ Received empty WebSocket message');
-        return;
-      }
 
-      final Map<String, dynamic> data = jsonDecode(message);
-      final String messageType = data['type'] ?? 'unknown';
-      final String messageId = data['id'] ?? '';
-      
-      debugPrint('📨 WebSocket message received: $messageType${messageId.isNotEmpty ? ' (ID: $messageId)' : ''}');
-
-      // ✅ ENHANCED: Validate event ID matches current monitoring
-      if (data.containsKey('eventId') && data['eventId'] != widget.eventId) {
-        debugPrint('⚠️ Message for different event: ${data['eventId']}, current: ${widget.eventId}');
-        return;
-      }
-
-      // ✅ ENHANCED: Handle different message types with enhanced processing
-      switch (messageType) {
-        case 'connection_established':
-          _handleConnectionEstablished(data);
-          break;
-        case 'attendance_update':
-          _handleAttendanceUpdate(data);
-          break;
-        case 'event_status_changed':
-          _handleEventStatusChanged(data);
-          break;
-        case 'break_status_changed':
-          _handleBreakStatusChanged(data);
-          break;
-        case 'metrics_update':
-          _handleMetricsUpdate(data);
-          break;
-        case 'heartbeat_response':
-          _handleHeartbeatResponse(data);
-          break;
-        case 'error':
-          _handleServerError(data);
-          break;
-        default:
-          debugPrint('📋 Unhandled message type: $messageType');
-          // ✅ ENHANCED: Send acknowledgment for unknown messages
-          _sendAcknowledgment(messageId, false, 'Unknown message type');
-      }
-
-      // ✅ ENHANCED: Send acknowledgment for processed messages
-      if (messageId.isNotEmpty && messageType != 'heartbeat_response') {
-        _sendAcknowledgment(messageId, true);
-      }
-
-    } catch (e) {
-      debugPrint('❌ Error processing WebSocket message: $e');
-      debugPrint('🔍 Raw message: $message');
-      
-      // ✅ ENHANCED: Don't let message processing errors break the connection
-      // The connection should remain stable even if individual messages fail
-    }
-  }
-
-  void _handleAttendanceUpdate(Map<String, dynamic> data) async {
-    debugPrint('👥 Actualización de asistencia recibida');
-    
-    // ✅ NUEVO: Procesar datos específicos de la actualización para notificaciones
-    try {
-      final String updateType = data['updateType'] ?? 'general';
-      final String studentName = data['studentName'] ?? 'Estudiante';
-      final String action = data['action'] ?? 'unknown';
-      
-      debugPrint('📊 Tipo de actualización: $updateType, Acción: $action, Estudiante: $studentName');
-      
-      // Procesar diferentes tipos de actualizaciones
-      switch (updateType) {
-        case 'student_joined':
-          // Un estudiante se registró
-          await _handleStudentJoinedNotification(studentName, data);
-          break;
-          
-        case 'student_left_area':
-          // Un estudiante salió del área geográfica
-          await _handleStudentLeftAreaNotification(studentName, data);
-          break;
-          
-        case 'multiple_students':
-          // Múltiples estudiantes realizaron alguna acción
-          await _handleMultipleStudentsUpdate(data);
-          break;
-          
-        case 'attendance_count':
-          // Solo actualización de conteo
-          await _handleAttendanceCountUpdate(data);
-          break;
-          
-        default:
-          debugPrint('📋 Tipo de actualización no manejado: $updateType');
-      }
-      
-    } catch (e) {
-      debugPrint('❌ Error procesando actualización de asistencia: $e');
-    }
-    
-    // Recargar datos de asistencia
-    await _loadEventAttendances();
-  }
   
   /// ✅ NUEVO: Manejar notificación de estudiante que se registró
   Future<void> _handleStudentJoinedNotification(String studentName, Map<String, dynamic> data) async {
@@ -1777,145 +1547,14 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     }
   }
 
-  void _handleEventStatusChanged(Map<String, dynamic> data) {
-    final newStatus = data['isActive'] ?? false;
-    debugPrint('🎯 Estado del evento cambió: $newStatus');
 
-    setState(() {
-      _isEventActive = newStatus;
-      if (_monitoredEvent != null) {
-        _monitoredEvent = _monitoredEvent!.copyWith(isActive: newStatus);
-      }
-    });
 
-    if (newStatus) {
-      _showNotification('Evento Activado', 'El evento ahora está activo');
-    }
-  }
 
-  void _handleBreakStatusChanged(Map<String, dynamic> data) {
-    final isBreakActive = data['breakActive'] ?? false;
-    debugPrint('⏸️ Estado del receso cambió: $isBreakActive');
 
-    if (isBreakActive) {
-      _showNotification(
-          'Receso Iniciado', 'Los estudiantes han sido notificados');
-    } else {
-      _showNotification('Receso Terminado', 'Tracking reanudado');
-    }
-  }
 
-  void _handleMetricsUpdate(Map<String, dynamic> data) {
-    debugPrint('📊 Métricas actualizadas en tiempo real');
-    _loadRealtimeMetrics();
-  }
-
-  /// ✅ ENHANCED: WebSocket error handling with detailed analysis
-  void _handleWebSocketError(dynamic error) {
-    debugPrint('❌ WebSocket error occurred: $error');
-
-    // ✅ ENHANCED: Categorize error types
-    String errorMessage = 'Conexión tiempo real perdida';
-    String errorDetail = '';
-    
-    if (error.toString().contains('WebSocketChannelException')) {
-      errorMessage = 'Error de conexión WebSocket';
-      errorDetail = 'Verificando conectividad...';
-    } else if (error.toString().contains('TimeoutException')) {
-      errorMessage = 'Timeout de conexión';
-      errorDetail = 'Reintentando automáticamente...';
-    } else if (error.toString().contains('SocketException')) {
-      errorMessage = 'Error de red';
-      errorDetail = 'Verifique su conexión a internet';
-    }
-
-    // ✅ ENHANCED: Schedule reconnection on recoverable errors
-    if (_shouldReconnect) {
-      _scheduleReconnection();
-      errorDetail = errorDetail.isEmpty ? 'Reintentando automáticamente...' : errorDetail;
-    }
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(errorMessage, style: const TextStyle(fontWeight: FontWeight.bold)),
-              if (errorDetail.isNotEmpty)
-                Text(errorDetail, style: const TextStyle(fontSize: 12)),
-            ],
-          ),
-          backgroundColor: Colors.orange,
-          duration: const Duration(seconds: 4),
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Reintentar',
-            textColor: Colors.white,
-            onPressed: () {
-              _reconnectionAttempts = 0;
-              _connectWebSocketWithRetry();
-            },
-          ),
-        ),
-      );
-    }
-  }
-
-  /// ✅ ENHANCED: WebSocket closed handling with intelligent reconnection
-  void _handleWebSocketClosed() {
-    debugPrint('🔌 WebSocket connection closed');
-    
-    // ✅ ENHANCED: Stop heartbeat when connection is closed
-    _stopHeartbeat();
-    
-    // ✅ ENHANCED: Only reconnect if we should and component is still mounted
-    if (_shouldReconnect && mounted) {
-      debugPrint('🔄 Scheduling WebSocket reconnection...');
-      _scheduleReconnection();
-    } else {
-      debugPrint('⏹️ WebSocket reconnection disabled');
-    }
-  }
-
-  /// ✅ ENHANCED: Comprehensive WebSocket cleanup
-  void _cleanupWebSocket() {
-    try {
-      debugPrint('🧹 Cleaning up WebSocket resources');
-
-      // Stop reconnection attempts
-      _shouldReconnect = false;
-      _reconnectionTimer?.cancel();
-      _reconnectionTimer = null;
-      
-      // Stop heartbeat
-      _stopHeartbeat();
-
-      // Cancel subscription
-      _wsSubscription?.cancel();
-      _wsSubscription = null;
-      
-      // Close WebSocket channel
-      try {
-        _wsChannel?.sink.close(1000, 'Client disconnecting'); // Normal closure
-      } catch (e) {
-        debugPrint('⚠️ Error closing WebSocket sink: $e');
-      }
-      _wsChannel = null;
-
-      // Reset connection state
-      _isConnecting = false;
-      _reconnectionAttempts = 0;
-
-      debugPrint('✅ WebSocket cleanup completed successfully');
-    } catch (e) {
-      debugPrint('❌ Error during WebSocket cleanup: $e');
-    }
-  }
 
   /// Método auxiliar para notificaciones rápidas
-  void _showNotification(String title, String message) {
+  void _showNotification(String title, String message, {Color? backgroundColor}) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1930,7 +1569,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
               Text(message),
             ],
           ),
-          backgroundColor: AppColors.primaryOrange,
+          backgroundColor: backgroundColor ?? AppColors.primaryOrange,
           duration: const Duration(seconds: 4),
           behavior: SnackBarBehavior.floating,
         ),
@@ -1940,219 +1579,199 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
   // ✅ ENHANCED: WebSocket helper methods for connection management
 
-  /// Schedule reconnection with exponential backoff
-  void _scheduleReconnection() {
-    if (!_shouldReconnect || _reconnectionAttempts >= _maxReconnectionAttempts) {
-      debugPrint('🚫 Max reconnection attempts reached or reconnection disabled');
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ Conexión tiempo real no disponible - usando actualización manual'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 5),
-          ),
-        );
-      }
-      return;
-    }
 
-    _reconnectionTimer?.cancel();
-    
-    final delay = Duration(
-      seconds: _reconnectionDelay.inSeconds * (_reconnectionAttempts + 1),
-    );
-    
-    debugPrint('🔄 Scheduling reconnection attempt ${_reconnectionAttempts + 1} in ${delay.inSeconds}s');
-    
-    _reconnectionTimer = Timer(delay, () {
-      _reconnectionAttempts++;
-      _connectWebSocketWithRetry();
-    });
-  }
 
-  /// Start heartbeat to keep connection alive
-  void _startHeartbeat() {
-    _stopHeartbeat(); // Stop existing heartbeat first
-    
-    _heartbeatTimer = Timer.periodic(_heartbeatInterval, (timer) {
-      if (_wsChannel != null && !_isConnecting) {
-        _sendHeartbeat();
-      }
-    });
-    
-    debugPrint('💓 WebSocket heartbeat started (${_heartbeatInterval.inSeconds}s interval)');
-  }
 
-  /// Stop heartbeat timer
-  void _stopHeartbeat() {
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = null;
-    debugPrint('💓 WebSocket heartbeat stopped');
-  }
 
-  /// Send heartbeat message to server
-  void _sendHeartbeat() {
-    try {
-      final heartbeatMessage = jsonEncode({
-        'type': 'heartbeat',
-        'eventId': widget.eventId,
-        'timestamp': DateTime.now().toIso8601String(),
-        'clientId': widget.teacherName,
-      });
-
-      _wsChannel?.sink.add(heartbeatMessage);
-      debugPrint('💓 Heartbeat sent');
-    } catch (e) {
-      debugPrint('❌ Error sending heartbeat: $e');
-    }
-  }
-
-  /// Send acknowledgment for received messages
-  void _sendAcknowledgment(String messageId, bool success, [String? error]) {
-    if (messageId.isEmpty || _wsChannel == null) return;
-
-    try {
-      final ackMessage = jsonEncode({
-        'type': 'acknowledgment',
-        'messageId': messageId,
-        'success': success,
-        'error': error,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-
-      _wsChannel!.sink.add(ackMessage);
-      debugPrint('✅ Acknowledgment sent for message: $messageId');
-    } catch (e) {
-      debugPrint('❌ Error sending acknowledgment: $e');
-    }
-  }
 
   // ✅ ENHANCED: Message handlers for new message types
 
-  /// Handle connection established confirmation
-  void _handleConnectionEstablished(Map<String, dynamic> data) {
-    debugPrint('🔗 WebSocket connection established');
-    
-    final serverInfo = data['serverInfo'] ?? {};
-    debugPrint('📡 Server info: $serverInfo');
-    
-    // Reset reconnection attempts on successful connection
-    _reconnectionAttempts = 0;
-    
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Conexión tiempo real establecida'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
 
-  /// Handle heartbeat response from server
-  void _handleHeartbeatResponse(Map<String, dynamic> data) {
-    debugPrint('💓 Heartbeat response received');
-    
-    // Connection is alive, reset reconnection attempts
-    _reconnectionAttempts = 0;
-    
-    // Process any server-side data in heartbeat response
-    if (data.containsKey('serverTime')) {
-      debugPrint('🕐 Server time: ${data['serverTime']}');
-    }
-  }
 
-  /// Handle server error messages
-  void _handleServerError(Map<String, dynamic> data) {
-    final errorMessage = data['message'] ?? 'Unknown server error';
-    final errorCode = data['code'] ?? 'UNKNOWN';
-    
-    debugPrint('🚨 Server error: $errorCode - $errorMessage');
-    
-    // Handle specific error codes
-    switch (errorCode) {
-      case 'AUTH_EXPIRED':
-        debugPrint('🔑 Authentication expired - attempting to refresh');
-        _handleAuthExpired();
-        break;
-      case 'EVENT_NOT_FOUND':
-        debugPrint('❌ Event not found - stopping monitoring');
-        _handleEventNotFound();
-        break;
-      case 'PERMISSION_DENIED':
-        debugPrint('🚫 Permission denied for this event');
-        _handlePermissionDenied();
-        break;
-      default:
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('❌ Error del servidor: $errorMessage'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-        }
-    }
-  }
 
-  /// Handle authentication expiration
-  void _handleAuthExpired() async {
-    debugPrint('🔑 Handling authentication expiration');
-    
+
+
+
+  /// ✅ NUEVO: Inicializar conexión WebSocket robusta
+  Future<void> _initializeWebSocketConnection() async {
     try {
-      // Attempt to refresh token
-      final newToken = await _storageService.getToken();
-      if (newToken != null) {
-        // Reconnect with new token
-        _cleanupWebSocket();
-        await Future.delayed(const Duration(seconds: 1));
-        await _connectWebSocketWithRetry();
-      } else {
-        _handlePermissionDenied();
-      }
-    } catch (e) {
-      debugPrint('❌ Error refreshing authentication: $e');
-      _handlePermissionDenied();
-    }
-  }
-
-  /// Handle event not found error
-  void _handleEventNotFound() {
-    _cleanupWebSocket();
-    
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ Evento no encontrado - regresando al dashboard'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
+      debugPrint('📊 Iniciando conexión WebSocket para monitoreo del evento: ${widget.eventId}');
+      
+      // ✅ CONECTAR WEBSOCKET ESPECÍFICO PARA MONITOREO
+      final connected = await WebSocketService.instance.connectToEvent(
+        eventId: widget.eventId,
+        userId: widget.teacherName, // O ID del profesor
+        userRole: 'teacher',
       );
       
-      // Navigate back after delay
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          Navigator.of(context).pop();
-        }
-      });
+      if (connected) {
+        // ✅ ESCUCHAR MENSAJES EN TIEMPO REAL
+        _wsSubscription = WebSocketService.instance.messageStream.listen(
+          _handleRealtimeUpdate,
+          onError: (error) {
+            debugPrint('❌ Error en stream WebSocket: $error');
+            _showConnectionError();
+          },
+        );
+        
+        debugPrint('✅ Monitoreo WebSocket iniciado');
+      } else {
+        _showConnectionError();
+      }
+      
+    } catch (e) {
+      debugPrint('❌ Error inicializando WebSocket: $e');
+      _showConnectionError();
     }
   }
 
-  /// Handle permission denied error
-  void _handlePermissionDenied() {
-    _cleanupWebSocket();
+  /// ✅ NUEVO: Manejar actualizaciones en tiempo real
+  void _handleRealtimeUpdate(Map<String, dynamic> data) {
+    final messageType = data['type'] as String?;
     
+    setState(() {
+      switch (messageType) {
+        case 'attendance_update':
+          _handleWebSocketAttendanceUpdate(data);
+          break;
+          
+        case 'student_location_update':
+          _handleStudentLocationUpdate(data);
+          break;
+          
+        case 'geofence_violation':
+          _handleWebSocketGeofenceViolation(data);
+          break;
+          
+        case 'metrics_update':
+          _handleWebSocketMetricsUpdate(data);
+          break;
+      }
+    });
+    
+    // ✅ MOSTRAR NOTIFICACIÓN AL PROFESOR
+    _showTeacherNotification(data);
+  }
+
+  /// ✅ NUEVO: Manejar actualización de asistencia via WebSocket
+  void _handleWebSocketAttendanceUpdate(Map<String, dynamic> data) {
+    final studentName = data['studentName'] as String? ?? 'Estudiante';
+    final attendanceStatus = data['attendanceStatus'] as String?;
+    final timestamp = data['timestamp'] as String?;
+    
+    debugPrint('📝 Actualización de asistencia via WebSocket: $studentName -> $attendanceStatus');
+    
+    // ✅ USAR MÉTODOS DE NOTIFICACIÓN PARA PROFESORES
+    if (attendanceStatus == 'presente') {
+      _handleStudentJoinedNotification(studentName, data);
+    }
+    
+    // Actualizar lista de asistencia en tiempo real
+    if (attendanceStatus != null) {
+      _updateAttendanceList(studentName, attendanceStatus, timestamp);
+    }
+  }
+
+  /// ✅ NUEVO: Actualizar lista de asistencia en tiempo real
+  void _updateAttendanceList(String studentName, String status, String? timestamp) {
+    // Aquí se actualizaría la lista de asistencias en tiempo real
+    // Por ahora, recargar los datos
+    _loadEventAttendances();
+  }
+
+  /// ✅ NUEVO: Manejar actualización de ubicación de estudiante
+  void _handleStudentLocationUpdate(Map<String, dynamic> data) {
+    final studentName = data['studentName'] as String? ?? 'Estudiante';
+    final latitude = data['latitude'] as double?;
+    final longitude = data['longitude'] as double?;
+    
+    debugPrint('📍 Actualización de ubicación: $studentName ($latitude, $longitude)');
+  }
+
+  /// ✅ NUEVO: Manejar violación de geofence via WebSocket
+  void _handleWebSocketGeofenceViolation(Map<String, dynamic> data) {
+    final studentName = data['studentName'] as String? ?? 'Estudiante';
+    final gracePeriodSeconds = data['gracePeriodSeconds'] as int? ?? 60;
+    
+    debugPrint('⚠️ Violación de geofence: $studentName (${gracePeriodSeconds}s de gracia)');
+    
+    // ✅ USAR MÉTODO DE NOTIFICACIÓN PARA PROFESORES
+    _handleStudentLeftAreaNotification(studentName, data);
+  }
+
+  /// ✅ NUEVO: Manejar actualización de métricas via WebSocket
+  void _handleWebSocketMetricsUpdate(Map<String, dynamic> data) {
+    final totalStudents = data['totalStudents'] as int? ?? 0;
+    final presentStudents = data['presentStudents'] as int? ?? 0;
+    
+    debugPrint('📊 Métricas actualizadas via WebSocket: $presentStudents/$totalStudents estudiantes');
+    
+    // ✅ USAR MÉTODO DE NOTIFICACIÓN PARA ACTUALIZACIONES DE ASISTENCIA
+    _handleAttendanceCountUpdate(data);
+    
+    setState(() {
+      _totalStudentsExpected = totalStudents;
+      _studentsPresent = presentStudents;
+    });
+  }
+
+  /// ✅ NUEVO: Mostrar notificación al profesor
+  void _showTeacherNotification(Map<String, dynamic> data) {
+    final messageType = data['type'] as String?;
+    final studentName = data['studentName'] as String? ?? 'Estudiante';
+    
+    String message = '';
+    Color color = Colors.orange;
+    
+    switch (messageType) {
+      case 'attendance_update':
+        message = '$studentName registró asistencia';
+        color = Colors.green;
+        break;
+      case 'geofence_violation':
+        message = '$studentName salió del área del evento';
+        color = Colors.orange;
+        break;
+      case 'student_joined':
+        message = '$studentName se unió al evento';
+        color = Colors.blue;
+        break;
+      case 'multiple_students':
+        final count = data['count'] as int? ?? 2;
+        message = '$count estudiantes realizaron acciones';
+        color = Colors.blue;
+        // ✅ USAR MÉTODO PARA MÚLTIPLES ESTUDIANTES
+        _handleMultipleStudentsUpdate(data);
+        break;
+    }
+    
+    if (message.isNotEmpty && mounted) {
+      // ✅ USAR MÉTODO UNIFICADO DE NOTIFICACIONES CON COLOR
+      _showNotification('Actualización del Evento', message, backgroundColor: color);
+    }
+  }
+
+  /// ✅ NUEVO: Mostrar error de conexión
+  void _showConnectionError() {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🚫 Sin permisos para monitorear este evento'),
+          content: Text('❌ Error de conexión WebSocket'),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 4),
+          duration: Duration(seconds: 5),
         ),
       );
+    }
+  }
+
+  /// ✅ NUEVO: Limpiar conexión WebSocket
+  void _cleanupWebSocketConnection() async {
+    try {
+      await _wsSubscription.cancel();
+      await WebSocketService.instance.disconnect();
+      debugPrint('✅ WebSocket connection cleaned up');
+    } catch (e) {
+      debugPrint('❌ Error cleaning up WebSocket: $e');
     }
   }
 }

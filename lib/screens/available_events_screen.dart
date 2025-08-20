@@ -1,11 +1,13 @@
-// lib/screens/available_events_screen.dart - FASE C CON VALIDACIONES DE SEGURIDAD
+// lib/screens/available_events_screen.dart - INTEGRACIÓN COMPLETA EVENTOS-ASISTENCIA
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../services/evento_service.dart';
+import '../services/storage_service.dart';
+import '../services/permission_service.dart';
 import '../models/evento_model.dart';
+import '../models/usuario_model.dart';
 import '../utils/app_router.dart';
-import '../widgets/event_attendance_card.dart';
-// 🔒 NUEVOS IMPORTS PARA VALIDACIONES DE SEGURIDAD FASE C
+import '../core/app_constants.dart';
 
 class AvailableEventsScreen extends StatefulWidget {
   const AvailableEventsScreen({super.key});
@@ -16,13 +18,12 @@ class AvailableEventsScreen extends StatefulWidget {
 
 class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
   final EventoService _eventoService = EventoService();
-
-  // 🔒 SERVICIOS DE VALIDACIÓN FASE C
+  final StorageService _storageService = StorageService();
+  final PermissionService _permissionService = PermissionService();
 
   List<Evento> _eventos = [];
+  Usuario? _currentUser;
   bool _isLoading = true;
-
-  // 🔒 ESTADO DE VALIDACIONES
   bool _isValidatingPermissions = false;
 
   @override
@@ -31,21 +32,40 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
     _loadEvents();
   }
 
+  /// ✅ NUEVO: Método que realmente funciona para unirse al evento
   Future<void> _handleJoinEventWithValidations(Evento evento) async {
-    debugPrint('🎯 Usuario seleccionó evento: ${evento.titulo}');
-
     if (_isValidatingPermissions) return;
 
     setState(() => _isValidatingPermissions = true);
 
     try {
-      // ✅ NAVEGACIÓN DIRECTA - El AttendanceTrackingScreen manejará permisos
-      debugPrint('✅ Navegando al tracking de asistencia');
-      _navigateToEventSafely(evento);
+      debugPrint('🎯 Uniéndose al evento: ${evento.titulo}');
+      
+      // 1. Validar que el evento esté activo
+      if (!evento.isActive) {
+        AppRouter.showSnackBar('❌ El evento no está activo', isError: true);
+        return;
+      }
+      
+      // 2. Validar permisos de ubicación
+      final hasPermissions = await _permissionService.validateAllPermissionsForTracking();
+      
+      if (!hasPermissions) {
+        AppRouter.showSnackBar('❌ Se requieren permisos de ubicación', isError: true);
+        return;
+      }
+      
+      // 3. Navegar a pantalla de tracking con evento específico
+      AppRouter.goToAttendanceTracking(
+        userName: _currentUser?.nombre ?? 'Usuario',
+        eventoId: evento.id,
+      );
+      
+      debugPrint('✅ Navegando a tracking para evento: ${evento.id}');
       
     } catch (e) {
-      debugPrint('❌ Error: $e');
-      AppRouter.showSnackBar('Error: $e', isError: true);
+      debugPrint('❌ Error joining event: $e');
+      AppRouter.showSnackBar('❌ Error uniéndose al evento: $e', isError: true);
     } finally {
       setState(() => _isValidatingPermissions = false);
     }
@@ -53,30 +73,13 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
 
 
 
-  // 🔒 NAVEGACIÓN SEGURA (SOLO DESPUÉS DE VALIDACIONES)
-  void _navigateToEventSafely(Evento evento) {
-    if (!mounted) return;
-
-    debugPrint('🚀 Navegando de forma segura a evento: ${evento.titulo}');
-
-    // Navegar al attendance tracking con todos los permisos validados
-    Navigator.pushNamed(
-      context,
-      '/attendance-tracking',
-      arguments: {
-        'userName': 'Estudiante',
-        'eventoId': evento.id,
-        'permissionsValidated': true,
-        'preciseLocationGranted': true,
-        'backgroundPermissionsGranted': true,
-        'batteryOptimizationDisabled': true,
-      },
-    );
-  }
 
   Future<void> _loadEvents() async {
     setState(() => _isLoading = true);
     try {
+      // Cargar usuario actual
+      _currentUser = await _storageService.getUser();
+      
       debugPrint('📋 Cargando eventos disponibles...');
       final eventos = await _eventoService.obtenerEventos();
       
@@ -155,10 +158,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
           padding: const EdgeInsets.only(bottom: 12),
           child: Stack(
             children: [
-              EventAttendanceCard(
-                evento: evento,
-                onGoToLocation: () => _handleJoinEventWithValidations(evento),
-              ),
+              _buildEventCard(evento),
               // Overlay de loading durante validaciones
               if (_isValidatingPermissions)
                 Positioned.fill(
@@ -194,6 +194,136 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
         );
       },
     );
+  }
+  
+  /// ✅ NUEVO: Event card personalizada con botón Join Event funcional
+  Widget _buildEventCard(Evento evento) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header con estado
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    evento.titulo,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkGray,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: evento.isActive ? Colors.green : Colors.grey,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    evento.isActive ? 'ACTIVO' : 'INACTIVO',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // Información del evento
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 16, color: AppColors.textGray),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    evento.lugar ?? 'Sin ubicación',
+                    style: const TextStyle(fontSize: 14, color: AppColors.textGray),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 4),
+            
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 16, color: AppColors.textGray),
+                const SizedBox(width: 4),
+                Text(
+                  _formatEventDate(evento.fecha),
+                  style: const TextStyle(fontSize: 14, color: AppColors.textGray),
+                ),
+                const SizedBox(width: 16),
+                const Icon(Icons.access_time, size: 16, color: AppColors.textGray),
+                const SizedBox(width: 4),
+                Text(
+                  '${_formatTime(evento.horaInicio)} - ${_formatTime(evento.horaFinal)}',
+                  style: const TextStyle(fontSize: 14, color: AppColors.textGray),
+                ),
+              ],
+            ),
+            
+            if (evento.descripcion != null && evento.descripcion!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                evento.descripcion!,
+                style: const TextStyle(fontSize: 14, color: AppColors.darkGray),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            
+            const SizedBox(height: 16),
+            
+            // ✅ BOTÓN JOIN EVENT FUNCIONAL
+            if (_currentUser?.rol == AppConstants.estudianteRole) ...[
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleJoinEventWithValidations(evento),
+                  icon: const Icon(Icons.location_on),
+                  label: const Text('UNIRSE AL EVENTO'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: evento.isActive 
+                        ? AppColors.primaryOrange 
+                        : Colors.grey,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+  
+  String _formatEventDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final eventDate = DateTime(date.year, date.month, date.day);
+    
+    if (eventDate == today) {
+      return 'Hoy';
+    } else if (eventDate == today.add(const Duration(days: 1))) {
+      return 'Mañana';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+  
+  String _formatTime(DateTime time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _buildEmptyState() {

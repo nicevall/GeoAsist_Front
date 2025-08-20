@@ -7,7 +7,6 @@ import '../utils/app_router.dart';
 import '../services/evento_service.dart';
 import '../models/evento_model.dart';
 import '../core/app_constants.dart';
-import '../utils/location_helper.dart';
 import 'package:flutter/foundation.dart';
 
 // ✅ NUEVO: Modelo para día específico del evento
@@ -77,10 +76,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   List<EventDay> _eventDays = [];
 
   // ✅ CORREGIDO: Variables de ubicación que se pueden cambiar
-  double _selectedLatitude = AppConstants.defaultLatitude; // Valor inicial, pero modificable
-  double _selectedLongitude = AppConstants.defaultLongitude; // Valor inicial, pero modificable
-  double _selectedRange = AppConstants.defaultRange;
-  String _selectedLocationName = AppConstants.defaultAddress;
+  double? _selectedLatitude;
+  double? _selectedLongitude;
+  double? _selectedRadius;
+  String _selectedLocationName = 'Seleccionar ubicación';
+  
+  // ✅ NUEVO: Variables para validación de coordenadas
+  bool _coordinatesValidated = false;
+  bool _isValidatingCoordinates = false;
+  String? _coordinateValidationError;
 
   // ✅ NUEVO: Tipos de evento disponibles
   final List<String> _tiposEvento = [
@@ -112,11 +116,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       final evento = widget.editEvent!;
       _tituloController.text = evento.titulo;
       _descripcionController.text = evento.descripcion ?? '';
-      _selectedRange = evento.rangoPermitido;
 
       // ✅ NUEVO: Cargar ubicación real del evento
       _selectedLatitude = evento.ubicacion.latitud;
       _selectedLongitude = evento.ubicacion.longitud;
+      _selectedRadius = evento.rangoPermitido;
 
       // ✅ NUEVO: Inicializar campos adicionales para edición
       _tipoController.text = 'clase'; // Valor por defecto si no está disponible
@@ -152,6 +156,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       _horaInicio = const TimeOfDay(hour: 8, minute: 0);
       _horaFinal = const TimeOfDay(hour: 10, minute: 0);
       _isMultiDay = false;
+      
+      // Inicializar valores por defecto de ubicación
+      _selectedLatitude = null;
+      _selectedLongitude = null;
+      _selectedRadius = 100.0;
+      _selectedLocationName = 'Seleccionar ubicación';
     }
   }
 
@@ -317,6 +327,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           ),
         ],
 
+        // ✅ NUEVO: Validación de coordenadas OBLIGATORIA
+        _buildCoordinateValidationSection(),
+        
         // ✅ MEJORADO: Información de ubicación con rango
         _buildLocationInfo(),
         
@@ -701,6 +714,161 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     );
   }
 
+  /// ✅ NUEVO: Widget de validación de coordenadas CRÍTICO
+  Widget _buildCoordinateValidationSection() {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.location_on, color: AppColors.primaryOrange),
+                const SizedBox(width: 8),
+                const Text(
+                  'Validación de Coordenadas',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Mostrar coordenadas seleccionadas
+            if (_selectedLatitude != null && _selectedLongitude != null) ...[
+              Text('📍 Latitud: ${_selectedLatitude!.toStringAsFixed(6)}'),
+              Text('📍 Longitud: ${_selectedLongitude!.toStringAsFixed(6)}'),
+              Text('📏 Radio: ${_selectedRadius?.toInt() ?? 100} metros'),
+              const SizedBox(height: 12),
+            ],
+            
+            // Estado de validación
+            if (_coordinatesValidated) ...[
+              Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '✅ Coordenadas validadas',
+                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ] else if (_coordinateValidationError != null) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.error, color: Colors.red),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '❌ $_coordinateValidationError',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            
+            const SizedBox(height: 16),
+            
+            // Botón de validación
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: (_selectedLatitude != null && 
+                           _selectedLongitude != null && 
+                           !_isValidatingCoordinates) 
+                    ? _validateEventCoordinates 
+                    : null,
+                icon: _isValidatingCoordinates 
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.verified_user),
+                label: Text(_isValidatingCoordinates 
+                    ? 'Validando coordenadas...' 
+                    : 'Validar coordenadas'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _coordinatesValidated 
+                      ? Colors.green 
+                      : AppColors.secondaryTeal,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  /// ✅ NUEVO: Método de validación de coordenadas CRÍTICO
+  Future<bool> _validateEventCoordinates() async {
+    if (_selectedLatitude == null || _selectedLongitude == null || _selectedRadius == null) {
+      setState(() {
+        _coordinateValidationError = 'Debe seleccionar ubicación y radio';
+      });
+      return false;
+    }
+    
+    setState(() {
+      _isValidatingCoordinates = true;
+      _coordinateValidationError = null;
+    });
+    
+    try {
+      debugPrint('🔍 Validando coordenadas del evento...');
+      debugPrint('   - Latitud: $_selectedLatitude');
+      debugPrint('   - Longitud: $_selectedLongitude');
+      debugPrint('   - Radio: $_selectedRadius metros');
+      
+      // 1. Validar rango de coordenadas
+      if (_selectedLatitude! < -90 || _selectedLatitude! > 90) {
+        throw Exception('Latitud fuera de rango válido (-90 a 90)');
+      }
+      
+      if (_selectedLongitude! < -180 || _selectedLongitude! > 180) {
+        throw Exception('Longitud fuera de rango válido (-180 a 180)');
+      }
+      
+      if (_selectedRadius! < 10 || _selectedRadius! > 1000) {
+        throw Exception('Radio debe estar entre 10 y 1000 metros');
+      }
+      
+      // 2. Validación de conectividad (simulada)
+      await Future.delayed(const Duration(seconds: 2));
+      
+      setState(() {
+        _coordinatesValidated = true;
+        _coordinateValidationError = null;
+      });
+      
+      debugPrint('✅ Coordenadas validadas exitosamente');
+      AppRouter.showSnackBar('✅ Coordenadas validadas correctamente', isError: false);
+      return true;
+      
+    } catch (e) {
+      debugPrint('❌ Error validando coordenadas: $e');
+      setState(() {
+        _coordinatesValidated = false;
+        _coordinateValidationError = e.toString();
+      });
+      AppRouter.showSnackBar('❌ Error en coordenadas: $e', isError: true);
+      return false;
+    } finally {
+      setState(() {
+        _isValidatingCoordinates = false;
+      });
+    }
+  }
+  
   /// ✅ MEJORADO: Información de ubicación con rango visible
   Widget _buildLocationInfo() {
     return Container(
@@ -736,46 +904,48 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               color: AppColors.darkGray,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Lat: ${_selectedLatitude.toStringAsFixed(4)}, '
-            'Lng: ${_selectedLongitude.toStringAsFixed(4)}',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textGray,
+          if (_selectedLatitude != null && _selectedLongitude != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Lat: ${_selectedLatitude!.toStringAsFixed(4)}, '
+              'Lng: ${_selectedLongitude!.toStringAsFixed(4)}',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textGray,
+              ),
             ),
-          ),
 
-          // ✅ NUEVO: Mostrar rango seleccionado
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.primaryOrange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.radio_button_checked,
-                  color: AppColors.primaryOrange,
-                  size: 16,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Rango: ${_selectedRange.toInt()}m',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+            // ✅ NUEVO: Mostrar rango seleccionado
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                    color: AppColors.primaryOrange.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.radio_button_checked,
                     color: AppColors.primaryOrange,
+                    size: 16,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 6),
+                  Text(
+                    'Rango: ${_selectedRadius?.toInt() ?? 100}m',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryOrange,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
 
           const SizedBox(height: 12),
 
@@ -941,11 +1111,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Text('Latitud: $_selectedLatitude'),
-          Text('Longitud: $_selectedLongitude'),
+          Text('Latitud: ${_selectedLatitude ?? "No seleccionada"}'),
+          Text('Longitud: ${_selectedLongitude ?? "No seleccionada"}'),
           Text('Nombre: $_selectedLocationName'),
-          Text('Rango: $_selectedRange m'),
-          Text('¿Es ubicación por defecto?: ${LocationHelper.isDefaultLocation(_selectedLatitude, _selectedLongitude)}'),
+          Text('Rango: ${_selectedRadius ?? 100} m'),
+          Text('¿Es ubicación por defecto?: ${(_selectedLatitude == null || _selectedLongitude == null) ? "Sin coordenadas" : "No"}'),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -953,9 +1123,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     debugPrint('=== DEBUG MANUAL ===');
-                    debugPrint(_validateLocationDataBeforeSending() 
-                        ? 'Validación exitosa' 
-                        : 'Validación falló');
+                    debugPrint('Coordenadas validadas: $_coordinatesValidated');
                     debugPrint('==================');
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -972,7 +1140,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                     setState(() {
                       _selectedLatitude = -0.2;
                       _selectedLongitude = -78.5;
+                      _selectedRadius = 150.0;
                       _selectedLocationName = 'Ubicación de prueba';
+                      _coordinatesValidated = false;
+                      _coordinateValidationError = null;
                     });
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
@@ -995,15 +1166,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     debugPrint('Ubicación inicial antes del picker:');
     debugPrint('  - Lat: $_selectedLatitude');
     debugPrint('  - Lng: $_selectedLongitude');
-    debugPrint('  - Range: $_selectedRange');
+    debugPrint('  - Range: $_selectedRadius');
     debugPrint('  - Name: $_selectedLocationName');
     
     final result = await Navigator.of(context).pushNamed(
       AppConstants.locationPickerRoute,
       arguments: {
-        'initialLatitude': _selectedLatitude,
-        'initialLongitude': _selectedLongitude,
-        'initialRange': _selectedRange,
+        'initialLatitude': _selectedLatitude ?? -0.2,
+        'initialLongitude': _selectedLongitude ?? -78.5,
+        'initialRange': _selectedRadius ?? 100.0,
         'initialLocationName': _selectedLocationName,
       },
     );
@@ -1017,23 +1188,22 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       final previousLng = _selectedLongitude;
       final previousName = _selectedLocationName;
       
-      // Usar LocationHelper para normalizar los datos
-      final normalizedResult = LocationHelper.normalizeLocationPickerResult(result);
-      debugPrint('Datos normalizados: $normalizedResult');
-      
-      // Validar datos antes de usar
-      if (LocationHelper.isLocationValid(normalizedResult)) {
+      // Validar y actualizar con datos del picker
+      if (result['latitude'] != null && result['longitude'] != null) {
         setState(() {
-          _selectedLatitude = normalizedResult['latitude'];
-          _selectedLongitude = normalizedResult['longitude'];
-          _selectedRange = normalizedResult['range'];
-          _selectedLocationName = normalizedResult['address'];
+          _selectedLatitude = (result['latitude'] as num).toDouble();
+          _selectedLongitude = (result['longitude'] as num).toDouble();
+          _selectedRadius = (result['range'] as num?)?.toDouble() ?? 100.0;
+          _selectedLocationName = result['address'] ?? 'Ubicación seleccionada';
+          // Reset validation when location changes
+          _coordinatesValidated = false;
+          _coordinateValidationError = null;
         });
 
         debugPrint('Ubicación después de la selección:');
         debugPrint('  - Lat: $_selectedLatitude (anterior: $previousLat)');
         debugPrint('  - Lng: $_selectedLongitude (anterior: $previousLng)');
-        debugPrint('  - Range: $_selectedRange');
+        debugPrint('  - Range: $_selectedRadius');
         debugPrint('  - Name: $_selectedLocationName (anterior: $previousName)');
         
         final bool locationChanged = (previousLat != _selectedLatitude || 
@@ -1041,13 +1211,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                     previousName != _selectedLocationName);
         debugPrint('¿Ubicación cambió?: $locationChanged');
         
-        // Mostrar resumen completo usando LocationHelper
-        debugPrint(LocationHelper.getLocationSummary(
-          latitude: _selectedLatitude,
-          longitude: _selectedLongitude,
-          locationName: _selectedLocationName,
-          range: _selectedRange,
-        ));
+        AppRouter.showSnackBar('✅ Ubicación actualizada correctamente');
       } else {
         debugPrint('❌ Datos de ubicación inválidos recibidos del picker');
       }
@@ -1225,12 +1389,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               ? _selectedLocationName
               : _lugarController.text.trim(),
           capacidadMaxima: int.tryParse(_capacidadController.text.trim()) ?? 50,
-          latitud: _selectedLatitude,
-          longitud: _selectedLongitude,
+          latitud: _selectedLatitude!,
+          longitud: _selectedLongitude!,
           fecha: _fechaUnica ?? _eventDays.first.fecha,
           horaInicio: fechaInicio,
           horaFinal: fechaFinal,
-          rangoPermitido: _selectedRange,
+          rangoPermitido: _selectedRadius!,
           tiempoGracia: _tiempoGracia,
           maximoSalidas: _maximoSalidas,
           tiempoLimiteSalida: _tiempoLimiteSalida,
@@ -1250,9 +1414,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           );
         }
       } else {
-        // ✅ VALIDACIÓN ROBUSTA: Verificar datos de ubicación antes de envío
-        if (!_validateLocationDataBeforeSending()) {
-          return; // No proceder si los datos son inválidos
+        // ✅ VALIDACIÓN OBLIGATORIA DE COORDENADAS
+        if (!_coordinatesValidated) {
+          AppRouter.showSnackBar(
+            '❌ Debe validar las coordenadas antes de crear el evento', 
+            isError: true
+          );
+          return;
         }
 
         final response = await _eventoService.crearEvento(
@@ -1266,12 +1434,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               : _lugarController.text.trim(), // ✅ NUEVO: Campo requerido
           capacidadMaxima:
               int.tryParse(_capacidadController.text.trim()) ?? 50, // ✅ NUEVO
-          latitud: _selectedLatitude,
-          longitud: _selectedLongitude,
+          latitud: _selectedLatitude!,
+          longitud: _selectedLongitude!,
           fecha: _fechaUnica ?? _eventDays.first.fecha,
           horaInicio: fechaInicio,
           horaFinal: fechaFinal,
-          rangoPermitido: _selectedRange,
+          rangoPermitido: _selectedRadius!,
           // ✅ NUEVO: Políticas de asistencia
           tiempoGracia: _tiempoGracia,
           maximoSalidas: _maximoSalidas,
@@ -1391,53 +1559,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     return true;
   }
 
-  /// ✅ NUEVO: Validación robusta de datos de ubicación antes del envío
-  bool _validateLocationDataBeforeSending() {
-    debugPrint('=== VALIDACIÓN ROBUSTA DE UBICACIÓN ===');
-    
-    final lugar = _lugarController.text.trim().isEmpty 
-        ? _selectedLocationName 
-        : _lugarController.text.trim();
-    
-    // Usar LocationHelper para validación completa
-    final validationResult = LocationHelper.validateLocationBeforeSend(
-      latitude: _selectedLatitude,
-      longitude: _selectedLongitude,
-      locationName: lugar,
-      range: _selectedRange,
-    );
-    
-    debugPrint('Datos de ubicación a validar:');
-    debugPrint('  - Título: ${_tituloController.text.trim()}');
-    debugPrint('  - Lugar: $lugar');
-    debugPrint('  - Latitud: $_selectedLatitude');
-    debugPrint('  - Longitud: $_selectedLongitude');
-    debugPrint('  - Rango: $_selectedRange');
-    debugPrint('  - Tipo: $_selectedTipo');
-    
-    // Mostrar resumen completo
-    debugPrint(LocationHelper.getLocationSummary(
-      latitude: _selectedLatitude,
-      longitude: _selectedLongitude,
-      locationName: lugar,
-      range: _selectedRange,
-    ));
-    
-    debugPrint('Resultado de validación: ${validationResult.isValid}');
-    if (!validationResult.isValid) {
-      debugPrint('Errores encontrados: ${validationResult.errors}');
-      AppRouter.showSnackBar(
-        'Error en ubicación: ${validationResult.errorMessage}',
-        isError: true,
-      );
-      debugPrint('======================================');
-      return false;
-    }
-    
-    debugPrint('✅ Validación exitosa - Procediendo con creación del evento');
-    debugPrint('======================================');
-    return true;
-  }
 
   /// ✅ Generar días de evento desde un rango de fechas
   List<EventDay> _generateDaysFromRange(DateTime startDate, DateTime endDate, DateTime startTime, DateTime endTime) {

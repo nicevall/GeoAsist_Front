@@ -40,14 +40,27 @@ class _MyEventsManagementScreenState extends State<MyEventsManagementScreen> {
       _currentUser = await _storageService.getUser();
       
       if (_currentUser?.rol == AppConstants.docenteRole) {
-        // Cargar eventos del profesor
+        // ✅ PROFESOR: Solo sus eventos
+        debugPrint('📚 Cargando eventos del profesor: ${_currentUser!.id}');
         final eventos = await _eventoService.getEventosByCreador(_currentUser!.id);
         setState(() {
           _userEvents = eventos;
           _isLoading = false;
         });
+        debugPrint('✅ Profesor: Cargados ${eventos.length} eventos');
+        
+      } else if (_currentUser?.rol == AppConstants.adminRole) {
+        // ✅ ADMIN: Todos los eventos
+        debugPrint('👑 Cargando todos los eventos (admin)');
+        final eventos = await _eventoService.obtenerEventos();
+        setState(() {
+          _userEvents = eventos;
+          _isLoading = false;
+        });
+        debugPrint('✅ Admin: Cargados ${eventos.length} eventos');
+        
       } else {
-        throw Exception('Acceso no autorizado');
+        throw Exception('Rol no autorizado para gestión de eventos');
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -383,27 +396,36 @@ class _MyEventsManagementScreenState extends State<MyEventsManagementScreen> {
                 
                 const SizedBox(height: 16),
                 
-                // Botones de acción
+                // ✅ BOTONES DE ACCIÓN CON MONITOREO
                 Row(
                   children: [
-                    Expanded(
-                      child: _buildActionButton(
-                        icon: Icons.visibility,
-                        label: 'Ver Detalles',
-                        color: AppColors.secondaryTeal,
-                        onPressed: () => _navigateToEventDetails(evento),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
+                    // Editar evento
                     Expanded(
                       child: _buildActionButton(
                         icon: Icons.edit,
                         label: 'Editar',
-                        color: AppColors.primaryOrange,
+                        color: AppColors.secondaryTeal,
                         onPressed: () => _navigateToEditEvent(evento),
                       ),
                     ),
+                    
                     const SizedBox(width: 8),
+                    
+                    // ✅ MONITOREO EN TIEMPO REAL
+                    if (evento.isActive) ...[
+                      Expanded(
+                        child: _buildActionButton(
+                          icon: Icons.monitor,
+                          label: 'Monitor',
+                          color: AppColors.primaryOrange,
+                          onPressed: () => _startEventMonitoring(evento),
+                        ),
+                      ),
+                      
+                      const SizedBox(width: 8),
+                    ],
+                    
+                    // Eliminar evento
                     Expanded(
                       child: _buildActionButton(
                         icon: Icons.delete,
@@ -522,15 +544,24 @@ class _MyEventsManagementScreenState extends State<MyEventsManagementScreen> {
   }
 
   // Métodos de navegación y acciones
-  void _navigateToEventDetails(Evento evento) {
-    AppRouter.goToEventMonitor(
-      eventId: evento.id!,
-      teacherName: _currentUser?.nombre ?? 'Profesor',
-    );
-  }
-
   void _navigateToEditEvent(Evento evento) {
     AppRouter.goToCreateEvent(editEvent: evento);
+  }
+
+  /// ✅ MÉTODO DE MONITOREO FUNCIONAL
+  Future<void> _startEventMonitoring(Evento evento) async {
+    try {
+      debugPrint('📊 Iniciando monitoreo del evento: ${evento.titulo}');
+      
+      AppRouter.goToEventMonitor(
+        eventId: evento.id!,
+        teacherName: _currentUser?.nombre ?? 'Profesor',
+      );
+      
+    } catch (e) {
+      debugPrint('❌ Error iniciando monitoreo: $e');
+      AppRouter.showSnackBar('❌ Error iniciando monitoreo: $e', isError: true);
+    }
   }
 
   Future<void> _confirmDeleteEvent(Evento evento) async {

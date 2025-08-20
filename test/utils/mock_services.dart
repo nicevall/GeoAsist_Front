@@ -1,6 +1,7 @@
 // test/utils/mock_services.dart
 
 import 'dart:async';
+import 'package:flutter/foundation.dart'; // Para debugPrint
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:geolocator/geolocator.dart';
@@ -123,9 +124,13 @@ class MockNotificationManager extends Mock implements NotificationManager {
     _notificationHistory.add('grace_period_started:$remainingSeconds');
   }
   
+  // ✅ CORREGIR: Signature correcta con parámetros nombrados
   @override
-  Future<void> showAttendanceRegisteredNotification() async {
-    _notificationHistory.add('attendance_registered');
+  Future<void> showAttendanceRegisteredNotification({
+    String? eventName,
+    String? status,
+  }) async {
+    _notificationHistory.add('attendance_registered:$eventName:$status');
   }
   
   @override
@@ -147,17 +152,88 @@ class MockTeacherNotificationService extends Mock implements TeacherNotification
 class MockStudentNotificationService extends Mock implements StudentNotificationService {}
 
 class MockBackgroundLocationService extends Mock implements BackgroundLocationService {
-  bool _isRunning = false;
-  
-  Future<void> startTracking() async {
-    _isRunning = true;
+  bool _isTracking = false;
+  bool _isInitialized = false;
+  String? _currentEventId;
+
+  // ✅ AGREGAR: Métodos requeridos por la interfaz actual
+  @override
+  Map<String, dynamic> getTrackingStatus() {
+    return {
+      'isInitialized': _isInitialized,
+      'isTracking': _isTracking,
+      'hasActiveTimer': _isTracking,
+      'hasLocationService': true,
+      'instanceHash': hashCode,
+      'currentEventId': _currentEventId,
+      'isPaused': false,
+    };
   }
-  
-  Future<void> stopTracking() async {
-    _isRunning = false;
+
+  @override
+  Future<bool> startContinuousTracking({
+    required String userId,
+    required String eventoId,
+    Duration interval = const Duration(minutes: 2),
+  }) async {
+    _isTracking = true;
+    _currentEventId = eventoId;
+    debugPrint('🔋 Mock: Background tracking started for event $eventoId');
+    return true;
   }
-  
-  bool get isRunning => _isRunning;
+
+  @override
+  void stopTracking() {
+    _isTracking = false;
+    _currentEventId = null;
+    debugPrint('🔋 Mock: Background tracking stopped');
+  }
+
+  @override
+  Future<void> startEventTracking(String eventoId) async {
+    _isTracking = true;
+    _currentEventId = eventoId;
+    debugPrint('🔋 Mock: Event tracking started for $eventoId');
+  }
+
+  @override
+  Future<void> stopEventTracking() async {
+    _isTracking = false;
+    _currentEventId = null;
+    debugPrint('🔋 Mock: Event tracking stopped');
+  }
+
+  @override
+  Future<void> pauseTracking() async {
+    debugPrint('🔋 Mock: Tracking paused');
+  }
+
+  @override
+  Future<void> resumeTracking(String eventoId) async {
+    _currentEventId = eventoId;
+    debugPrint('🔋 Mock: Tracking resumed for $eventoId');
+  }
+
+  @override
+  bool get isTracking => _isTracking;
+
+  @override
+  bool get isInitialized => _isInitialized;
+
+  @override
+  Future<void> dispose() async {
+    _isTracking = false;
+    _isInitialized = false;
+    _currentEventId = null;
+    debugPrint('🔋 Mock: BackgroundLocationService disposed');
+  }
+
+  // ✅ MÉTODO PARA TESTING
+  static MockBackgroundLocationService createInitialized() {
+    final mock = MockBackgroundLocationService();
+    mock._isInitialized = true;
+    return mock;
+  }
 }
 
 class MockApiService extends Mock implements ApiService {

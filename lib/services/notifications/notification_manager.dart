@@ -6,7 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
 import '../../models/student_notification_model.dart';
 
-/// Sistema de notificaciones simple y funcional para Fase C
+/// Sistema de notificaciones inteligente y sincronizado con WebSocket
 class NotificationManager {
   static final NotificationManager _instance = NotificationManager._internal();
   factory NotificationManager() => _instance;
@@ -35,6 +35,10 @@ class NotificationManager {
   // 🎯 PLUGIN DE NOTIFICACIONES
   late FlutterLocalNotificationsPlugin _notifications;
   bool _isInitialized = false;
+  
+  // ✅ CONTROL INTELIGENTE DE DUPLICADAS
+  final Set<String> _sentNotifications = <String>{};
+  Timer? _notificationCleanupTimer;
 
   /// Inicializar el sistema de notificaciones
   Future<void> initialize() async {
@@ -47,6 +51,9 @@ class NotificationManager {
 
       await _configureNotificationChannels();
       await _requestPermissions();
+      
+      // ✅ INICIAR CLEANUP DE NOTIFICACIONES
+      _startNotificationCleanup();
 
       _isInitialized = true;
       debugPrint('✅ NotificationManager inicializado correctamente');
@@ -143,6 +150,131 @@ class NotificationManager {
     }
 
     debugPrint('✅ Permisos de notificación solicitados');
+  }
+  
+  /// ✅ NUEVO: Iniciar cleanup automático de notificaciones
+  void _startNotificationCleanup() {
+    _notificationCleanupTimer?.cancel();
+    _notificationCleanupTimer = Timer.periodic(
+      const Duration(minutes: 10),
+      (_) => _cleanupSentNotifications(),
+    );
+  }
+  
+  /// ✅ NUEVO: Método inteligente para evitar duplicadas
+  Future<void> _showNotificationSafe({
+    required int id,
+    required String title,
+    required String body,
+    required String type,
+    Map<String, dynamic>? data,
+  }) async {
+    final notificationKey = '$type:$title:$body';
+    
+    // Evitar duplicadas en los últimos 5 minutos
+    if (_sentNotifications.contains(notificationKey)) {
+      debugPrint('⚠️ Notificación duplicada evitada: $title');
+      return;
+    }
+    
+    _sentNotifications.add(notificationKey);
+    
+    await _showNotification(id, title, body, type, data);
+    
+    // Auto-limpiar después de 5 minutos
+    Timer(const Duration(minutes: 5), () {
+      _sentNotifications.remove(notificationKey);
+    });
+  }
+  
+  /// ✅ NUEVO: Método auxiliar para mostrar notificación
+  Future<void> _showNotification(int id, String title, String body, String type, Map<String, dynamic>? data) async {
+    try {
+      AndroidNotificationDetails? androidDetails;
+      DarwinNotificationDetails? iosDetails;
+      
+      switch (type) {
+        case 'attendance_success':
+          androidDetails = AndroidNotificationDetails(
+            _alertsChannelId,
+            'Asistencia Registrada',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+            color: const Color(0xFF27AE60),
+            icon: '@drawable/ic_success',
+          );
+          iosDetails = const DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: true,
+            sound: 'success.aiff',
+          );
+          break;
+          
+        case 'geofence_violation':
+          androidDetails = AndroidNotificationDetails(
+            _alertsChannelId,
+            'Violación de Área',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+            color: const Color(0xFFF39C12),
+            icon: '@drawable/ic_warning',
+          );
+          iosDetails = const DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: true,
+            sound: 'warning.aiff',
+          );
+          break;
+          
+        case 'event_status_change':
+          androidDetails = AndroidNotificationDetails(
+            _alertsChannelId,
+            'Estado de Evento',
+            importance: Importance.defaultImportance,
+            priority: Priority.defaultPriority,
+            playSound: true,
+            enableVibration: true,
+            color: const Color(0xFF3498DB),
+            icon: '@drawable/ic_info',
+          );
+          iosDetails = const DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: true,
+          );
+          break;
+          
+        default:
+          androidDetails = AndroidNotificationDetails(
+            _alertsChannelId,
+            'Notificaciones Generales',
+            importance: Importance.defaultImportance,
+            priority: Priority.defaultPriority,
+          );
+          iosDetails = const DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: false,
+          );
+      }
+      
+      final details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+      
+      await _notifications.show(id, title, body, details);
+      
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación: $e');
+    }
+  }
+  
+  void _cleanupSentNotifications() {
+    _sentNotifications.clear();
+    debugPrint('🧹 Cache de notificaciones limpiado');
   }
 
   // 🎯 NOTIFICACIÓN PERSISTENTE DE TRACKING
@@ -433,8 +565,8 @@ class NotificationManager {
 
   // 🎯 NOTIFICACIONES DE ASISTENCIA
 
-  /// Notificación cuando se registra asistencia
-  Future<void> showAttendanceRegisteredNotification() async {
+  /// Notificación cuando se registra asistencia (método legado)
+  Future<void> showAttendanceRegisteredNotificationLegacy() async {
     try {
       debugPrint('✅ Mostrando notificación - Asistencia registrada');
 
@@ -798,6 +930,68 @@ class NotificationManager {
     };
   }
 
+  // ✅ NOTIFICACIONES ESPECÍFICAS SINCRONIZADAS CON WEBSOCKET
+  
+  /// ✅ NUEVO: Notificación inteligente de asistencia registrada
+  Future<void> showAttendanceRegisteredNotification({
+    String? eventName,
+    String? status,
+  }) async {
+    await _showNotificationSafe(
+      id: 1001,
+      title: '✅ Asistencia Registrada',
+      body: 'Tu asistencia para ${eventName ?? "el evento"} ha sido registrada como ${status ?? "presente"}',
+      type: 'attendance_success',
+    );
+  }
+  
+  /// ✅ NUEVO: Notificación inteligente de violación de geofence
+  Future<void> showGeofenceViolationNotification({
+    required int gracePeriodSeconds,
+    String? eventName,
+  }) async {
+    await _showNotificationSafe(
+      id: 1002,
+      title: '⚠️ Fuera del Área',
+      body: 'Has salido del área de ${eventName ?? "el evento"}. Tienes ${gracePeriodSeconds}s para regresar.',
+      type: 'geofence_violation',
+    );
+  }
+  
+  /// ✅ NUEVO: Notificación inteligente de cambio de estado de evento
+  Future<void> showEventStatusChangedNotification({
+    required String eventName,
+    required String newStatus,
+  }) async {
+    String title;
+    String emoji;
+    
+    switch (newStatus.toLowerCase()) {
+      case 'en proceso':
+        title = 'Evento Iniciado';
+        emoji = '🚀';
+        break;
+      case 'finalizado':
+        title = 'Evento Finalizado';
+        emoji = '🏁';
+        break;
+      case 'cancelado':
+        title = 'Evento Cancelado';
+        emoji = '❌';
+        break;
+      default:
+        title = 'Estado de Evento Cambiado';
+        emoji = '📢';
+    }
+    
+    await _showNotificationSafe(
+      id: 1003,
+      title: '$emoji $title',
+      body: 'El evento "$eventName" ahora está $newStatus',
+      type: 'event_status_change',
+    );
+  }
+  
   Future<void> testAllNotifications() async {
     if (!kDebugMode) return; // Solo en debug mode
 

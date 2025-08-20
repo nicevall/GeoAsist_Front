@@ -6,12 +6,14 @@ import '../models/location_response_model.dart';
 import '../models/attendance_policies_model.dart';
 import '../models/evento_model.dart';
 import 'location_service.dart';
+import 'background_location_service.dart'; // ✅ NUEVO: Para tracking continuo
 import 'asistencia_service.dart'; // Para integración backend
 import 'permission_service.dart'; // Para validaciones
 import 'notifications/notification_manager.dart'; // ✅ UNIFIED: Solo NotificationManager
 import 'teacher_notification_service.dart'; // ✅ NUEVO para notificaciones docente
 import 'storage_service.dart';
 import 'evento_service.dart'; // ✅ AGREGADO para eventos
+import 'websocket_service.dart'; // ✅ NUEVO para WebSocket robusto
 import '../core/app_constants.dart';
 
 class StudentAttendanceManager {
@@ -40,12 +42,15 @@ class StudentAttendanceManager {
 
   // 🎯 DEPENDENCIAS
   final LocationService _locationService = LocationService();
+  // ✅ INICIALIZACIÓN SEGURA DE BACKGROUND SERVICE
+  BackgroundLocationService? _backgroundService;
   // ✅ UNIFIED: Usar solo NotificationManager
   final NotificationManager _notificationManager = NotificationManager();
   final TeacherNotificationService _teacherNotificationService = TeacherNotificationService(); // ✅ NUEVO
   final StorageService _storageService = StorageService();
   final AsistenciaService _asistenciaService = AsistenciaService();
   final PermissionService _permissionService = PermissionService();
+  bool _isServicesInitialized = false;
 
   // 🎯 STREAMS Y CONTROLADORES - Una sola fuente de verdad
   final StreamController<AttendanceState> _stateController =
@@ -63,6 +68,9 @@ class StudentAttendanceManager {
   Timer? _lifecycleTimer;
   Timer? _heartbeatFailureTimer; // ✅ FIXED: Track heartbeat failure timer to prevent memory leaks
   bool _isAppInForeground = true;
+  
+  // ✅ NUEVO: WebSocket integration
+  StreamSubscription<Map<String, dynamic>>? _wsSubscription;
 
   // 🎯 NUEVOS MÉTODOS PARA GRACE PERIOD
   Future<void> _triggerGracePeriod() async {
@@ -136,30 +144,44 @@ class StudentAttendanceManager {
     debugPrint('🎯 Inicializando StudentAttendanceManager (autoStart: $autoStart)');
 
     try {
-      // 1. Inicializar notificaciones críticas
+      debugPrint('🚀 Inicializando servicios de asistencia...');
+      
+      // 1. Inicializar servicios críticos con error handling
       await _notificationManager.initialize();
 
-      // 2. Validar permisos estrictos
+      // 2. ✅ INICIALIZACIÓN SEGURA DE BACKGROUND SERVICE
+      try {
+        _backgroundService = await BackgroundLocationService.getInstance();
+        debugPrint('✅ BackgroundService inicializado');
+      } catch (e) {
+        debugPrint('⚠️ BackgroundService no disponible: $e');
+        // Continuar sin background service (modo degradado)
+        _backgroundService = null;
+      }
+
+      // 3. Validar permisos estrictos
       final permissionsValid =
           await _permissionService.validateAllPermissionsForTracking();
       if (!permissionsValid) {
         throw Exception('Permisos críticos no otorgados');
       }
 
-      // 3. Cargar usuario actual
+      // 4. Cargar usuario actual
       final user = await _storageService.getUser();
       if (user != null) {
         _updateState(_currentState.copyWith(currentUser: user));
       }
 
-      // 4. ✅ NUEVO: Si autoStart=true y hay evento, activar tracking inmediatamente
+      // 5. ✅ NUEVO: Si autoStart=true y hay evento, activar tracking inmediatamente
       if (autoStart && eventId != null) {
         await _startTrackingForEvent(eventId, userId);
       }
 
-      debugPrint('✅ StudentAttendanceManager inicializado (autoStart: $autoStart)');
+      _isServicesInitialized = true;
+      debugPrint('✅ Servicios de asistencia inicializados (autoStart: $autoStart)');
     } catch (e) {
-      debugPrint('❌ Error crítico inicializando: $e');
+      debugPrint('❌ Error crítico inicializando servicios: $e');
+      _isServicesInitialized = false;
       await _notificationManager.showCriticalAppLifecycleWarning();
       rethrow;
     }
@@ -217,10 +239,13 @@ class StudentAttendanceManager {
         // Podrías mostrar una notificación genérica o manejar el error
       }
 
-      // 4. Iniciar timer de tracking (30 segundos para precisión optimizada)
+      // 4. ✅ NUEVO: Inicializar conexión WebSocket
+      await _initializeWebSocketForEvent(evento.id!);
+
+      // 5. Iniciar timer de tracking (30 segundos para precisión optimizada)
       _startTrackingTimer();
 
-      // 5. ✅ NUEVO: Iniciar heartbeat obligatorio
+      // 6. ✅ NUEVO: Iniciar heartbeat obligatorio
       _startHeartbeatTimer();
 
       // 6. ✅ NUEVO: Iniciar monitoreo de lifecycle
@@ -236,6 +261,36 @@ class StudentAttendanceManager {
         trackingStatus: TrackingStatus.error,
         lastError: 'Error iniciando tracking: $e',
       ));
+    }
+  }
+
+  /// ✅ NUEVO: Método público para iniciar tracking con background support
+  Future<bool> startAttendanceTracking({
+    required String eventoId,
+    bool enableBackgroundTracking = true,
+  }) async {
+    if (!_isServicesInitialized) {
+      debugPrint('❌ Servicios no inicializados');
+      return false;
+    }
+    
+    try {
+      // Start foreground tracking
+      _startTrackingTimer();
+      
+      // Start background tracking if available and enabled
+      if (enableBackgroundTracking && _backgroundService != null) {
+        final bgSuccess = await _backgroundService!.startContinuousTracking(
+          userId: _currentState.currentUser?.id ?? '',
+          eventoId: eventoId,
+        );
+        debugPrint(bgSuccess ? '✅ Background tracking iniciado' : '⚠️ Background tracking falló');
+      }
+      
+      return true;
+    } catch (e) {
+      debugPrint('❌ Error iniciando tracking: $e');
+      return false;
     }
   }
 
@@ -518,7 +573,10 @@ class StudentAttendanceManager {
     _heartbeatFailureTimer?.cancel(); // ✅ FIXED: Also cancel in stopTracking
     _heartbeatFailureTimer = null;
 
-    // 2. Limpiar notificaciones
+    // 2. ✅ NUEVO: Limpiar conexión WebSocket
+    _cleanupWebSocketConnection();
+
+    // 3. Limpiar notificaciones
     await _notificationManager.clearAllNotifications();
 
     // 3. Actualizar estado
@@ -589,6 +647,9 @@ class StudentAttendanceManager {
         hasRegisteredAttendance: true,
         attendanceRegisteredTime: DateTime.now(),
       ));
+
+      // ✅ NUEVO: Enviar notificación via WebSocket
+      _sendAttendanceUpdate('presente');
 
       debugPrint('✅ Asistencia registrada exitosamente');
       return true;
@@ -978,6 +1039,155 @@ class StudentAttendanceManager {
       debugPrint('✅ Pérdida de asistencia procesada');
     } catch (e) {
       debugPrint('❌ Error procesando pérdida de asistencia: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Inicializar WebSocket para el evento
+  Future<void> _initializeWebSocketForEvent(String eventoId) async {
+    try {
+      debugPrint('🔌 Inicializando WebSocket para estudiante en evento: $eventoId');
+      
+      // Obtener información del usuario actual
+      final currentUser = await _storageService.getUser();
+      if (currentUser == null) {
+        debugPrint('❌ No hay usuario logueado para WebSocket');
+        return;
+      }
+      
+      // Conectar al WebSocket
+      final connected = await WebSocketService.instance.connectToEvent(
+        eventId: eventoId,
+        userId: currentUser.id,
+        userRole: 'student',
+      );
+      
+      if (connected) {
+        // Escuchar mensajes WebSocket
+        _wsSubscription = WebSocketService.instance.messageStream.listen(
+          _handleWebSocketMessage,
+          onError: (error) {
+            debugPrint('❌ Error WebSocket en attendance manager: $error');
+          },
+        );
+        
+        debugPrint('✅ WebSocket inicializado para estudiante');
+      }
+    } catch (e) {
+      debugPrint('❌ Error configurando WebSocket: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Manejar mensajes WebSocket
+  void _handleWebSocketMessage(Map<String, dynamic> data) {
+    final messageType = data['type'] as String?;
+    
+    debugPrint('📨 Mensaje WebSocket recibido en attendance manager: $messageType');
+    
+    switch (messageType) {
+      case 'event_status_changed':
+        _handleEventStatusChanged(data);
+        break;
+        
+      case 'grace_period_started':
+        _handleGracePeriodStarted(data);
+        break;
+        
+      case 'forced_attendance_check':
+        _handleForcedAttendanceCheck(data);
+        break;
+        
+      case 'break_started':
+        _handleBreakStarted(data);
+        break;
+        
+      case 'break_ended':
+        _handleBreakEnded(data);
+        break;
+    }
+  }
+
+  /// ✅ NUEVO: Manejar cambio de estado de evento
+  void _handleEventStatusChanged(Map<String, dynamic> data) {
+    final newStatus = data['newStatus'] as String?;
+    debugPrint('📢 Estado de evento cambiado: $newStatus');
+    
+    if (newStatus == 'finalizado' || newStatus == 'cancelado') {
+      _handleEventEnded();
+    }
+  }
+
+  /// ✅ NUEVO: Manejar evento finalizado via WebSocket
+
+  /// ✅ NUEVO: Manejar período de gracia iniciado via WebSocket
+  void _handleGracePeriodStarted(Map<String, dynamic> data) {
+    final gracePeriodSeconds = data['gracePeriodSeconds'] as int? ?? 60;
+    debugPrint('⏰ Período de gracia iniciado via WebSocket: ${gracePeriodSeconds}s');
+    
+    // Iniciar período de gracia local
+    _triggerGracePeriod();
+  }
+
+  /// ✅ NUEVO: Manejar verificación forzada de asistencia
+  void _handleForcedAttendanceCheck(Map<String, dynamic> data) {
+    debugPrint('🔍 Verificación forzada de asistencia solicitada');
+    // Realizar verificación inmediata de ubicación
+    _performLocationUpdate();
+  }
+
+  /// ✅ NUEVO: Manejar inicio de receso
+  void _handleBreakStarted(Map<String, dynamic> data) {
+    final breakDurationMinutes = data['breakDurationMinutes'] as int? ?? 15;
+    debugPrint('⏸️ Receso iniciado: $breakDurationMinutes minutos');
+    
+    // Mostrar notificación de receso
+    _notificationManager.showBreakStartedNotification();
+  }
+
+  /// ✅ NUEVO: Manejar fin de receso
+  void _handleBreakEnded(Map<String, dynamic> data) {
+    debugPrint('▶️ Receso terminado');
+    
+    // Mostrar notificación de fin de receso
+    _notificationManager.showBreakEndedNotification();
+  }
+
+  /// ✅ NUEVO: Enviar actualización de asistencia via WebSocket
+  void _sendAttendanceUpdate(String status) {
+    try {
+      if (_currentState.currentEvent?.id == null || _currentState.currentUser?.id == null) {
+        debugPrint('⚠️ No hay evento o usuario para enviar update WebSocket');
+        return;
+      }
+      
+      final message = {
+        'type': 'attendance_update',
+        'eventId': _currentState.currentEvent!.id,
+        'userId': _currentState.currentUser!.id,
+        'studentName': _currentState.currentUser!.nombre,
+        'attendanceStatus': status,
+        'timestamp': DateTime.now().toIso8601String(),
+        'coordinates': {
+          'latitude': _currentState.userLatitude,
+          'longitude': _currentState.userLongitude,
+        },
+      };
+      
+      WebSocketService.instance.sendMessage(message);
+      debugPrint('📤 Actualización de asistencia enviada via WebSocket');
+      
+    } catch (e) {
+      debugPrint('❌ Error enviando update via WebSocket: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Limpiar conexión WebSocket
+  void _cleanupWebSocketConnection() async {
+    try {
+      await _wsSubscription?.cancel();
+      _wsSubscription = null;
+      debugPrint('✅ WebSocket connection cleaned up en attendance manager');
+    } catch (e) {
+      debugPrint('❌ Error limpiando WebSocket: $e');
     }
   }
 }
