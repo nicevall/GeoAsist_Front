@@ -48,6 +48,11 @@ class AppRouter {
             userName: args?['userName'] ?? 'Usuario',
             eventoId: args?['eventoId'],
             isStudentMode: args?['isStudentMode'] ?? false,
+            // ✅ AGREGAR: Parámetros de validación
+            permissionsValidated: args?['permissionsValidated'],
+            preciseLocationGranted: args?['preciseLocationGranted'],
+            backgroundPermissionsGranted: args?['backgroundPermissionsGranted'],
+            batteryOptimizationDisabled: args?['batteryOptimizationDisabled'],
           ),
         );
 
@@ -91,13 +96,49 @@ class AppRouter {
           ),
         );
 
-      // ✅ ATTENDANCE TRACKING COMO PANTALLA ESPECIALIZADA
+      // ✅ ENHANCED: Attendance Tracking con validación de parámetros
       case AppConstants.attendanceTrackingRoute:
         final args = settings.arguments as Map<String, dynamic>?;
+        
+        // Validar parámetros críticos
+        final eventoId = args?['eventoId'] as String?;
+        final userName = args?['userName'] as String?;
+        
+        if (eventoId == null || eventoId.isEmpty) {
+          return MaterialPageRoute(
+            builder: (_) => Scaffold(
+              appBar: AppBar(
+                title: const Text('Error'),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error, size: 64, color: Colors.red),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'ID de evento requerido para tracking',
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => goToDashboard(),
+                      child: const Text('Volver al Dashboard'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        
         return MaterialPageRoute(
           builder: (_) => AttendanceTrackingScreen(
-            userName: args?['userName'] ?? 'Usuario',
-            eventoId: args?['eventoId'],
+            userName: userName ?? 'Usuario',
+            eventoId: eventoId,
           ),
         );
 
@@ -408,6 +449,80 @@ class AppRouter {
   static void goToNotificationSettings() {
     Navigator.of(navigatorKey.currentContext!)
         .pushNamed(AppConstants.notificationSettingsRoute);
+  }
+
+  /// ✅ ENHANCED: Helper para navegación de asistencia con validación
+  static void goToAttendanceTrackingEnhanced({
+    required String eventoId,
+    required String userName,
+  }) {
+    if (eventoId.isEmpty) {
+      showSnackBar('ID de evento requerido para tracking', isError: true);
+      return;
+    }
+    
+    navigatorKey.currentState?.pushNamed(
+      AppConstants.attendanceTrackingRoute,
+      arguments: {
+        'eventoId': eventoId,
+        'userName': userName,
+      },
+    );
+  }
+
+  /// ✅ ENHANCED: Helper para join event directo con validaciones
+  static void joinEventAsStudent({
+    required String eventoId,
+    required String userName,
+    bool permissionsValidated = false,
+    bool preciseLocationGranted = false,
+    bool backgroundPermissionsGranted = false,
+    bool batteryOptimizationDisabled = false,
+  }) {
+    if (eventoId.isEmpty) {
+      showSnackBar('ID de evento requerido', isError: true);
+      return;
+    }
+
+    navigatorKey.currentState?.pushNamed(
+      AppConstants.mapViewRoute,
+      arguments: {
+        'isStudentMode': true,
+        'userName': userName,
+        'eventoId': eventoId,
+        'isAdminMode': false,
+        'permissionsValidated': permissionsValidated,
+        'preciseLocationGranted': preciseLocationGranted,
+        'backgroundPermissionsGranted': backgroundPermissionsGranted,
+        'batteryOptimizationDisabled': batteryOptimizationDisabled,
+      },
+    );
+  }
+
+  /// ✅ ENHANCED: Helper para ir a MapView con todos los parámetros
+  static void goToMapViewWithValidations({
+    required String eventoId,
+    required String userName,
+    required bool isStudentMode,
+    required bool isAdminMode,
+    bool permissionsValidated = true,
+    bool preciseLocationGranted = true,
+    bool backgroundPermissionsGranted = true,
+    bool batteryOptimizationDisabled = true,
+  }) {
+    navigatorKey.currentState?.pushNamed(
+      AppConstants.mapViewRoute,
+      arguments: {
+        'isStudentMode': isStudentMode,
+        'userName': userName,
+        'eventoId': eventoId,
+        'isAdminMode': isAdminMode,
+        'permissionsValidated': permissionsValidated,
+        'preciseLocationGranted': preciseLocationGranted,
+        'backgroundPermissionsGranted': backgroundPermissionsGranted,
+        'batteryOptimizationDisabled': batteryOptimizationDisabled,
+      },
+    );
   }
 
   /// ✅ NAVEGACIÓN BASADA EN ROL - UNIFICADA

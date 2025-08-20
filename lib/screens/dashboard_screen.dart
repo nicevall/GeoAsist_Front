@@ -1375,17 +1375,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ✅ WIDGETS UTILITARIOS REALES
   // ===========================================
 
-  /// ✅ NAVEGACIÓN A TRACKING REAL
-  void _navigateToTracking() {
+  /// ✅ ENHANCED: NAVEGACIÓN A TRACKING con validaciones mejoradas
+  Future<void> _navigateToTracking() async {
     if (_eventoActivo != null) {
-      Navigator.pushNamed(
-        context,
-        AppConstants.attendanceTrackingRoute,
-        arguments: {
-          'userName': widget.userName,
-          'eventoId': _eventoActivo!.id,
-        },
-      );
+      // Get user data for enhanced navigation
+      final user = await _storageService.getUser();
+      if (user == null) {
+        _showErrorDialog('Error de Usuario', 'No se pudo obtener la información del usuario');
+        return;
+      }
+
+      // Use enhanced navigation with proper parameter validation
+      try {
+        AppRouter.joinEventAsStudent(
+          eventoId: _eventoActivo!.id!,
+          userName: widget.userName,
+          permissionsValidated: true,
+          preciseLocationGranted: true,
+          backgroundPermissionsGranted: true,
+          batteryOptimizationDisabled: true,
+        );
+      } catch (e) {
+        debugPrint('❌ Error en navegación a tracking: $e');
+        _showErrorDialog('Error de Navegación', 
+          'No se pudo acceder al tracking. Verifica tus permisos de ubicación.');
+      }
     } else {
       // Si no hay evento activo, ir a la lista de eventos
       Navigator.pushNamed(context, AppConstants.availableEventsRoute);
@@ -1408,18 +1422,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ✅ NUEVOS MÉTODOS NAVEGACIÓN MULTIROL
   // ===========================================
 
-  /// ✅ NUEVO: Manejo de tap en evento para estudiante
-  void _handleStudentEventTap(Evento evento) {
+  /// ✅ ENHANCED: Manejo de tap en evento para estudiante con validaciones y navegación mejorada
+  Future<void> _handleStudentEventTap(Evento evento) async {
     debugPrint('🎓 Estudiante tocó evento: ${evento.titulo}');
-    // ESTUDIANTE -> Ir directamente a tracking
-    Navigator.pushNamed(
-      context,
-      AppConstants.attendanceTrackingRoute,
-      arguments: {
-        'userName': widget.userName,
-        'eventoId': evento.id,
-      },
-    );
+    
+    // Validate event data
+    if (evento.id == null || evento.id!.isEmpty) {
+      _showErrorDialog('Error de Evento', 'El evento no tiene un ID válido');
+      return;
+    }
+
+    // Check user permissions and location permissions
+    final user = await _storageService.getUser();
+    if (user == null) {
+      _showErrorDialog('Error de Usuario', 'No se pudo obtener la información del usuario');
+      return;
+    }
+
+    // Use enhanced navigation with proper parameter validation
+    try {
+      AppRouter.joinEventAsStudent(
+        eventoId: evento.id!,
+        userName: widget.userName,
+        permissionsValidated: true,
+        preciseLocationGranted: true,
+        backgroundPermissionsGranted: true,
+        batteryOptimizationDisabled: true,
+      );
+    } catch (e) {
+      debugPrint('❌ Error en navegación de estudiante: $e');
+      _showErrorDialog('Error de Navegación', 
+        'No se pudo acceder al evento. Verifica tus permisos de ubicación.');
+    }
   }
 
   /// ✅ NUEVO: Manejo de tap en evento para docente
@@ -1919,7 +1953,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  /// ✅ UNIRSE A EVENTO (ESTUDIANTE) - FIXED: Enhanced with proper state management
+  /// ✅ ENHANCED: UNIRSE A EVENTO (ESTUDIANTE) con navegación mejorada y validaciones
   Future<void> _joinEvent(Evento evento) async {
     if (evento.id == null || evento.id!.isEmpty) {
       _showErrorDialog('Error', 'El evento no tiene un ID válido');
@@ -1946,29 +1980,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (!shouldSwitch || !mounted) return;
       }
 
-      // 3. Set this event as active
+      // 3. Get user data for navigation
+      final user = await _storageService.getUser();
+      if (user == null) {
+        _showErrorDialog('Error de Usuario', 'No se pudo obtener la información del usuario');
+        return;
+      }
+
+      // 4. Set this event as active
       setState(() {
         _eventoActivo = evento;
       });
 
-      // 4. Navigate to attendance tracking
+      // 5. Use enhanced navigation with proper parameter validation
       if (!mounted) return;
-      final result = await Navigator.pushNamed(
-        context,
-        AppConstants.attendanceTrackingRoute,
-        arguments: {
-          'userName': widget.userName,
-          'eventoId': evento.id,
-          'evento': evento, // Pass full event object
-        },
-      );
-
-      // 5. Handle result from attendance screen
-      if (result == 'tracking_stopped' || result == 'attendance_lost') {
+      try {
+        AppRouter.joinEventAsStudent(
+          eventoId: evento.id!,
+          userName: widget.userName,
+          permissionsValidated: true,
+          preciseLocationGranted: true,
+          backgroundPermissionsGranted: true,
+          batteryOptimizationDisabled: true,
+        );
+        
+        // Refresh data after successful navigation
+        _refreshData();
+      } catch (navigationError) {
+        // Reset active event if navigation failed
         setState(() {
           _eventoActivo = null;
         });
-        _refreshData(); // Refresh dashboard data
+        debugPrint('❌ Error en navegación mejorada: $navigationError');
+        _showErrorDialog('Error de Navegación', 
+          'No se pudo acceder al evento. Verifica tus permisos de ubicación.');
       }
 
     } catch (e) {

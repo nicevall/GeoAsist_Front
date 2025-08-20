@@ -5,6 +5,7 @@ import '../widgets/custom_button.dart';
 import '../utils/colors.dart';
 import '../utils/app_router.dart';
 import '../services/evento_service.dart';
+import '../services/location_service.dart';
 import '../models/evento_model.dart';
 import '../core/app_constants.dart';
 import 'package:flutter/foundation.dart';
@@ -85,6 +86,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   bool _coordinatesValidated = false;
   bool _isValidatingCoordinates = false;
   String? _coordinateValidationError;
+  
+  // ✅ ENHANCED: Location service for coordinate validation
+  final LocationService _locationService = LocationService();
 
   // ✅ NUEVO: Tipos de evento disponibles
   final List<String> _tiposEvento = [
@@ -842,17 +846,36 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         throw Exception('Radio debe estar entre 10 y 1000 metros');
       }
       
-      // 2. Validación de conectividad (simulada)
-      await Future.delayed(const Duration(seconds: 2));
+      // 2. ✅ NEW: Check for invalid coordinate patterns
+      if (_selectedLatitude! == 0.0 && _selectedLongitude! == 0.0) {
+        throw Exception('Coordenadas (0, 0) no son válidas para eventos');
+      }
       
-      setState(() {
-        _coordinatesValidated = true;
-        _coordinateValidationError = null;
-      });
+      // Check for obviously fake coordinates
+      if (_selectedLatitude!.abs() < 0.001 && _selectedLongitude!.abs() < 0.001) {
+        throw Exception('Coordenadas demasiado cercanas al origen - posiblemente inválidas');
+      }
       
-      debugPrint('✅ Coordenadas validadas exitosamente');
-      AppRouter.showSnackBar('✅ Coordenadas validadas correctamente', isError: false);
-      return true;
+      // 3. ✅ ENHANCED: Test connectivity with backend using LocationService
+      debugPrint('🌍 Testing coordinate connectivity with backend...');
+      
+      final testResponse = await _locationService.testCoordinates(
+        _selectedLatitude!,
+        _selectedLongitude!,
+      );
+      
+      if (testResponse.success) {
+        debugPrint('✅ Backend coordinate test successful');
+        setState(() {
+          _coordinatesValidated = true;
+          _coordinateValidationError = null;
+        });
+        
+        AppRouter.showSnackBar('✅ Coordenadas validadas correctamente', isError: false);
+        return true;
+      } else {
+        throw Exception('Backend rechazó las coordenadas: ${testResponse.message}');
+      }
       
     } catch (e) {
       debugPrint('❌ Error validando coordenadas: $e');

@@ -1,1236 +1,0 @@
-=== FINAL COMPREHENSIVE VALIDATION RESULTS ===
-
-SMOKE TESTS (CRITICAL FOUNDATION):
-00:00 +0: loading D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/smoke_tests.dart                                                                                                          00:01 +0: loading D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/smoke_tests.dart                                                                                                          00:02 +0: loading D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/smoke_tests.dart                                                                                                          00:02 +0: 🚨 SMOKE TESTS - Must Always Pass 🏗️ App Infrastructure Tests app starts without crashing                                                                                                   00:02 +0: 🚨 SMOKE TESTS - Must Always Pass 🏗️ App Infrastructure Tests app starts without crashing                                                                                                   
-🔄 Lifecycle observer activado en GeoAssistApp
-✅ Referencia a StudentAttendanceManager inicializada desde Provider
-🔄 Lifecycle observer desactivado
-00:02 +1: 🚨 SMOKE TESTS - Must Always Pass 🏗️ App Infrastructure Tests app starts without crashing                                                                                                   00:02 +1: 🚨 SMOKE TESTS - Must Always Pass 🏗️ App Infrastructure Tests MaterialApp is properly configured                                                                                            00:02 +2: 🚨 SMOKE TESTS - Must Always Pass 🏗️ App Infrastructure Tests MaterialApp is properly configured                                                                                            00:02 +2: 🚨 SMOKE TESTS - Must Always Pass 🔧 Provider Infrastructure Tests core providers are accessible                                                                                             00:02 +3: 🚨 SMOKE TESTS - Must Always Pass 🔧 Provider Infrastructure Tests core providers are accessible                                                                                             00:02 +3: 🚨 SMOKE TESTS - Must Always Pass 🔧 Provider Infrastructure Tests providers work without throwing exceptions                                                                                00:02 +4: 🚨 SMOKE TESTS - Must Always Pass 🔧 Provider Infrastructure Tests providers work without throwing exceptions                                                                                00:02 +4: 🚨 SMOKE TESTS - Must Always Pass 🧭 Navigation Infrastructure Tests basic navigation setup works                                                                                            00:02 +5: 🚨 SMOKE TESTS - Must Always Pass 🧭 Navigation Infrastructure Tests basic navigation setup works                                                                                            00:02 +5: 🚨 SMOKE TESTS - Must Always Pass 🧭 Navigation Infrastructure Tests app constants are accessible                                                                                            00:02 +6: 🚨 SMOKE TESTS - Must Always Pass 🧭 Navigation Infrastructure Tests app constants are accessible                                                                                            00:02 +6: 🚨 SMOKE TESTS - Must Always Pass 🔋 Service Singletons Tests StudentAttendanceManager is singleton                                                                                          00:02 +7: 🚨 SMOKE TESTS - Must Always Pass 🔋 Service Singletons Tests StudentAttendanceManager is singleton                                                                                          00:02 +7: 🚨 SMOKE TESTS - Must Always Pass 🔋 Service Singletons Tests services have required methods                                                                                                 00:02 +8: 🚨 SMOKE TESTS - Must Always Pass 🔋 Service Singletons Tests services have required methods                                                                                                 00:02 +8: 🚨 SMOKE TESTS - Must Always Pass 📱 Platform Integration Smoke Tests app handles platform channel mocks                                                                                     00:02 +9: 🚨 SMOKE TESTS - Must Always Pass 📱 Platform Integration Smoke Tests app handles platform channel mocks                                                                                     00:02 +9: All tests passed!                                                                                                                                                                            
-
-UNIT TESTS:
-00:00 +0: loading D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart                                                                                          00:01 +0: loading D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart                                                                                          00:02 +0: loading D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart                                                                                          00:02 +0: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced AsistenciaService Tests should be singleton                                          00:02 +0 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced AsistenciaService Tests should be singleton [E]                                   
-  Expected: <Instance of 'AsistenciaService'>
-    Actual: <Instance of 'AsistenciaService'>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18  expect
-  test\unit\expanded_services_test.dart 23:7          main.<fn>.<fn>
-  
-Warning: At least one test in this suite creates an HttpClient. When running a test suite that uses
-TestWidgetsFlutterBinding, all HTTP requests will return status code 400, and no network request
-will actually be made. Any test expecting a real network connection and status code will fail.
-To test code that needs an HttpClient, provide your own HttpClient implementation to the code under
-test, so that your test can consistently provide a testable response to the code under test.
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart -p vm --plain-name "✅ Enhanced AsistenciaService Tests should be singleton"
-00:02 +0 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced AsistenciaService Tests should have all required methods                          00:02 +1 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced AsistenciaService Tests should have all required methods                          00:02 +1 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced AsistenciaService Tests should handle error states gracefully                     00:02 +1 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced AsistenciaService Tests should handle error states gracefully                     
-👥 Obteniendo asistencias del evento: invalid_id
-00:02 +2 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced AsistenciaService Tests should handle error states gracefully                     00:02 +2 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced AsistenciaService Tests should have enhanced retry mechanism structure            00:02 +2 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced AsistenciaService Tests should handle error states gracefully                     
-❌ Excepción obteniendo asistencias: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
-00:02 +3 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced AsistenciaService Tests should have enhanced retry mechanism structure            00:02 +3 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should be singleton                                           00:02 +4 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should be singleton                                           00:02 +4 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should have enhanced loading state management                 00:02 +5 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should have enhanced loading state management                 00:02 +5 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should support real-time event control                        00:02 +6 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should support real-time event control                        00:02 +6 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should have comprehensive CRUD operations                     00:02 +7 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should have comprehensive CRUD operations                     00:02 +7 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should provide performance monitoring                         00:02 +8 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should provide performance monitoring                         00:02 +8 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should handle resource cleanup                                00:02 +8 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should handle resource cleanup                                
-🧹 Disposing EventoService resources
-🧹 Cleared all loading states
-✅ EventoService disposed successfully
-00:02 +9 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced EventoService Tests should handle resource cleanup                                00:02 +9 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should be singleton                                         00:02 +10 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should be singleton                                        00:02 +10 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should have optimized location methods                     00:02 +11 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should have optimized location methods                     00:02 +11 -1: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should provide performance statistics                      00:02 +11 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should provide performance statistics [E]                  
-  Expected: <true>
-    Actual: <false>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18  expect
-  test\unit\expanded_services_test.dart 119:7         main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart -p vm --plain-name "✅ Enhanced LocationService Tests should provide performance statistics"
-00:02 +11 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should handle resource cleanup                             00:02 +11 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should handle resource cleanup                             
-🧹 Disposing LocationService resources
-✅ LocationService disposed
-00:02 +12 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should handle resource cleanup                             00:02 +12 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should track performance metrics                           00:02 +13 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced LocationService Tests should track performance metrics                           00:02 +13 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should be singleton                              00:02 +14 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should be singleton                              00:02 +14 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should have enhanced tracking methods            00:02 +15 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should have enhanced tracking methods            00:02 +15 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should provide tracking status                   00:02 +16 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should provide tracking status                   00:02 +16 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should support forced updates                    00:02 +17 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should support forced updates                    00:02 +17 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should handle initialization                     00:02 +17 -2: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should handle initialization                     
-🚀 Initializing enhanced background location service
-❌ Error initializing background service: UnimplementedError: No implementation found for workmanager on this platform. Make sure to add the platform-specific implementation package to your dependencies.
-00:02 +17 -3: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should handle initialization [E]                 
-  UnimplementedError: No implementation found for workmanager on this platform. Make sure to add the platform-specific implementation package to your dependencies.
-  package:workmanager_platform_interface/src/workmanager_platform_interface.dart 155:5  _PlaceholderImplementation.initialize
-  package:workmanager/src/workmanager_impl.dart 129:22                                  Workmanager.initialize
-  package:geo_asist_front/services/background_location_service.dart 208:27              BackgroundLocationService.initialize
-  test\unit\expanded_services_test.dart 175:28                                          main.<fn>.<fn>.<fn>
-  package:matcher                                                                       expect
-  package:flutter_test/src/widget_tester.dart 474:18                                    expect
-  test\unit\expanded_services_test.dart 175:7                                           main.<fn>.<fn>
-  ===== asynchronous gap ===========================
-  dart:async                                                                            _CustomZone.registerBinaryCallback
-  package:geo_asist_front/services/background_location_service.dart 208:7               BackgroundLocationService.initialize
-  test\unit\expanded_services_test.dart 175:28                                          main.<fn>.<fn>.<fn>
-  package:matcher                                                                       expect
-  package:flutter_test/src/widget_tester.dart 474:18                                    expect
-  test\unit\expanded_services_test.dart 175:7                                           main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart -p vm --plain-name "✅ Enhanced BackgroundLocationService Tests should handle initialization"
-00:02 +17 -3: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should maintain tracking state consistency       00:02 +18 -3: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Enhanced BackgroundLocationService Tests should maintain tracking state consistency       00:02 +18 -3: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Service Integration Tests all services should be properly initialized                     00:02 +19 -3: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Service Integration Tests all services should be properly initialized                     00:02 +19 -3: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Service Integration Tests services should maintain singleton behavior across tests        00:02 +19 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Service Integration Tests services should maintain singleton behavior across tests [E]    
-  Expected: <Instance of 'AsistenciaService'>
-    Actual: <Instance of 'AsistenciaService'>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18  expect
-  test\unit\expanded_services_test.dart 212:7         main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart -p vm --plain-name "✅ Service Integration Tests services should maintain singleton behavior across tests"
-00:02 +19 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Service Integration Tests services should handle concurrent access                        00:02 +20 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Service Integration Tests services should handle concurrent access                        00:02 +20 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Service Integration Tests enhanced services should provide debugging capabilities         00:02 +21 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Service Integration Tests enhanced services should provide debugging capabilities         00:02 +21 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Performance and Stability Tests services should handle rapid instantiation                00:02 +22 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Performance and Stability Tests services should handle rapid instantiation                00:02 +22 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Performance and Stability Tests services should maintain stability under stress           00:02 +23 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Performance and Stability Tests services should maintain stability under stress           00:02 +23 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Performance and Stability Tests enhanced features should be accessible                    00:02 +24 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/expanded_services_test.dart: ✅ Performance and Stability Tests enhanced features should be accessible                    00:02 +24 -4: loading D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart                                                                                       00:02 +24 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Position Retrieval Tests should get current position successfully      00:02 +25 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Position Retrieval Tests should get current position successfully      00:02 +25 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Position Retrieval Tests should handle location permission denied      00:02 +26 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Position Retrieval Tests should handle location permission denied      00:02 +26 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Position Retrieval Tests should handle GPS disabled                    00:02 +27 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Position Retrieval Tests should handle GPS disabled                    00:02 +27 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Position Retrieval Tests should cache position data appropriately      00:02 +28 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Position Retrieval Tests should cache position data appropriately      00:02 +28 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: ... Tests Backend Integration Tests should update user location with backend successfully    00:02 +28 -4: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Backend Integration Tests should update user location with backend successfully
-📍 Optimized location update to backend
-   - User: user_123
-   - Coordinates: (37.7749, -122.4194)
-   - Event: event_123
-   - Background: false
-   - Force: false
-📤 Location update attempt 1 of 3
-🌐 API POST: /location/update
-📦 Body: {"userId":"user_123","latitude":37.7749,"longitude":-122.4194,"eventoId":"event_123","backgroundUpdate":false,"timestamp":"2025-08-20T03:05:38.993513","attempt":1}
-📋 Headers: Default headers
-⏱️ POST Response Time: 14ms
-📊 Status Code: 400
-✅ Response Body: 
-❌ Backend rejected update on attempt 1: Parse Error
-📤 Location update attempt 2 of 3
-🌐 API POST: /location/update
-📦 Body: {"userId":"user_123","latitude":37.7749,"longitude":-122.4194,"eventoId":"event_123","backgroundUpdate":false,"timestamp":"2025-08-20T03:05:39.011860","attempt":2}
-📋 Headers: Default headers
-⏱️ POST Response Time: 0ms
-📊 Status Code: 400
-✅ Response Body: 
-❌ Backend rejected update on attempt 2: Parse Error
-📤 Location update attempt 3 of 3
-🌐 API POST: /location/update
-📦 Body: {"userId":"user_123","latitude":37.7749,"longitude":-122.4194,"eventoId":"event_123","backgroundUpdate":false,"timestamp":"2025-08-20T03:05:39.012860","attempt":3}
-📋 Headers: Default headers
-⏱️ POST Response Time: 0ms
-📊 Status Code: 400
-✅ Response Body: 
-❌ Backend rejected update on attempt 3: Parse Error
-✅ Backend response processed successfully:
-   - Inside geofence: false
-   - Distance: 0.0m
-   - Event active: false
-   - Can register: false
-📊 Performance: update_success = 22ms (success)
-00:02 +28 -5: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Backend Integration Tests should update user location with backend successfully [E]
-  Expected: true
-    Actual: <false>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18  expect
-  test\unit\location_service_test.dart 96:11          main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart -p vm --plain-name "LocationService Tests Backend Integration Tests should update user location with backend successfully"
-00:02 +28 -5: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Backend Integration Tests should handle backend API errors gracefully  00:02 +28 -5: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Backend Integration Tests should handle backend API errors gracefully  
-📍 Optimized location update to backend
-   - User: user_123
-   - Coordinates: (37.7749, -122.4194)
-   - Event: event_123
-   - Background: false
-   - Force: false
-⏭️ Skipping update - too frequent or insignificant change
-📊 Performance: update_skipped = 0ms (success)
-00:02 +28 -6: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Backend Integration Tests should handle backend API errors gracefully [E]
-  Expected: null
-    Actual: LocationResponseModel:<LocationResponse(inside: false, distance: 0.0m, eventActive: false, eventStarted: false, user: user_123, coords: (37.7749, -122.4194))>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18  expect
-  test\unit\location_service_test.dart 116:9          main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart -p vm --plain-name "LocationService Tests Backend Integration Tests should handle backend API errors gracefully"
-00:02 +28 -6: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Backend Integration Tests should retry failed requests                 00:02 +28 -6: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Backend Integration Tests should retry failed requests                 
-📍 Optimized location update to backend
-   - User: user_123
-   - Coordinates: (37.7749, -122.4194)
-   - Event: event_123
-   - Background: false
-   - Force: false
-⏭️ Skipping update - too frequent or insignificant change
-📊 Performance: update_skipped = 0ms (success)
-00:02 +28 -7: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Backend Integration Tests should retry failed requests [E]             
-  Expected: <3>
-    Actual: <0>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18  expect
-  test\unit\location_service_test.dart 142:9          main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart -p vm --plain-name "LocationService Tests Backend Integration Tests should retry failed requests"
-00:02 +28 -7: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Geofence Calculations should calculate distance correctly              00:02 +29 -7: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Geofence Calculations should calculate distance correctly              00:02 +29 -7: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Geofence Calculations should validate geofence boundaries              00:02 +30 -7: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Geofence Calculations should validate geofence boundaries              00:02 +30 -7: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Performance Optimization Tests should limit update frequency           00:02 +31 -7: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Performance Optimization Tests should limit update frequency           00:02 +31 -7: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: ... Tests Performance Optimization Tests should cache location data to reduce API calls      00:02 +31 -7: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Performance Optimization Tests should cache location data to reduce API calls
-📍 Optimized location update to backend
-   - User: user_123
-   - Coordinates: (37.7749, -122.4194)
-   - Event: event_123
-   - Background: false
-   - Force: false
-⏭️ Skipping update - too frequent or insignificant change
-📊 Performance: update_skipped = 0ms (success)
-📍 Optimized location update to backend
-   - User: user_123
-   - Coordinates: (37.7749, -122.4194)
-   - Event: event_123
-   - Background: false
-   - Force: false
-⏭️ Skipping update - too frequent or insignificant change
-📊 Performance: update_skipped = 0ms (success)
-00:02 +31 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Performance Optimization Tests should cache location data to reduce API calls [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                              fail
-  package:mocktail/src/mocktail.dart 728:7     _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18    _makeVerify.<fn>
-  test\unit\location_service_test.dart 250:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart -p vm --plain-name "LocationService Tests Performance Optimization Tests should cache location data to reduce API calls"
-00:02 +31 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: ... Tests Performance Optimization Tests should detect significant location changes          00:02 +32 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: ... Tests Performance Optimization Tests should detect significant location changes          00:02 +32 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Offline Handling Tests should queue location updates when offline      00:02 +33 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Offline Handling Tests should queue location updates when offline      00:02 +33 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Offline Handling Tests should sync queued updates when back online     00:02 +34 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Offline Handling Tests should sync queued updates when back online     00:02 +34 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Error Recovery Tests should handle GPS signal loss                     00:02 +35 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Error Recovery Tests should handle GPS signal loss                     00:02 +35 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Error Recovery Tests should handle network timeouts                    00:02 +35 -8: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Error Recovery Tests should handle network timeouts                    
-📍 Optimized location update to backend
-   - User: user_123
-   - Coordinates: (37.7749, -122.4194)
-   - Event: event_123
-   - Background: false
-   - Force: false
-⏭️ Skipping update - too frequent or insignificant change
-📊 Performance: update_skipped = 0ms (success)
-00:02 +35 -9: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Error Recovery Tests should handle network timeouts [E]                
-  Expected: null
-    Actual: LocationResponseModel:<LocationResponse(inside: false, distance: 0.0m, eventActive: false, eventStarted: false, user: user_123, coords: (37.7749, -122.4194))>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18  expect
-  test\unit\location_service_test.dart 325:9          main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart -p vm --plain-name "LocationService Tests Error Recovery Tests should handle network timeouts"
-00:02 +35 -9: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Error Recovery Tests should handle invalid location data               00:02 +35 -9: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Error Recovery Tests should handle invalid location data               
-📍 Optimized location update to backend
-   - User: user_123
-   - Coordinates: (999.0, 999.0)
-   - Event: event_123
-   - Background: false
-   - Force: false
-⏭️ Skipping update - too frequent or insignificant change
-📊 Performance: update_skipped = 0ms (success)
-00:03 +35 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Error Recovery Tests should handle invalid location data [E]          
-  Expected: null
-    Actual: LocationResponseModel:<LocationResponse(inside: false, distance: 0.0m, eventActive: false, eventStarted: false, user: user_123, coords: (37.7749, -122.4194))>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18  expect
-  test\unit\location_service_test.dart 338:9          main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart -p vm --plain-name "LocationService Tests Error Recovery Tests should handle invalid location data"
-00:03 +35 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: ... Tests Background Location Tests should continue location updates in background          00:03 +36 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: ... Tests Background Location Tests should continue location updates in background          00:03 +36 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Background Location Tests should optimize battery usage in background 00:03 +37 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Background Location Tests should optimize battery usage in background 00:03 +37 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Location Accuracy Tests should request high accuracy when needed      00:03 +38 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Location Accuracy Tests should request high accuracy when needed      00:03 +38 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: ... Location Accuracy Tests should fallback to lower accuracy if high accuracy unavailable  00:03 +39 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: ... Location Accuracy Tests should fallback to lower accuracy if high accuracy unavailable  00:03 +39 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Permission Handling Tests should request location permissions properly00:03 +40 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Permission Handling Tests should request location permissions properly00:03 +40 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Permission Handling Tests should handle permission denial gracefully  00:03 +41 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Permission Handling Tests should handle permission denial gracefully  00:03 +41 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: ... Tests Permission Handling Tests should handle always vs when-in-use permissions         00:03 +42 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: ... Tests Permission Handling Tests should handle always vs when-in-use permissions         00:03 +42 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Memory Management Tests should clean up resources properly            00:03 +43 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Memory Management Tests should clean up resources properly            00:03 +43 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Memory Management Tests should not leak memory during long operations 00:03 +44 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/location_service_test.dart: LocationService Tests Memory Management Tests should not leak memory during long operations 00:03 +44 -10: loading D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart                                                                                  00:03 +44 -10: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Initialization Tests should initialize notification plugin successfully       00:03 +44 -11: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Initialization Tests should initialize notification plugin successfully [E]
-  Bad state: A test tried to use `any` or `captureAny` on a parameter of type `InitializationSettings`, but
-  registerFallbackValue was not previously called to register a fallback value for `InitializationSettings`.
-  
-  To fix, do:
-  
-  ```
-  void main() {
-    setUpAll(() {
-      registerFallbackValue(/* create a dummy instance of `InitializationSettings` */);
-    });
-  }
-  ```
-  
-  This instance of `InitializationSettings` will only be passed around, but never be interacted with.
-  Therefore, if `InitializationSettings` is a function, it does not have to return a valid object and
-  could throw unconditionally.
-  If you cannot easily create an instance of `InitializationSettings`, consider defining a `Fake`:
-  
-  ```
-  class MyTypeFake extends Fake implements MyType {}
-  
-  void main() {
-    setUpAll(() {
-      registerFallbackValue(MyTypeFake());
-    });
-  }
-  ```
-  
-  Fallbacks are required because mocktail has to know of a valid `InitializationSettings` to prevent
-  TypeErrors from being thrown in Dart's sound null safe mode, while still
-  providing a convenient syntax.
-  
-  package:mocktail/src/_register_matcher.dart 49:5    _getFallbackValue
-  package:mocktail/src/_register_matcher.dart 160:25  _registerMatcher
-  package:mocktail/src/_register_matcher.dart 104:10  any
-  test\unit\notification_manager_test.dart 37:11      main.<fn>.<fn>.<fn>.<fn>
-  package:mocktail/src/mocktail.dart 211:9            when.<fn>
-  test\unit\notification_manager_test.dart 36:13      main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Initialization Tests should initialize notification plugin successfully"
-00:03 +44 -11: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Initialization Tests should handle initialization failure gracefully          00:03 +44 -12: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Initialization Tests should handle initialization failure gracefully [E]
-  Bad state: A test tried to use `any` or `captureAny` on a parameter of type `InitializationSettings`, but
-  registerFallbackValue was not previously called to register a fallback value for `InitializationSettings`.
-  
-  To fix, do:
-  
-  ```
-  void main() {
-    setUpAll(() {
-      registerFallbackValue(/* create a dummy instance of `InitializationSettings` */);
-    });
-  }
-  ```
-  
-  This instance of `InitializationSettings` will only be passed around, but never be interacted with.
-  Therefore, if `InitializationSettings` is a function, it does not have to return a valid object and
-  could throw unconditionally.
-  If you cannot easily create an instance of `InitializationSettings`, consider defining a `Fake`:
-  
-  ```
-  class MyTypeFake extends Fake implements MyType {}
-  
-  void main() {
-    setUpAll(() {
-      registerFallbackValue(MyTypeFake());
-    });
-  }
-  ```
-  
-  Fallbacks are required because mocktail has to know of a valid `InitializationSettings` to prevent
-  TypeErrors from being thrown in Dart's sound null safe mode, while still
-  providing a convenient syntax.
-  
-  package:mocktail/src/_register_matcher.dart 49:5    _getFallbackValue
-  package:mocktail/src/_register_matcher.dart 160:25  _registerMatcher
-  package:mocktail/src/_register_matcher.dart 104:10  any
-  test\unit\notification_manager_test.dart 62:11      main.<fn>.<fn>.<fn>.<fn>
-  package:mocktail/src/mocktail.dart 211:9            when.<fn>
-  test\unit\notification_manager_test.dart 61:13      main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Initialization Tests should handle initialization failure gracefully"
-00:03 +44 -12: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Event Notification Tests should show event started notification               00:03 +44 -12: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Event Notification Tests should show event started notification
-🎯 Mostrando notificación - Evento iniciado
-❌ Error mostrando alerta (info): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:03 +44 -13: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Event Notification Tests should show event started notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                 fail
-  package:mocktail/src/mocktail.dart 728:7        _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18       _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 88:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Event Notification Tests should show event started notification"
-00:03 +44 -13: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Event Notification Tests should show tracking active notification             00:03 +44 -13: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Event Notification Tests should show tracking active notification
-📱 Mostrando notificación de tracking activo
-❌ Error mostrando notificación de tracking: LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:03 +44 -14: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Event Notification Tests should show tracking active notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 111:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Event Notification Tests should show tracking active notification"
-00:03 +44 -14: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Geofence Notification Tests should show geofence entered notification         00:03 +44 -14: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Geofence Notification Tests should show geofence entered notification
-✅ Mostrando notificación - Entraste al área
-❌ Error mostrando alerta (success): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:03 +44 -15: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Geofence Notification Tests should show geofence entered notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 138:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Geofence Notification Tests should show geofence entered notification"
-00:03 +44 -15: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Geofence Notification Tests should show geofence exited notification          00:03 +44 -15: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Geofence Notification Tests should show geofence exited notification
-⚠️ Mostrando notificación - Saliste del área
-❌ Error mostrando alerta (warning): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:03 +44 -16: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Geofence Notification Tests should show geofence exited notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 163:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Geofence Notification Tests should show geofence exited notification"
-00:03 +44 -16: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Grace Period Notification Tests should show grace period started notification 00:03 +44 -16: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Grace Period Notification Tests should show grace period started notification
-⏰ Mostrando notificación - Período de gracia iniciado: 30s
-❌ Error mostrando alerta (warning): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:03 +44 -17: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Grace Period Notification Tests should show grace period started notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 192:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Grace Period Notification Tests should show grace period started notification"
-00:03 +44 -17: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Grace Period Notification Tests should show grace period expired notification 00:03 +44 -17: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Grace Period Notification Tests should show grace period expired notification
-🚨 Mostrando notificación - Período de gracia expirado
-❌ Error mostrando alerta (error): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -17: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Initialization Tests should initialize successfully with valid permissions
-🎯 Inicializando StudentAttendanceManager (autoStart: false)
-🔔 Inicializando NotificationManager
-❌ Error inicializando NotificationManager: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-❌ Error crítico inicializando: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-🚨 Mostrando advertencia crítica de lifecycle
-❌ Error mostrando alerta (critical): LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -18: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Initialization Tests should initialize successfully with valid permissions [E]
-  LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart        FlutterLocalNotificationsPlatform._instance
-  package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart 20:60  FlutterLocalNotificationsPlatform.instance
-  package:flutter_local_notifications/src/flutter_local_notifications_plugin.dart 54:43                             FlutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation
-  package:flutter_local_notifications/src/flutter_local_notifications_plugin.dart 129:14                            FlutterLocalNotificationsPlugin.initialize
-  package:geo_asist_front/services/notifications/notification_manager.dart 76:26                                    NotificationManager._configureNotificationChannels
-  package:geo_asist_front/services/notifications/notification_manager.dart 48:13                                    NotificationManager.initialize
-  package:geo_asist_front/services/student_attendance_manager.dart 122:34                                           StudentAttendanceManager.initialize
-  test\unit\student_attendance_manager_comprehensive_test.dart 71:33                                                main.<fn>.<fn>.<fn>
-  
-Warning: At least one test in this suite creates an HttpClient. When running a test suite that uses
-TestWidgetsFlutterBinding, all HTTP requests will return status code 400, and no network request
-will actually be made. Any test expecting a real network connection and status code will fail.
-To test code that needs an HttpClient, provide your own HttpClient implementation to the code under
-test, so that your test can consistently provide a testable response to the code under test.
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-🎯 Estado actualizado: Tracking no activo
-✅ Tracking detenido con limpieza completa
-✅ Location service cleanup completed
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-✅ StudentAttendanceManager disposed completamente - No memory leaks
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Initialization Tests should initialize successfully with valid permissions"
-00:04 +44 -18: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Initialization Tests should throw exception when permissions are not granted
-🎯 Inicializando StudentAttendanceManager (autoStart: false)
-🔔 Inicializando NotificationManager
-❌ Error inicializando NotificationManager: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-❌ Error crítico inicializando: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-🚨 Mostrando advertencia crítica de lifecycle
-❌ Error mostrando alerta (critical): LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -19: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Initialization Tests should throw exception when permissions are not granted [E]
-  Expected: throws <Instance of 'Exception'>
-    Actual: <Closure: () => Future<void>>
-     Which: threw LateError:<LateInitializationError: Field '_instance@1172271368' has not been initialized.>
-            stack package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart        FlutterLocalNotificationsPlatform._instance
-                  package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart 20:60  FlutterLocalNotificationsPlatform.instance
-                  package:flutter_local_notifications/src/flutter_local_notifications_plugin.dart 54:43                             FlutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation
-                  package:flutter_local_notifications/src/flutter_local_notifications_plugin.dart 129:14                            FlutterLocalNotificationsPlugin.initialize
-                  package:geo_asist_front/services/notifications/notification_manager.dart 76:26                                    NotificationManager._configureNotificationChannels
-                  package:geo_asist_front/services/notifications/notification_manager.dart 48:13                                    NotificationManager.initialize
-                  package:geo_asist_front/services/student_attendance_manager.dart 122:34                                           StudentAttendanceManager.initialize
-                  test\unit\student_attendance_manager_comprehensive_test.dart 88:35                                                main.<fn>.<fn>.<fn>.<fn>
-                  package:matcher                                                                                                   expect
-                  package:flutter_test/src/widget_tester.dart 474:18                                                                expect
-                  test\unit\student_attendance_manager_comprehensive_test.dart 87:9                                                 main.<fn>.<fn>.<fn>
-                  ===== asynchronous gap ===========================
-                  package:matcher                                                                                                   expect
-                  package:flutter_test/src/widget_tester.dart 474:18                                                                expect
-                  test\unit\student_attendance_manager_comprehensive_test.dart 87:9                                                 main.<fn>.<fn>.<fn>
-                  
-            which is not an instance of 'Exception'
-  
-  package:matcher                                                    expect
-  package:flutter_test/src/widget_tester.dart 474:18                 expect
-  test\unit\student_attendance_manager_comprehensive_test.dart 87:9  main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Initialization Tests should throw exception when permissions are not granted"
-00:04 +44 -19: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Initialization Tests should auto-start tracking when autoStart is true and eventId provided
-🎯 Inicializando StudentAttendanceManager (autoStart: true)
-🔔 Inicializando NotificationManager
-❌ Error inicializando NotificationManager: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-❌ Error crítico inicializando: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-🚨 Mostrando advertencia crítica de lifecycle
-❌ Error mostrando alerta (critical): LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -20: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Initialization Tests should auto-start tracking when autoStart is true and eventId provided [E]
-  LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart        FlutterLocalNotificationsPlatform._instance
-  package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart 20:60  FlutterLocalNotificationsPlatform.instance
-  package:flutter_local_notifications/src/flutter_local_notifications_plugin.dart 54:43                             FlutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation
-  package:flutter_local_notifications/src/flutter_local_notifications_plugin.dart 129:14                            FlutterLocalNotificationsPlugin.initialize
-  package:geo_asist_front/services/notifications/notification_manager.dart 76:26                                    NotificationManager._configureNotificationChannels
-  package:geo_asist_front/services/notifications/notification_manager.dart 48:13                                    NotificationManager.initialize
-  package:geo_asist_front/services/student_attendance_manager.dart 122:34                                           StudentAttendanceManager.initialize
-  test\unit\student_attendance_manager_comprehensive_test.dart 112:33                                               main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Initialization Tests should auto-start tracking when autoStart is true and eventId provided"
-00:04 +44 -21: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: ... Event Tracking Tests should start event tracking successfully   00:04 +44 -21: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Grace Period Notification Tests should show grace period expired notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 215:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Grace Period Notification Tests should show grace period expired notification"
-00:04 +44 -21: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Event Tracking Tests should start event tracking successfully
-🎯 Iniciando tracking para evento: Test Event
-❌ Error iniciando tracking: Bad state: Cannot add new events after calling close
-00:04 +44 -22: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Event Tracking Tests should start event tracking successfully [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 217:7   StudentAttendanceManager.startEventTracking
-  test\unit\student_attendance_manager_comprehensive_test.dart 146:33      main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-00:04 +44 -22: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Grace Period Notification Tests should update grace period countdown
-⏰ Mostrando notificación - Período de gracia iniciado: 30s
-❌ Error mostrando alerta (warning): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -23: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Event Tracking Tests should start event tracking successfully
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -23: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Event Tracking Tests should start event tracking successfully [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Event Tracking Tests should start event tracking successfully"
-00:04 +44 -23: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: ... should handle location updates and process backend response     00:04 +44 -23: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Grace Period Notification Tests should update grace period countdown [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 242:17  main.<fn>.<fn>.<fn>.<fn>
-  package:fake_async/fake_async.dart 182:47        FakeAsync.run.<fn>.<fn>
-  dart:async                                       runZoned
-  package:clock/src/default.dart 52:10             withClock
-  package:fake_async/fake_async.dart 182:15        FakeAsync.run.<fn>
-  dart:async                                       runZoned
-  package:fake_async/fake_async.dart 181:52        FakeAsync.run
-  package:fake_async/fake_async.dart 41:41         fakeAsync
-  test\unit\notification_manager_test.dart 225:9   main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Grace Period Notification Tests should update grace period countdown"
-00:04 +44 -23: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Attendance Notification Tests should show attendance registered notification
-✅ Mostrando notificación - Asistencia registrada
-❌ Error mostrando alerta (success): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -24: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Attendance Notification Tests should show attendance registered notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 268:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Attendance Notification Tests should show attendance registered notification"
-00:04 +44 -24: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Event Tracking Tests should handle location updates and process backend response
-🎯 Iniciando tracking para evento: Test Event
-❌ Error iniciando tracking: Bad state: Cannot add new events after calling close
-00:04 +44 -25: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Event Tracking Tests should handle location updates and process backend response [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 217:7   StudentAttendanceManager.startEventTracking
-  test\unit\student_attendance_manager_comprehensive_test.dart 183:33      main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Event Tracking Tests should handle location updates and process backend response"
-00:04 +44 -25: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests App Lifecycle Notification Tests should show app closed warning notification
-🚨 Mostrando advertencia crítica - App cerrada (30 s)
-❌ Error notificación app cerrada: LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -26: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests App Lifecycle Notification Tests should show app closed warning notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 295:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests App Lifecycle Notification Tests should show app closed warning notification"
-00:04 +44 -26: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Geofence Management Tests should handle geofence entry correctly
-🎯 Iniciando tracking para evento: Test Event
-❌ Error iniciando tracking: Bad state: Cannot add new events after calling close
-00:04 +44 -27: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Geofence Management Tests should handle geofence entry correctly [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 217:7   StudentAttendanceManager.startEventTracking
-  test\unit\student_attendance_manager_comprehensive_test.dart 220:33      main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Geofence Management Tests should handle geofence entry correctly"
-00:04 +44 -27: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests App Lifecycle Notification Tests should show critical app lifecycle warning
-🚨 Mostrando advertencia crítica de lifecycle
-❌ Error mostrando alerta (critical): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -28: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests App Lifecycle Notification Tests should show critical app lifecycle warning [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 318:15  main.<fn>.<fn>.<fn>
-  
-00:04 +44 -28: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: ... Tests should handle geofence exit and start grace period        
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests App Lifecycle Notification Tests should show critical app lifecycle warning"
-00:04 +44 -28: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests App Lifecycle Notification Tests should show background tracking notification
-📱 Mostrando notificación - Background tracking normal
-❌ Error mostrando alerta (info): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -29: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests App Lifecycle Notification Tests should show background tracking notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 341:15  main.<fn>.<fn>.<fn>
-  
-00:04 +44 -29: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Geofence Management Tests should handle geofence exit and start grace period
-🎯 Iniciando tracking para evento: Test Event
-❌ Error iniciando tracking: Bad state: Cannot add new events after calling close
-00:04 +44 -30: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Geofence Management Tests should handle geofence exit and start grace period [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 217:7   StudentAttendanceManager.startEventTracking
-  test\unit\student_attendance_manager_comprehensive_test.dart 271:33      main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests App Lifecycle Notification Tests should show background tracking notification"
-00:04 +44 -30: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Break Management Notification Tests should show break started notification    00:04 +44 -30: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Geofence Management Tests should handle geofence exit and start grace period
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -30: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Geofence Management Tests should handle geofence exit and start grace period [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Geofence Management Tests should handle geofence exit and start grace period"
-00:04 +44 -30: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Break Management Notification Tests should show break started notification
-📢 Mostrando notificación: Receso Iniciado
-❌ Error mostrando notificación receso iniciado: LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -31: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Break Management Notification Tests should show break started notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 366:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Break Management Notification Tests should show break started notification"
-00:04 +44 -31: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Grace Period Tests should handle grace period countdown
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -32: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Grace Period Tests should handle grace period countdown [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Grace Period Tests should handle grace period countdown"
-00:04 +44 -32: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Break Management Notification Tests should show break ended notification
-📢 Mostrando notificación: Receso Terminado
-❌ Error mostrando notificación receso terminado: LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -33: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Break Management Notification Tests should show break ended notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 389:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Break Management Notification Tests should show break ended notification"
-00:04 +44 -33: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Break Management Notification Tests should show tracking resumed notification
-✅ Mostrando notificación - Tracking reanudado
-❌ Error mostrando alerta (success): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -33: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Grace Period Tests should cancel grace period when user returns to geofence
-🎯 Iniciando tracking para evento: Test Event
-❌ Error iniciando tracking: Bad state: Cannot add new events after calling close
-00:04 +44 -34: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Grace Period Tests should cancel grace period when user returns to geofence [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 217:7   StudentAttendanceManager.startEventTracking
-  test\unit\student_attendance_manager_comprehensive_test.dart 335:33      main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Grace Period Tests should cancel grace period when user returns to geofence"
-00:04 +44 -34: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Attendance Registration Tests should register attendance successfully when conditions are met
-⚠️ No se puede registrar asistencia en este momento
-00:04 +44 -35: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Attendance Registration Tests should register attendance successfully when conditions are met [E]
-  Expected: true
-    Actual: <false>
-  
-  package:matcher                                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18                  expect
-  test\unit\student_attendance_manager_comprehensive_test.dart 379:9  main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Attendance Registration Tests should register attendance successfully when conditions are met"
-00:04 +44 -35: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Attendance Registration Tests should fail to register attendance when conditions not met
-⚠️ No se puede registrar asistencia en este momento
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -36: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Attendance Registration Tests should fail to register attendance when conditions not met [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Attendance Registration Tests should fail to register attendance when conditions not met"
-00:04 +44 -36: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests App Lifecycle Tests should handle app resumed correctly
-📱 App lifecycle cambió a: AppLifecycleState.resumed
-✅ App en foreground - tracking normal
-00:04 +44 -37: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests App Lifecycle Tests should handle app resumed correctly [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                                      fail
-  package:mocktail/src/mocktail.dart 728:7                             _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18                            _makeVerify.<fn>
-  test\unit\student_attendance_manager_comprehensive_test.dart 435:15  main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests App Lifecycle Tests should handle app resumed correctly"
-00:04 +44 -37: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests App Lifecycle Tests should handle app paused without triggering grace period
-📱 App lifecycle cambió a: AppLifecycleState.paused
-📱 App en background - tracking continúa normalmente
-00:04 +44 -38: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests App Lifecycle Tests should handle app paused without triggering grace period [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                                      fail
-  package:mocktail/src/mocktail.dart 728:7                             _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18                            _makeVerify.<fn>
-  test\unit\student_attendance_manager_comprehensive_test.dart 447:15  main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests App Lifecycle Tests should handle app paused without triggering grace period"
-00:04 +44 -38: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests App Lifecycle Tests should trigger grace period when app is detached
-📱 App lifecycle cambió a: AppLifecycleState.detached
-🚨 App CERRADA COMPLETAMENTE - Iniciando grace period 30s
-🚨 Grace period iniciado - 30 segundos
-🚨 Mostrando advertencia crítica - App cerrada (30 s)
-00:04 +44 -39: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests App Lifecycle Tests should trigger grace period when app is detached [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                                      fail
-  package:mocktail/src/mocktail.dart 728:7                             _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18                            _makeVerify.<fn>
-  test\unit\student_attendance_manager_comprehensive_test.dart 460:15  main.<fn>.<fn>.<fn>
-  
-❌ Error notificación app cerrada: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests App Lifecycle Tests should trigger grace period when app is detached"
-00:04 +44 -40: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Heartbeat Tests should send heartbeat successfully [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                                      fail
-  package:mocktail/src/mocktail.dart 728:7                             _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18                            _makeVerify.<fn>
-  test\unit\student_attendance_manager_comprehensive_test.dart 490:15  main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Heartbeat Tests should send heartbeat successfully"
-00:04 +44 -41: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Heartbeat Tests should handle heartbeat failure [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                                      fail
-  package:mocktail/src/mocktail.dart 728:7                             _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18                            _makeVerify.<fn>
-  test\unit\student_attendance_manager_comprehensive_test.dart 526:15  main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Heartbeat Tests should handle heartbeat failure"
-00:04 +44 -41: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Memory Management Tests should dispose resources properly without memory leaks
-🎯 Iniciando tracking para evento: Test Event
-❌ Error iniciando tracking: Bad state: Cannot add new events after calling close
-00:04 +44 -42: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Memory Management Tests should dispose resources properly without memory leaks [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 217:7   StudentAttendanceManager.startEventTracking
-  test\unit\student_attendance_manager_comprehensive_test.dart 539:33      main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Memory Management Tests should dispose resources properly without memory leaks"
-00:04 +44 -42: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Memory Management Tests should handle stream subscriptions properly
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -43: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Memory Management Tests should handle stream subscriptions properly [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Memory Management Tests should handle stream subscriptions properly"
-00:04 +44 -43: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Permission Validation Tests should validate permissions before tracking
-🔍 Validando permisos antes de iniciar tracking
-🔒 Validando todos los permisos para tracking
-🔍 Validando permisos de ubicación precisa
-❌ Error validando ubicación precisa: MissingPluginException(No implementation found for method checkPermission on channel flutter.baseflow.com/geolocator)
-📊 Permisos - Ubicación: false, Background: true, Notificaciones: true
-❌ Faltan permisos críticos
-❌ Permisos insuficientes para tracking
-🚨 Mostrando advertencia crítica de lifecycle
-❌ Error mostrando alerta (critical): LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -44: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Permission Validation Tests should validate permissions before tracking [E]
-  Expected: true
-    Actual: <false>
-  
-  package:matcher                                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18                  expect
-  test\unit\student_attendance_manager_comprehensive_test.dart 574:9  main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Permission Validation Tests should validate permissions before tracking"
-00:04 +44 -44: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Permission Validation Tests should handle permission validation failure
-🔍 Validando permisos antes de iniciar tracking
-🔒 Validando todos los permisos para tracking
-🔍 Validando permisos de ubicación precisa
-❌ Error validando ubicación precisa: MissingPluginException(No implementation found for method checkPermission on channel flutter.baseflow.com/geolocator)
-📊 Permisos - Ubicación: false, Background: true, Notificaciones: true
-❌ Faltan permisos críticos
-❌ Permisos insuficientes para tracking
-🚨 Mostrando advertencia crítica de lifecycle
-❌ Error mostrando alerta (critical): LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -45: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Permission Validation Tests should handle permission validation failure [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                                      fail
-  package:mocktail/src/mocktail.dart 728:7                             _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18                            _makeVerify.<fn>
-  test\unit\student_attendance_manager_comprehensive_test.dart 590:15  main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Permission Validation Tests should handle permission validation failure"
-00:04 +44 -45: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests State Management Tests should emit state changes through stream
-🎯 Iniciando tracking para evento: Test Event
-❌ Error iniciando tracking: Bad state: Cannot add new events after calling close
-00:04 +44 -46: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests State Management Tests should emit state changes through stream [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 217:7   StudentAttendanceManager.startEventTracking
-  test\unit\student_attendance_manager_comprehensive_test.dart 604:33      main.<fn>.<fn>.<fn>
-  
-00:04 +44 -47: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests State Management Tests should emit state changes through stream
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -47: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests State Management Tests should emit state changes through stream [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests State Management Tests should emit state changes through stream"
-00:04 +44 -47: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Break Management Notification Tests should show tracking resumed notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 412:15  main.<fn>.<fn>.<fn>
-  
-00:04 +44 -47: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: ... Management Tests should provide current state info correctly    
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Break Management Notification Tests should show tracking resumed notification"
-00:04 +44 -47: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Notification Management Tests should clear all notifications  
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -48: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Notification Management Tests should clear all notifications [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 432:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Notification Management Tests should clear all notifications"
-00:04 +44 -49: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests State Management Tests should provide current state info correctly [E]
-  Expected: contains 'active'
-    Actual: 'TrackingStatus.stopped'
-     Which: does not contain 'active'
-  
-  package:matcher                                                     expect
-  package:flutter_test/src/widget_tester.dart 474:18                  expect
-  test\unit\student_attendance_manager_comprehensive_test.dart 635:9  main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests State Management Tests should provide current state info correctly"
-00:04 +44 -49: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Notification Management Tests should cancel specific notification
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +44 -50: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Notification Management Tests should cancel specific notification [E]
-  No matching calls (actually, no calls at all).
-  (If you called `verify(...).called(0);`, please instead use `verifyNever(...);`.)
-  package:matcher                                  fail
-  package:mocktail/src/mocktail.dart 728:7         _VerifyCall._checkWith
-  package:mocktail/src/mocktail.dart 519:18        _makeVerify.<fn>
-  test\unit\notification_manager_test.dart 444:15  main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Notification Management Tests should cancel specific notification"
-00:04 +44 -50: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Error Handling Tests should handle location service errors gracefully
-🎯 Iniciando tracking para evento: Test Event
-❌ Error iniciando tracking: Bad state: Cannot add new events after calling close
-00:04 +44 -51: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Error Handling Tests should handle location service errors gracefully [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 217:7   StudentAttendanceManager.startEventTracking
-  test\unit\student_attendance_manager_comprehensive_test.dart 650:33      main.<fn>.<fn>.<fn>
-  
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Error Handling Tests should handle location service errors gracefully"
-00:04 +44 -52: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: ... Tests Error Handling Tests should handle backend API errors     00:04 +44 -52: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Permission Tests should handle notification permission denied [E]
-  Bad state: A test tried to use `any` or `captureAny` on a parameter of type `InitializationSettings`, but
-  registerFallbackValue was not previously called to register a fallback value for `InitializationSettings`.
-  
-  To fix, do:
-  
-  ```
-  void main() {
-    setUpAll(() {
-      registerFallbackValue(/* create a dummy instance of `InitializationSettings` */);
-    });
-  }
-  ```
-  
-  This instance of `InitializationSettings` will only be passed around, but never be interacted with.
-  Therefore, if `InitializationSettings` is a function, it does not have to return a valid object and
-  could throw unconditionally.
-  If you cannot easily create an instance of `InitializationSettings`, consider defining a `Fake`:
-  
-  ```
-  class MyTypeFake extends Fake implements MyType {}
-  
-  void main() {
-    setUpAll(() {
-      registerFallbackValue(MyTypeFake());
-    });
-  }
-  ```
-  
-  Fallbacks are required because mocktail has to know of a valid `InitializationSettings` to prevent
-  TypeErrors from being thrown in Dart's sound null safe mode, while still
-  providing a convenient syntax.
-  
-  package:mocktail/src/_register_matcher.dart 49:5    _getFallbackValue
-  package:mocktail/src/_register_matcher.dart 160:25  _registerMatcher
-  package:mocktail/src/_register_matcher.dart 104:10  any
-  test\unit\notification_manager_test.dart 452:11     main.<fn>.<fn>.<fn>.<fn>
-  package:mocktail/src/mocktail.dart 211:9            when.<fn>
-  test\unit\notification_manager_test.dart 451:13     main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Permission Tests should handle notification permission denied"
-00:04 +44 -52: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Error Handling Tests should handle backend API errors
-⚠️ No se puede registrar asistencia en este momento
-🧹 Limpiando StudentAttendanceManager con recursos críticos
-🛑 Deteniendo tracking con limpieza completa
-🧹 Limpiando todas las notificaciones
-❌ Error limpiando notificaciones: LateInitializationError: Field '_instance@1172271368' has not been initialized.
-00:04 +44 -53: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart: StudentAttendanceManager Comprehensive Tests Error Handling Tests should handle backend API errors [E]
-  Bad state: Cannot add new events after calling close
-  dart:async                                                               _BroadcastStreamController.add
-  package:geo_asist_front/services/student_attendance_manager.dart 604:22  StudentAttendanceManager._updateState
-  package:geo_asist_front/services/student_attendance_manager.dart 507:5   StudentAttendanceManager.stopTracking
-  ===== asynchronous gap ===========================
-  dart:async                                                               _CustomZone.registerBinaryCallback
-  test\unit\student_attendance_manager_comprehensive_test.dart 56:7        main.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_comprehensive_test.dart -p vm --plain-name "StudentAttendanceManager Comprehensive Tests Error Handling Tests should handle backend API errors"
-00:04 +45 -53: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Permission Tests should request notification permissions      00:04 +45 -53: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Platform-Specific Tests should handle Android-specific notification features  00:04 +46 -53: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Platform-Specific Tests should handle Android-specific notification features  00:04 +46 -53: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Platform-Specific Tests should handle iOS-specific notification features      00:04 +47 -53: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Platform-Specific Tests should handle iOS-specific notification features      00:04 +47 -53: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Error Handling Tests should handle notification display errors gracefully     00:04 +47 -53: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Error Handling Tests should handle notification display errors gracefully
-🎯 Mostrando notificación - Evento iniciado
-❌ Error mostrando alerta (info): LateInitializationError: Field '_notifications@30044139' has not been initialized.
-00:04 +48 -53: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Error Handling Tests should handle notification display errors gracefully     00:04 +48 -53: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Error Handling Tests should handle plugin initialization errors               00:04 +48 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Error Handling Tests should handle plugin initialization errors [E]
-  Bad state: A test tried to use `any` or `captureAny` on a parameter of type `InitializationSettings`, but
-  registerFallbackValue was not previously called to register a fallback value for `InitializationSettings`.
-  
-  To fix, do:
-  
-  ```
-  void main() {
-    setUpAll(() {
-      registerFallbackValue(/* create a dummy instance of `InitializationSettings` */);
-    });
-  }
-  ```
-  
-  This instance of `InitializationSettings` will only be passed around, but never be interacted with.
-  Therefore, if `InitializationSettings` is a function, it does not have to return a valid object and
-  could throw unconditionally.
-  If you cannot easily create an instance of `InitializationSettings`, consider defining a `Fake`:
-  
-  ```
-  class MyTypeFake extends Fake implements MyType {}
-  
-  void main() {
-    setUpAll(() {
-      registerFallbackValue(MyTypeFake());
-    });
-  }
-  ```
-  
-  Fallbacks are required because mocktail has to know of a valid `InitializationSettings` to prevent
-  TypeErrors from being thrown in Dart's sound null safe mode, while still
-  providing a convenient syntax.
-  
-  package:mocktail/src/_register_matcher.dart 49:5    _getFallbackValue
-  package:mocktail/src/_register_matcher.dart 160:25  _registerMatcher
-  package:mocktail/src/_register_matcher.dart 104:10  any
-  test\unit\notification_manager_test.dart 499:11     main.<fn>.<fn>.<fn>.<fn>
-  package:mocktail/src/mocktail.dart 211:9            when.<fn>
-  test\unit\notification_manager_test.dart 498:13     main.<fn>.<fn>.<fn>
-  
-
-To run this test again: D:\Development\flutter\bin\cache\dart-sdk\bin\dart.exe test D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart -p vm --plain-name "NotificationManager Tests Error Handling Tests should handle plugin initialization errors"
-00:04 +48 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Content Tests should format notification titles correctly        00:04 +49 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Content Tests should format notification titles correctly        00:04 +49 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Content Tests should format notification bodies correctly        00:04 +50 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Content Tests should format notification bodies correctly        00:04 +50 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Content Tests should include appropriate actions in notifications00:04 +51 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Content Tests should include appropriate actions in notifications00:04 +51 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Scheduling Tests should schedule periodic notifications          00:04 +52 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Scheduling Tests should schedule periodic notifications          00:04 +52 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Scheduling Tests should cancel scheduled notifications           00:04 +53 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Scheduling Tests should cancel scheduled notifications           00:04 +53 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Interaction Tests should handle notification tap events          00:04 +54 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Interaction Tests should handle notification tap events          00:04 +54 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Interaction Tests should handle notification action button taps  00:04 +55 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Notification Interaction Tests should handle notification action button taps  00:04 +55 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Memory Management Tests should not leak memory during notification operations 00:04 +56 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: ... Tests Memory Management Tests should not leak memory during notification operations 00:04 +56 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Memory Management Tests should clean up resources properly    00:04 +57 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/notification_manager_test.dart: NotificationManager Tests Memory Management Tests should clean up resources properly    00:04 +57 -54: loading D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart                                                                            00:04 +57 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Singleton Behavior Tests should be singleton - same instance across calls     00:04 +58 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Singleton Behavior Tests should be singleton - same instance across calls     00:04 +58 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Singleton Behavior Tests should maintain state across singleton calls   00:04 +59 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Singleton Behavior Tests should maintain state across singleton calls   00:04 +59 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: StudentAttendanceManager Tests State Management Tests should provide stream access00:04 +60 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: StudentAttendanceManager Tests State Management Tests should provide stream access00:04 +60 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Management Tests should provide current state access              00:04 +61 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Management Tests should provide current state access              00:04 +61 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Management Tests should have valid state structure                00:04 +62 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Management Tests should have valid state structure                00:04 +62 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Management Tests should handle stream subscriptions safely        00:04 +63 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Management Tests should handle stream subscriptions safely        00:04 +63 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Info Tests should provide comprehensive current state info        00:04 +64 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Info Tests should provide comprehensive current state info        00:04 +64 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Info Tests should handle state info when no event is active       00:04 +65 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Info Tests should handle state info when no event is active       00:04 +65 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Info Tests should provide consistent state info format            00:04 +66 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests State Info Tests should provide consistent state info format            00:04 +66 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests API Surface Tests should have all expected public methods               00:04 +67 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests API Surface Tests should have all expected public methods               00:04 +67 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: StudentAttendanceManager Tests API Surface Tests should have expected properties  00:04 +68 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: StudentAttendanceManager Tests API Surface Tests should have expected properties  00:04 +68 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests API Surface Tests should handle method calls without crashing           00:04 +69 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests API Surface Tests should handle method calls without crashing           00:04 +69 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Error Handling and Stability Tests should handle state access safely    00:04 +70 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Error Handling and Stability Tests should handle state access safely    00:04 +70 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Error Handling and Stability Tests should handle stream access safely   00:04 +71 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Error Handling and Stability Tests should handle stream access safely   00:04 +71 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Error Handling and Stability Tests should handle rapid state access     00:04 +72 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Error Handling and Stability Tests should handle rapid state access     00:04 +72 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Error Handling and Stability Tests should handle rapid info requests    00:04 +73 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Error Handling and Stability Tests should handle rapid info requests    00:04 +73 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... and Stability Tests should maintain stability with multiple operations        00:04 +74 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... and Stability Tests should maintain stability with multiple operations        00:04 +74 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Realistic Behavior Tests should behave consistently as singleton        00:04 +75 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Realistic Behavior Tests should behave consistently as singleton        00:04 +75 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Realistic Behavior Tests should handle state info consistently          00:04 +76 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Realistic Behavior Tests should handle state info consistently          00:04 +76 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Realistic Behavior Tests should maintain stream functionality           00:04 +77 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Realistic Behavior Tests should maintain stream functionality           00:04 +77 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Realistic Behavior Tests should handle state transitions gracefully     00:04 +78 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Realistic Behavior Tests should handle state transitions gracefully     00:04 +78 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Integration Readiness Tests should be ready for real service integration00:04 +79 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Integration Readiness Tests should be ready for real service integration00:04 +79 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Integration Readiness Tests should have proper initialization state     00:04 +80 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Integration Readiness Tests should have proper initialization state     00:04 +80 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Integration Readiness Tests should support future enhancements          00:04 +81 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Integration Readiness Tests should support future enhancements          00:04 +81 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests should handle creation of multiple singleton instances efficiently      00:04 +82 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests should handle creation of multiple singleton instances efficiently      00:04 +82 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Performance Tests should handle concurrent access safely                00:04 +83 -54: D:/Users/LN_LOQ15/Desktop/movil_Final/geo_asist_front/test/unit/student_attendance_manager_test.dart: ... Tests Performance Tests should handle concurrent access safely                00:04 +83 -54: Some tests failed.                                                                                                                                                                      

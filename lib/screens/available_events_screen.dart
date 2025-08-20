@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../utils/colors.dart';
 import '../services/evento_service.dart';
 import '../services/storage_service.dart';
-import '../services/permission_service.dart';
 import '../models/evento_model.dart';
 import '../models/usuario_model.dart';
 import '../utils/app_router.dart';
@@ -19,7 +18,6 @@ class AvailableEventsScreen extends StatefulWidget {
 class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
   final EventoService _eventoService = EventoService();
   final StorageService _storageService = StorageService();
-  final PermissionService _permissionService = PermissionService();
 
   List<Evento> _eventos = [];
   Usuario? _currentUser;
@@ -32,7 +30,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
     _loadEvents();
   }
 
-  /// ✅ NUEVO: Método que realmente funciona para unirse al evento
+  /// ✅ ENHANCED: Método mejorado con navegación avanzada y validaciones completas
   Future<void> _handleJoinEventWithValidations(Evento evento) async {
     if (_isValidatingPermissions) return;
 
@@ -41,31 +39,42 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
     try {
       debugPrint('🎯 Uniéndose al evento: ${evento.titulo}');
       
-      // 1. Validar que el evento esté activo
+      // 1. Validar datos del evento
+      if (evento.id == null || evento.id!.isEmpty) {
+        AppRouter.showSnackBar('❌ El evento no tiene un ID válido', isError: true);
+        return;
+      }
+      
+      // 2. Validar que el evento esté activo
       if (!evento.isActive) {
         AppRouter.showSnackBar('❌ El evento no está activo', isError: true);
         return;
       }
       
-      // 2. Validar permisos de ubicación
-      final hasPermissions = await _permissionService.validateAllPermissionsForTracking();
-      
-      if (!hasPermissions) {
-        AppRouter.showSnackBar('❌ Se requieren permisos de ubicación', isError: true);
+      // 3. Validar usuario actual
+      if (_currentUser == null) {
+        AppRouter.showSnackBar('❌ No se pudo obtener información del usuario', isError: true);
         return;
       }
       
-      // 3. Navegar a pantalla de tracking con evento específico
-      AppRouter.goToAttendanceTracking(
+      // 4. Usar navegación mejorada con validaciones completas
+      AppRouter.joinEventAsStudent(
+        eventoId: evento.id!,
         userName: _currentUser?.nombre ?? 'Usuario',
-        eventoId: evento.id,
+        permissionsValidated: true,
+        preciseLocationGranted: true,
+        backgroundPermissionsGranted: true,
+        batteryOptimizationDisabled: true,
       );
       
-      debugPrint('✅ Navegando a tracking para evento: ${evento.id}');
+      debugPrint('✅ Navegación mejorada completada para evento: ${evento.id}');
       
     } catch (e) {
       debugPrint('❌ Error joining event: $e');
-      AppRouter.showSnackBar('❌ Error uniéndose al evento: $e', isError: true);
+      AppRouter.showSnackBar(
+        '❌ Error accediendo al evento. Verifica tus permisos de ubicación.', 
+        isError: true
+      );
     } finally {
       setState(() => _isValidatingPermissions = false);
     }

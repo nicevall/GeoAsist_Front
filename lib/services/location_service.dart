@@ -444,34 +444,54 @@ class LocationService {
         debugPrint('📤 Enviando actualización al backend con formato correcto');
         debugPrint('   Request body: $requestBody');
         
+        // ✅ ENHANCED: Progressive timeout with proper endpoint
+        final timeoutDuration = Duration(seconds: 15 + (attempt * 5));
         final response = await _apiService.post(
-          AppConstants.locationEndpoint,
+          '/location/actualizar',  // Use specific endpoint
           body: requestBody,
-        ).timeout(Duration(seconds: 30)); // ✅ CRITICAL FIX: Increased timeout
+        ).timeout(timeoutDuration);
 
         if (response.success && response.data != null) {
           final locationResponse = LocationResponseModel.fromSimpleResponse(response.data!);
-          debugPrint('✅ Backend respondió exitosamente: Status ${response.statusCode}');
-          debugPrint('✅ Ubicación actualizada correctamente');
+          debugPrint('✅ Location update successful on attempt $attempt');
+          debugPrint('   Status: ${response.statusCode}, Message: ${response.message}');
+          _markServiceOnline(); // Mark service as online
           return locationResponse;
         } else {
-          debugPrint('❌ Backend rejected update on attempt $attempt: ${response.message}');
-          debugPrint('📊 Status Code: ${response.statusCode}');
-          debugPrint('✅ Response Body: ${response.data}');
+          debugPrint('❌ Backend rejected update on attempt $attempt');
+          debugPrint('   Status: ${response.statusCode}, Error: ${response.message}');
+          
+          // Don't retry on certain error codes
+          if (response.statusCode == 400 || response.statusCode == 401) {
+            debugPrint('❌ Non-retryable error, stopping attempts');
+            return null;
+          }
           
           if (attempt == _maxRetryAttempts) {
-            debugPrint('❌ Max attempts reached, returning null');
+            debugPrint('❌ All location update attempts failed');
+            _markServiceOffline();
             return null;
           }
         }
       } catch (e) {
         debugPrint('❌ Location update attempt $attempt failed: $e');
         
+        // Determine if error is retryable
+        final isRetryable = _isRetryableError(e);
+        if (!isRetryable) {
+          debugPrint('❌ Non-retryable error: $e');
+          _markServiceOffline();
+          return null;
+        }
+        
         if (attempt < _maxRetryAttempts) {
-          // ✅ CRITICAL FIX: Exponential backoff
-          final delay = Duration(seconds: _retryDelay.inSeconds * attempt);
-          debugPrint('🔄 Retrying location update in ${delay.inSeconds}s...');
-          await Future.delayed(delay);
+          // ✅ ENHANCED: Exponential backoff with jitter
+          final exponentialDelay = _retryDelay * (1 << (attempt - 1)); // 2s, 4s, 8s
+          final jitter = Duration(milliseconds: (exponentialDelay.inMilliseconds * 0.1 * (attempt % 3)).round());
+          final finalDelay = exponentialDelay + jitter;
+          
+          debugPrint('🔄 Retrying location update in ${finalDelay.inSeconds}s (attempt $attempt/$_maxRetryAttempts)...');
+          await Future.delayed(finalDelay);
         }
       }
     }
@@ -534,10 +554,92 @@ class LocationService {
     debugPrint('✅ Offline queue processing completed');
   }
   
-  /// Handle update failure
+  /// ✅ ENHANCED: Handle update failure with better state management
   void _handleUpdateFailure() {
-    _isOnline = false;
-    debugPrint('❌ Marking service as offline due to update failure');
+    _markServiceOffline();
+  }
+  
+  /// ✅ NEW: Mark service as offline with logging
+  void _markServiceOffline() {
+    if (_isOnline) {
+      _isOnline = false;
+      debugPrint('🗑️ Service marked as OFFLINE due to update failure');
+    }
+  }
+  
+  /// ✅ NEW: Mark service as online with logging
+  void _markServiceOnline() {
+    if (!_isOnline) {
+      _isOnline = true;
+      debugPrint('✅ Service marked as ONLINE after successful update');
+    }
+  }
+  
+  /// ✅ NEW: Check if error is retryable
+  bool _isRetryableError(dynamic error) {
+    final errorString = error.toString().toLowerCase();
+    
+    // Network-related errors are retryable
+    if (errorString.contains('network') ||
+        errorString.contains('timeout') ||
+        errorString.contains('connection') ||
+        errorString.contains('socket')) {
+      return true;
+    }
+    
+    // Server errors (5xx) are retryable
+    if (errorString.contains('500') ||
+        errorString.contains('502') ||
+        errorString.contains('503') ||
+        errorString.contains('504')) {
+      return true;
+    }
+    
+    // Client errors (4xx) are generally not retryable
+    if (errorString.contains('400') ||
+        errorString.contains('401') ||
+        errorString.contains('403') ||
+        errorString.contains('404')) {
+      return false;
+    }
+    
+    // Default to retryable for unknown errors
+    return true;
+  }
+  
+  /// ✅ NEW: Test coordinates with backend
+  Future<ApiResponse<Map<String, dynamic>>> testCoordinates(
+    double latitude,
+    double longitude,
+  ) async {
+    try {
+      debugPrint('🧪 Testing coordinates with backend: ($latitude, $longitude)');
+      
+      // Validate coordinates first
+      if (!_validateCoordinates(latitude, longitude)) {
+        return ApiResponse.error('Invalid coordinates provided');
+      }
+      
+      final response = await _apiService.post(
+        '/location/test-coordinates',
+        body: {
+          'latitud': latitude,
+          'longitud': longitude,
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      ).timeout(Duration(seconds: 10));
+      
+      if (response.success) {
+        debugPrint('✅ Coordinate test successful');
+        return response;
+      } else {
+        debugPrint('❌ Coordinate test failed: ${response.message}');
+        return ApiResponse.error('Backend rejected coordinates: ${response.message}');
+      }
+    } catch (e) {
+      debugPrint('❌ Coordinate test error: $e');
+      return ApiResponse.error('Test de coordenadas falló: $e');
+    }
   }
   
   /// Record performance metric
