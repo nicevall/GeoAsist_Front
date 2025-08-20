@@ -246,7 +246,7 @@ class AppRouter {
           builder: (_) => const SystemEventsManagementScreen(), // ✅ PANTALLA ESPECÍFICA PARA ADMIN
         );
 
-      case '/system-events-view': // ✅ NUEVA RUTA PARA SOLO VISUALIZACIÓN
+      case AppConstants.systemEventsViewRoute: // ✅ USAR CONSTANTE
         return MaterialPageRoute(
           builder: (_) => const AvailableEventsScreen(), // Solo ver eventos
         );
@@ -400,7 +400,7 @@ class AppRouter {
   }
 
   static void goToSystemEvents() {
-    navigatorKey.currentState?.pushNamed('/system-events-view'); // ✅ SOLO VISUALIZACIÓN
+    navigatorKey.currentState?.pushNamed(AppConstants.systemEventsViewRoute); // ✅ USAR CONSTANTE
   }
 
   static void goToSystemEventsManagement() {

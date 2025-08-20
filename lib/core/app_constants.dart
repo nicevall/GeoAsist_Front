@@ -8,9 +8,9 @@ class AppConstants {
   static const String appVersion = '1.0.0';
   static const String appDescription = 'Geo-location based attendance system';
 
-  // ✅ ACTUALIZADO: Nueva IP del servidor - Día 4
+  // ✅ PRODUCTION: IP del servidor en producción
   static const String baseUrl =
-      'http://44.211.171.188/api'; // Nueva IP del servidor
+      'http://44.211.171.188/api'; // IP de producción
   static const String apiVersion = 'v1';
   // ✅ CRITICAL FIX: Timeout configuration
   static const Duration apiTimeout = Duration(seconds: 30);
@@ -18,7 +18,7 @@ class AppConstants {
   static const Duration locationTimeout = Duration(seconds: 30);
   static const Duration criticalTimeout = Duration(seconds: 45);
 
-  // ✅ ACTUALIZADO: WebSocket para tiempo real - Nueva IP
+  // ✅ PRODUCTION: WebSocket para tiempo real - IP de producción
   static const String baseUrlWebSocket = 'ws://44.211.171.188';
 
   // ✅ CONFIGURACIÓN CRÍTICA Día 4 - APP ACTIVE VALIDATION
@@ -120,6 +120,7 @@ class AppConstants {
   static const String adminUsersRoute = '/admin/users';
   static const String adminEventsRoute = '/admin/events';
   static const String adminStatsRoute = '/admin/stats';
+  static const String systemEventsViewRoute = '/system-events-view';
 
   // Error Messages
   static const String networkErrorMessage =
