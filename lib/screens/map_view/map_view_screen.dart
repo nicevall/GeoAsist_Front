@@ -874,24 +874,74 @@ class _MapViewScreenState extends State<MapViewScreen>
 
           const SizedBox(height: 16),
 
-          // 🎯 BOTÓN DE ASISTENCIA PARA ESTUDIANTES - ESTADO REAL
+          // 🎯 INFORMACIÓN DE ESTADO PARA ESTUDIANTES (SIN BOTÓN MANUAL)
           if (widget.isStudentMode && _currentEvento != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: AttendanceButtonWidget(
-                attendanceState: _currentAttendanceState,
-                locationResponse: _currentLocationResponse,
-                isLoading: _isRegisteringAttendance,
-                onPressed: _registerAttendance,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _currentAttendanceState.isInsideGeofence 
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _currentAttendanceState.isInsideGeofence 
+                        ? Colors.green 
+                        : Colors.orange,
+                    width: 2,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _currentAttendanceState.isInsideGeofence 
+                          ? Icons.check_circle 
+                          : Icons.location_on,
+                      color: _currentAttendanceState.isInsideGeofence 
+                          ? Colors.green 
+                          : Colors.orange,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _currentAttendanceState.isInsideGeofence 
+                                ? '✅ Dentro del área del evento'
+                                : '📍 Fuera del área del evento',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _currentAttendanceState.isInsideGeofence 
+                                ? 'Tu asistencia se registra automáticamente'
+                                : 'Acércate al área para registrar asistencia',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
           const SizedBox(height: 16),
 
-          // 🎯 PANEL DE CONTROL - USANDO ESTADOS REALES
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ControlPanel(
+          // 🎯 PANEL DE CONTROL - SOLO PARA ADMINISTRADORES
+          if (widget.isAdminMode)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ControlPanel(
               isAdminMode: widget.isAdminMode,
               isOnBreak: _currentAttendanceState.trackingStatus ==
                   TrackingStatus.paused,

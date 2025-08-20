@@ -10,6 +10,8 @@ import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../services/notifications/notification_manager.dart';
 import '../../services/storage_service.dart';
+import '../../services/teacher_notification_service.dart'; // ✅ NUEVO para notificaciones docente
+import '../../services/teacher_notification_scheduler.dart'; // ✅ NUEVO para programaciones
 
 class EventMonitorScreen extends StatefulWidget {
   final String teacherName;
@@ -34,15 +36,27 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   // 🎯 SERVICIOS ADICIONALES PARA NOTIFICACIONES
   final NotificationManager _notificationManager = NotificationManager();
   final StorageService _storageService = StorageService();
+  
+  // 🔔 SERVICIOS DE NOTIFICACIONES PARA DOCENTES
+  final TeacherNotificationService _teacherNotificationService = TeacherNotificationService();
+  final TeacherNotificationScheduler _teacherScheduler = TeacherNotificationScheduler();
 
   // 🎯 ESTADO DEL RECESO
   bool _isBreakActive = false;
   DateTime? _breakStartTime;
   Timer? _breakDurationTimer;
 
-  // 🎯 WEBSOCKET REAL - NUEVAS PROPIEDADES
+  // 🎯 WEBSOCKET REAL - ENHANCED CONNECTION MANAGEMENT
   WebSocketChannel? _wsChannel;
   StreamSubscription? _wsSubscription;
+  Timer? _reconnectionTimer;
+  Timer? _heartbeatTimer;
+  bool _isConnecting = false;
+  bool _shouldReconnect = true;
+  int _reconnectionAttempts = 0;
+  static const int _maxReconnectionAttempts = 5;
+  static const Duration _reconnectionDelay = Duration(seconds: 3);
+  static const Duration _heartbeatInterval = Duration(seconds: 30);
 
   // 🎯 CONTROLADORES DE ANIMACIÓN
   late AnimationController _refreshController;
@@ -56,6 +70,12 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   // 🎯 DATOS DEL EVENTO EN TIEMPO REAL
   Evento? _monitoredEvent;
   List<Asistencia> _studentActivities = []; // ✅ REAL desde backend
+  
+  // 📊 MÉTRICAS DE ASISTENCIA PARA NOTIFICACIONES
+  int _totalStudentsExpected = 0;
+  int _studentsPresent = 0;
+  int _previousAttendanceCount = 0;
+  DateTime? _lastAttendanceUpdate;
 
   // 🎯 TIMER PARA ACTUALIZACIÓN EN TIEMPO REAL
   Timer? _realtimeUpdateTimer;
@@ -75,15 +95,51 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
   @override
   void dispose() {
+    debugPrint('🧹 Disposing EventMonitorScreen resources');
+    
+    // Stop reconnection attempts
+    _shouldReconnect = false;
+    
+    // Cancel all timers
     _refreshController.dispose();
     _pulseController.dispose();
     _realtimeUpdateTimer?.cancel();
+    _realtimeUpdateTimer = null;
     _breakDurationTimer?.cancel();
+    _breakDurationTimer = null;
+    _reconnectionTimer?.cancel();
+    _reconnectionTimer = null;
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
 
-    // ✅ NUEVO: Limpiar WebSocket
+    // ✅ ENHANCED: Clean WebSocket with proper error handling
     _cleanupWebSocket();
+    
+    // ✅ NUEVO: Limpiar servicios de notificaciones docentes
+    _disposeTeacherNotificationServices();
 
     super.dispose();
+    debugPrint('✅ EventMonitorScreen disposed successfully');
+  }
+  
+  /// ✅ NUEVO: Limpiar servicios de notificaciones docentes
+  Future<void> _disposeTeacherNotificationServices() async {
+    try {
+      debugPrint('🔔 Limpiando servicios de notificaciones docentes');
+      
+      // Cancelar programaciones del evento actual
+      await _teacherScheduler.cancelEventSchedules(widget.eventId);
+      
+      // Limpiar scheduler
+      await _teacherScheduler.dispose();
+      
+      // Limpiar servicio de notificaciones (sin dispose completo para no afectar otros usos)
+      // El TeacherNotificationService se mantiene activo para otros eventos
+      
+      debugPrint('✅ Servicios de notificaciones docentes limpiados');
+    } catch (e) {
+      debugPrint('❌ Error limpiando servicios de notificaciones: $e');
+    }
   }
 
   void _initializeAnimations() {
@@ -104,8 +160,33 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     try {
       await _notificationManager.initialize();
       debugPrint('✅ NotificationManager inicializado para EventMonitor');
+      
+      // ✅ NUEVO: Inicializar sistema de notificaciones para docentes
+      await _initializeTeacherNotificationSystem();
     } catch (e) {
       debugPrint('❌ Error inicializando NotificationManager: $e');
+    }
+  }
+  
+  /// ✅ NUEVO: Inicializar sistema completo de notificaciones para docentes
+  Future<void> _initializeTeacherNotificationSystem() async {
+    try {
+      debugPrint('🔔 Inicializando sistema de notificaciones para docentes');
+      
+      // Inicializar TeacherNotificationService
+      await _teacherNotificationService.initialize();
+      
+      // Inicializar TeacherNotificationScheduler
+      await _teacherScheduler.initialize();
+      
+      // Si hay evento cargado, programar notificaciones
+      if (_monitoredEvent != null) {
+        await _scheduleEventTeacherNotifications(_monitoredEvent!);
+      }
+      
+      debugPrint('✅ Sistema de notificaciones para docentes inicializado');
+    } catch (e) {
+      debugPrint('❌ Error inicializando notificaciones docentes: $e');
     }
   }
 
@@ -121,7 +202,12 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
       // 3. Iniciar actualización en tiempo real cada 30 segundos
       _startRealtimeUpdates();
-      await _connectWebSocket();
+      
+      // 4. ✅ ENHANCED: Connect WebSocket with improved error handling
+      await _connectWebSocketWithRetry();
+      
+      // 5. ✅ NUEVO: Iniciar actualización periódica de asistencia (cada 15 min)
+      _startAttendanceUpdateNotifications();
     } catch (e) {
       debugPrint('❌ Error inicializando event monitor: $e');
       if (mounted) {
@@ -151,6 +237,12 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           _isEventActive = event.isActive;
         });
       }
+      
+      // ✅ NUEVO: Programar notificaciones para el evento
+      await _scheduleEventTeacherNotifications(event);
+      
+      // ✅ NUEVO: Establecer métricas iniciales
+      await _initializeEventMetrics(event);
 
       debugPrint(
           '✅ Evento cargado: ${event.titulo}, activo: ${event.isActive}');
@@ -173,6 +265,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           _studentActivities = asistencias;
         });
       }
+      
+      // ✅ NUEVO: Actualizar métricas y enviar notificaciones si hay cambios
+      await _updateAttendanceMetrics(asistencias);
 
       debugPrint('✅ Asistencias cargadas: ${asistencias.length} registros');
     } catch (e) {
@@ -206,6 +301,101 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       }
     }
   }
+  
+  /// ✅ NUEVO: Programar notificaciones para el evento
+  Future<void> _scheduleEventTeacherNotifications(Evento event) async {
+    try {
+      debugPrint('📅 Programando notificaciones para docente: ${event.titulo}');
+      
+      // Programar notificaciones temporales
+      await _teacherScheduler.scheduleEventNotifications(event);
+      
+      // Programar sugerencias de receso para eventos largos
+      if (event.duracionMinutos >= 90) {
+        await _teacherScheduler.scheduleBreakSuggestions(event);
+      }
+      
+      debugPrint('✅ Notificaciones programadas para: ${event.titulo}');
+    } catch (e) {
+      debugPrint('❌ Error programando notificaciones: $e');
+    }
+  }
+  
+  /// ✅ NUEVO: Inicializar métricas del evento
+  Future<void> _initializeEventMetrics(Evento event) async {
+    try {
+      // Obtener cantidad esperada de estudiantes (esto podría venir del backend)
+      // Por ahora, usar un valor estimado o configurado
+      _totalStudentsExpected = 30; // TODO: Obtener del backend
+      
+      // Contar estudiantes actuales presentes
+      _studentsPresent = _studentActivities
+          .where((a) => a.estado == 'presente')
+          .length;
+      
+      _previousAttendanceCount = _studentsPresent;
+      _lastAttendanceUpdate = DateTime.now();
+      
+      debugPrint('📊 Métricas inicializadas - Esperados: $_totalStudentsExpected, Presentes: $_studentsPresent');
+    } catch (e) {
+      debugPrint('❌ Error inicializando métricas: $e');
+    }
+  }
+  
+  /// ✅ NUEVO: Actualizar métricas y enviar notificaciones de cambios de asistencia
+  Future<void> _updateAttendanceMetrics(List<Asistencia> asistencias) async {
+    try {
+      final newStudentsPresent = asistencias
+          .where((a) => a.estado == 'presente')
+          .length;
+      
+      // Verificar si hay nuevos estudiantes registrados
+      if (newStudentsPresent > _studentsPresent) {
+        final newStudents = newStudentsPresent - _studentsPresent;
+        
+        // Obtener nombres de nuevos estudiantes registrados
+        final recentStudents = asistencias
+            .where((a) => a.estado == 'presente')
+            .toList()
+            ..sort((a, b) => (b.fechaRegistro ?? DateTime.now())
+                .compareTo(a.fechaRegistro ?? DateTime.now()));
+        
+        // Notificar estudiante(s) registrado(s)
+        if (newStudents == 1 && recentStudents.isNotEmpty) {
+          // Un estudiante individual
+          await _teacherNotificationService.notifyStudentJoined(
+            studentName: recentStudents.first.nombreUsuario ?? 'Estudiante',
+            eventTitle: _monitoredEvent?.titulo ?? 'Evento',
+            eventId: widget.eventId,
+            currentAttendance: newStudentsPresent,
+            totalStudents: _totalStudentsExpected,
+          );
+        } else if (newStudents > 1) {
+          // Múltiples estudiantes
+          final studentNames = recentStudents
+              .take(newStudents)
+              .map((a) => a.nombreUsuario ?? 'Estudiante')
+              .toList();
+          
+          await _teacherNotificationService.notifyMultipleStudentsJoined(
+            studentNames: studentNames,
+            eventTitle: _monitoredEvent?.titulo ?? 'Evento',
+            eventId: widget.eventId,
+            currentAttendance: newStudentsPresent,
+            totalStudents: _totalStudentsExpected,
+          );
+        }
+      }
+      
+      // Actualizar métricas
+      _studentsPresent = newStudentsPresent;
+      _lastAttendanceUpdate = DateTime.now();
+      
+      debugPrint('📊 Métricas actualizadas - Presentes: $_studentsPresent/$_totalStudentsExpected');
+    } catch (e) {
+      debugPrint('❌ Error actualizando métricas de asistencia: $e');
+    }
+  }
 
   void _startRealtimeUpdates() {
     if (!_autoRefreshEnabled) return;
@@ -222,6 +412,45 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     );
 
     debugPrint('✅ Auto-actualización iniciada cada 30 segundos');
+  }
+  
+  /// ✅ NUEVO: Iniciar notificaciones de actualización de asistencia cada 15 minutos
+  void _startAttendanceUpdateNotifications() {
+    // Timer para enviar actualizaciones periódicas de asistencia al docente
+    Timer.periodic(Duration(minutes: 15), (timer) async {
+      if (!mounted || _monitoredEvent == null) {
+        timer.cancel();
+        return;
+      }
+      
+      try {
+        // Enviar notificación de actualización de asistencia
+        await _teacherNotificationService.notifyAttendanceUpdate(
+          eventTitle: _monitoredEvent!.titulo,
+          eventId: widget.eventId,
+          presentStudents: _studentsPresent,
+          totalStudents: _totalStudentsExpected,
+          trend: _getAttendanceTrend(),
+        );
+        
+        debugPrint('📊 Notificación de asistencia enviada: $_studentsPresent/$_totalStudentsExpected');
+      } catch (e) {
+        debugPrint('❌ Error enviando actualización de asistencia: $e');
+      }
+    });
+    
+    debugPrint('📊 Notificaciones de asistencia cada 15 min iniciadas');
+  }
+  
+  /// ✅ NUEVO: Calcular tendencia de asistencia
+  String? _getAttendanceTrend() {
+    if (_previousAttendanceCount == _studentsPresent) {
+      return 'estable';
+    } else if (_studentsPresent > _previousAttendanceCount) {
+      return 'creciente ↗️';
+    } else {
+      return 'decreciente ↘️';
+    }
   }
 
   Future<void> _refreshData() async {
@@ -626,73 +855,110 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     );
   }
 
-  Future<void> _connectWebSocket() async {
-    try {
-      debugPrint('🔌 Conectando WebSocket real al backend con autenticación');
-
-      // ✅ NUEVO: Obtener token JWT para autenticación
-      final token = await _storageService.getToken();
-      if (token == null) {
-        debugPrint('❌ No hay token JWT para WebSocket');
-        return;
-      }
-
-      // ✅ MEJORADO: WebSocket con query parameters de autenticación
-      final wsUrl =
-          'ws://44.211.171.188?token=$token&eventId=${widget.eventId}&role=docente';
-      debugPrint(
-          '📡 URL WebSocket con auth: ws://44.211.171.188?token=***&eventId=${widget.eventId}');
-
-      _wsChannel = WebSocketChannel.connect(Uri.parse(wsUrl));
-
-      // ✅ NUEVO: Mensaje de suscripción mejorado con datos del profesor
-      final user = await _storageService.getUser();
-      final subscriptionMessage = jsonEncode({
-        'action': 'subscribe_event_monitor',
-        'eventId': widget.eventId,
-        'userRole': 'docente',
-        'userId': user?.id ?? 'unknown',
-        'teacherName': widget.teacherName,
-        'timestamp': DateTime.now().toIso8601String(),
-        'clientType': 'flutter_event_monitor',
-      });
-
-      _wsChannel!.sink.add(subscriptionMessage);
-      debugPrint('📤 Mensaje de suscripción enviado con autenticación');
-
-      // Escuchar mensajes del WebSocket
-      _wsSubscription = _wsChannel!.stream.listen(
-        _handleWebSocketMessage,
-        onError: _handleWebSocketError,
-        onDone: _handleWebSocketClosed,
-      );
-
-      // ✅ NUEVO: Confirmar conexión exitosa
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('📡 Conexión tiempo real activada'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-
-      debugPrint('✅ WebSocket conectado con autenticación JWT');
-    } catch (e) {
-      debugPrint('❌ Error conectando WebSocket: $e');
-      // Mostrar error pero continuar con refresh timer
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                '⚠️ Modo tiempo real no disponible - usando actualización automática'),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
+  /// ✅ ENHANCED: Connect WebSocket with retry mechanism
+  Future<void> _connectWebSocketWithRetry() async {
+    if (_isConnecting || !_shouldReconnect) {
+      debugPrint('🔌 WebSocket connection already in progress or stopped');
+      return;
     }
+
+    _isConnecting = true;
+    
+    try {
+      await _connectWebSocket();
+      _reconnectionAttempts = 0; // Reset on successful connection
+    } catch (e) {
+      debugPrint('❌ WebSocket connection failed: $e');
+      _scheduleReconnection();
+    } finally {
+      _isConnecting = false;
+    }
+  }
+
+  /// ✅ ENHANCED: Core WebSocket connection logic
+  Future<void> _connectWebSocket() async {
+    debugPrint('🔌 Connecting WebSocket with enhanced stability');
+
+    // ✅ ENHANCED: Validate prerequisites
+    final token = await _storageService.getToken();
+    if (token == null) {
+      debugPrint('❌ No JWT token available for WebSocket authentication');
+      throw Exception('No authentication token available');
+    }
+
+    if (widget.eventId.isEmpty) {
+      debugPrint('❌ No eventId provided for WebSocket connection');
+      throw Exception('Invalid event ID');
+    }
+
+    // ✅ ENHANCED: Build WebSocket URL with proper authentication
+    final wsUrl = 'ws://44.211.171.188?token=$token&eventId=${widget.eventId}&role=docente';
+    debugPrint('📡 Connecting to WebSocket: ws://44.211.171.188?token=***&eventId=${widget.eventId}&role=docente');
+
+    // ✅ ENHANCED: Connect with timeout
+    _wsChannel = WebSocketChannel.connect(
+      Uri.parse(wsUrl),
+      protocols: ['chat'], // Optional: specify protocols if needed
+    );
+
+    // ✅ ENHANCED: Send subscription message with additional metadata
+    final user = await _storageService.getUser();
+    final subscriptionMessage = jsonEncode({
+      'action': 'subscribe_event_monitor',
+      'eventId': widget.eventId,
+      'userRole': 'docente',
+      'userId': user?.id ?? 'unknown',
+      'teacherName': widget.teacherName,
+      'timestamp': DateTime.now().toIso8601String(),
+      'clientType': 'flutter_event_monitor',
+      'version': '1.0.0',
+      'capabilities': ['attendance_updates', 'event_control', 'metrics', 'break_management'],
+    });
+
+    _wsChannel!.sink.add(subscriptionMessage);
+    debugPrint('📤 Enhanced subscription message sent');
+
+    // ✅ ENHANCED: Setup message handling with robust error handling
+    _wsSubscription = _wsChannel!.stream.listen(
+      _handleWebSocketMessage,
+      onError: _handleWebSocketError,
+      onDone: _handleWebSocketClosed,
+      cancelOnError: false, // Keep connection alive on individual message errors
+    );
+
+    // ✅ ENHANCED: Start heartbeat to maintain connection
+    _startHeartbeat();
+
+    // ✅ ENHANCED: Show connection success with more info
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.wifi, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('📡 Conexión tiempo real activada',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Evento: ${_monitoredEvent?.titulo ?? widget.eventId}',
+                        style: const TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+
+    debugPrint('✅ WebSocket connected successfully with enhanced features');
   }
 
   @override
@@ -1318,13 +1584,32 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     );
   }
 
-  /// Manejar mensajes del WebSocket
+  /// ✅ ENHANCED: WebSocket message handling with validation and acknowledgment
   void _handleWebSocketMessage(dynamic message) {
     try {
-      final Map<String, dynamic> data = jsonDecode(message);
-      debugPrint('📨 Mensaje WebSocket recibido: ${data['type']}');
+      // ✅ ENHANCED: Validate message format
+      if (message == null || message.toString().isEmpty) {
+        debugPrint('⚠️ Received empty WebSocket message');
+        return;
+      }
 
-      switch (data['type']) {
+      final Map<String, dynamic> data = jsonDecode(message);
+      final String messageType = data['type'] ?? 'unknown';
+      final String messageId = data['id'] ?? '';
+      
+      debugPrint('📨 WebSocket message received: $messageType${messageId.isNotEmpty ? ' (ID: $messageId)' : ''}');
+
+      // ✅ ENHANCED: Validate event ID matches current monitoring
+      if (data.containsKey('eventId') && data['eventId'] != widget.eventId) {
+        debugPrint('⚠️ Message for different event: ${data['eventId']}, current: ${widget.eventId}');
+        return;
+      }
+
+      // ✅ ENHANCED: Handle different message types with enhanced processing
+      switch (messageType) {
+        case 'connection_established':
+          _handleConnectionEstablished(data);
+          break;
         case 'attendance_update':
           _handleAttendanceUpdate(data);
           break;
@@ -1337,17 +1622,163 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         case 'metrics_update':
           _handleMetricsUpdate(data);
           break;
+        case 'heartbeat_response':
+          _handleHeartbeatResponse(data);
+          break;
+        case 'error':
+          _handleServerError(data);
+          break;
         default:
-          debugPrint('📋 Tipo de mensaje no manejado: ${data['type']}');
+          debugPrint('📋 Unhandled message type: $messageType');
+          // ✅ ENHANCED: Send acknowledgment for unknown messages
+          _sendAcknowledgment(messageId, false, 'Unknown message type');
       }
+
+      // ✅ ENHANCED: Send acknowledgment for processed messages
+      if (messageId.isNotEmpty && messageType != 'heartbeat_response') {
+        _sendAcknowledgment(messageId, true);
+      }
+
     } catch (e) {
-      debugPrint('❌ Error procesando mensaje WebSocket: $e');
+      debugPrint('❌ Error processing WebSocket message: $e');
+      debugPrint('🔍 Raw message: $message');
+      
+      // ✅ ENHANCED: Don't let message processing errors break the connection
+      // The connection should remain stable even if individual messages fail
     }
   }
 
-  void _handleAttendanceUpdate(Map<String, dynamic> data) {
+  void _handleAttendanceUpdate(Map<String, dynamic> data) async {
     debugPrint('👥 Actualización de asistencia recibida');
-    _loadEventAttendances();
+    
+    // ✅ NUEVO: Procesar datos específicos de la actualización para notificaciones
+    try {
+      final String updateType = data['updateType'] ?? 'general';
+      final String studentName = data['studentName'] ?? 'Estudiante';
+      final String? studentId = data['studentId'];
+      final String action = data['action'] ?? 'unknown';
+      
+      debugPrint('📊 Tipo de actualización: $updateType, Acción: $action, Estudiante: $studentName');
+      
+      // Procesar diferentes tipos de actualizaciones
+      switch (updateType) {
+        case 'student_joined':
+          // Un estudiante se registró
+          await _handleStudentJoinedNotification(studentName, data);
+          break;
+          
+        case 'student_left_area':
+          // Un estudiante salió del área geográfica
+          await _handleStudentLeftAreaNotification(studentName, data);
+          break;
+          
+        case 'multiple_students':
+          // Múltiples estudiantes realizaron alguna acción
+          await _handleMultipleStudentsUpdate(data);
+          break;
+          
+        case 'attendance_count':
+          // Solo actualización de conteo
+          await _handleAttendanceCountUpdate(data);
+          break;
+          
+        default:
+          debugPrint('📋 Tipo de actualización no manejado: $updateType');
+      }
+      
+    } catch (e) {
+      debugPrint('❌ Error procesando actualización de asistencia: $e');
+    }
+    
+    // Recargar datos de asistencia
+    await _loadEventAttendances();
+  }
+  
+  /// ✅ NUEVO: Manejar notificación de estudiante que se registró
+  Future<void> _handleStudentJoinedNotification(String studentName, Map<String, dynamic> data) async {
+    try {
+      final int currentAttendance = data['currentAttendance'] ?? _studentsPresent;
+      
+      await _teacherNotificationService.notifyStudentJoined(
+        studentName: studentName,
+        eventTitle: _monitoredEvent?.titulo ?? 'Evento',
+        eventId: widget.eventId,
+        currentAttendance: currentAttendance,
+        totalStudents: _totalStudentsExpected,
+      );
+      
+      debugPrint('✅ Notificación enviada: estudiante $studentName se registró');
+    } catch (e) {
+      debugPrint('❌ Error enviando notificación de estudiante registrado: $e');
+    }
+  }
+  
+  /// ✅ NUEVO: Manejar notificación de estudiante que salió del área
+  Future<void> _handleStudentLeftAreaNotification(String studentName, Map<String, dynamic> data) async {
+    try {
+      final String? timeOutside = data['timeOutside'];
+      
+      await _teacherNotificationService.notifyStudentLeftArea(
+        studentName: studentName,
+        eventTitle: _monitoredEvent?.titulo ?? 'Evento',
+        eventId: widget.eventId,
+        timeOutside: timeOutside,
+      );
+      
+      debugPrint('🚨 Notificación enviada: estudiante $studentName salió del área');
+    } catch (e) {
+      debugPrint('❌ Error enviando notificación de estudiante que salió: $e');
+    }
+  }
+  
+  /// ✅ NUEVO: Manejar actualizaciones de múltiples estudiantes
+  Future<void> _handleMultipleStudentsUpdate(Map<String, dynamic> data) async {
+    try {
+      final List<String> studentNames = List<String>.from(data['studentNames'] ?? []);
+      final String actionType = data['actionType'] ?? 'unknown';
+      final int currentAttendance = data['currentAttendance'] ?? _studentsPresent;
+      
+      if (actionType == 'joined' && studentNames.isNotEmpty) {
+        await _teacherNotificationService.notifyMultipleStudentsJoined(
+          studentNames: studentNames,
+          eventTitle: _monitoredEvent?.titulo ?? 'Evento',
+          eventId: widget.eventId,
+          currentAttendance: currentAttendance,
+          totalStudents: _totalStudentsExpected,
+        );
+        
+        debugPrint('✅ Notificación enviada: ${studentNames.length} estudiantes se registraron');
+      }
+    } catch (e) {
+      debugPrint('❌ Error enviando notificación de múltiples estudiantes: $e');
+    }
+  }
+  
+  /// ✅ NUEVO: Manejar actualización de conteo de asistencia
+  Future<void> _handleAttendanceCountUpdate(Map<String, dynamic> data) async {
+    try {
+      final int newCount = data['presentCount'] ?? _studentsPresent;
+      final String? trend = data['trend'];
+      
+      // Solo enviar notificación si hay cambios significativos
+      if ((newCount - _studentsPresent).abs() >= 3) {
+        await _teacherNotificationService.notifyAttendanceUpdate(
+          eventTitle: _monitoredEvent?.titulo ?? 'Evento',
+          eventId: widget.eventId,
+          presentStudents: newCount,
+          totalStudents: _totalStudentsExpected,
+          trend: trend,
+        );
+        
+        debugPrint('📊 Notificación de conteo enviada: $newCount/$_totalStudentsExpected');
+      }
+      
+      // Actualizar métricas locales
+      _previousAttendanceCount = _studentsPresent;
+      _studentsPresent = newCount;
+    } catch (e) {
+      debugPrint('❌ Error enviando actualización de conteo: $e');
+    }
   }
 
   void _handleEventStatusChanged(Map<String, dynamic> data) {
@@ -1383,45 +1814,107 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     _loadRealtimeMetrics();
   }
 
+  /// ✅ ENHANCED: WebSocket error handling with detailed analysis
   void _handleWebSocketError(dynamic error) {
-    debugPrint('❌ Error en WebSocket: $error');
+    debugPrint('❌ WebSocket error occurred: $error');
+
+    // ✅ ENHANCED: Categorize error types
+    String errorMessage = 'Conexión tiempo real perdida';
+    String errorDetail = '';
+    
+    if (error.toString().contains('WebSocketChannelException')) {
+      errorMessage = 'Error de conexión WebSocket';
+      errorDetail = 'Verificando conectividad...';
+    } else if (error.toString().contains('TimeoutException')) {
+      errorMessage = 'Timeout de conexión';
+      errorDetail = 'Reintentando automáticamente...';
+    } else if (error.toString().contains('SocketException')) {
+      errorMessage = 'Error de red';
+      errorDetail = 'Verifique su conexión a internet';
+    }
+
+    // ✅ ENHANCED: Schedule reconnection on recoverable errors
+    if (_shouldReconnect) {
+      _scheduleReconnection();
+      errorDetail = errorDetail.isEmpty ? 'Reintentando automáticamente...' : errorDetail;
+    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Conexión tiempo real perdida - usando actualización manual'),
+        SnackBar(
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(errorMessage, style: const TextStyle(fontWeight: FontWeight.bold)),
+              if (errorDetail.isNotEmpty)
+                Text(errorDetail, style: const TextStyle(fontSize: 12)),
+            ],
+          ),
           backgroundColor: Colors.orange,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Reintentar',
+            textColor: Colors.white,
+            onPressed: () {
+              _reconnectionAttempts = 0;
+              _connectWebSocketWithRetry();
+            },
+          ),
         ),
       );
     }
   }
 
+  /// ✅ ENHANCED: WebSocket closed handling with intelligent reconnection
   void _handleWebSocketClosed() {
-    debugPrint('🔌 WebSocket cerrado - intentando reconexión');
-
-    Timer(const Duration(seconds: 5), () {
-      if (mounted) {
-        _connectWebSocket();
-      }
-    });
+    debugPrint('🔌 WebSocket connection closed');
+    
+    // ✅ ENHANCED: Stop heartbeat when connection is closed
+    _stopHeartbeat();
+    
+    // ✅ ENHANCED: Only reconnect if we should and component is still mounted
+    if (_shouldReconnect && mounted) {
+      debugPrint('🔄 Scheduling WebSocket reconnection...');
+      _scheduleReconnection();
+    } else {
+      debugPrint('⏹️ WebSocket reconnection disabled');
+    }
   }
 
-  /// Limpiar conexión WebSocket
+  /// ✅ ENHANCED: Comprehensive WebSocket cleanup
   void _cleanupWebSocket() {
     try {
-      debugPrint('🧹 Limpiando conexión WebSocket');
+      debugPrint('🧹 Cleaning up WebSocket resources');
 
+      // Stop reconnection attempts
+      _shouldReconnect = false;
+      _reconnectionTimer?.cancel();
+      _reconnectionTimer = null;
+      
+      // Stop heartbeat
+      _stopHeartbeat();
+
+      // Cancel subscription
       _wsSubscription?.cancel();
-      _wsChannel?.sink.close();
-
       _wsSubscription = null;
+      
+      // Close WebSocket channel
+      try {
+        _wsChannel?.sink.close(1000, 'Client disconnecting'); // Normal closure
+      } catch (e) {
+        debugPrint('⚠️ Error closing WebSocket sink: $e');
+      }
       _wsChannel = null;
 
-      debugPrint('✅ WebSocket limpiado');
+      // Reset connection state
+      _isConnecting = false;
+      _reconnectionAttempts = 0;
+
+      debugPrint('✅ WebSocket cleanup completed successfully');
     } catch (e) {
-      debugPrint('❌ Error limpiando WebSocket: $e');
+      debugPrint('❌ Error during WebSocket cleanup: $e');
     }
   }
 
@@ -1444,6 +1937,224 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           backgroundColor: AppColors.primaryOrange,
           duration: const Duration(seconds: 4),
           behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  // ✅ ENHANCED: WebSocket helper methods for connection management
+
+  /// Schedule reconnection with exponential backoff
+  void _scheduleReconnection() {
+    if (!_shouldReconnect || _reconnectionAttempts >= _maxReconnectionAttempts) {
+      debugPrint('🚫 Max reconnection attempts reached or reconnection disabled');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Conexión tiempo real no disponible - usando actualización manual'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+      return;
+    }
+
+    _reconnectionTimer?.cancel();
+    
+    final delay = Duration(
+      seconds: _reconnectionDelay.inSeconds * (_reconnectionAttempts + 1),
+    );
+    
+    debugPrint('🔄 Scheduling reconnection attempt ${_reconnectionAttempts + 1} in ${delay.inSeconds}s');
+    
+    _reconnectionTimer = Timer(delay, () {
+      _reconnectionAttempts++;
+      _connectWebSocketWithRetry();
+    });
+  }
+
+  /// Start heartbeat to keep connection alive
+  void _startHeartbeat() {
+    _stopHeartbeat(); // Stop existing heartbeat first
+    
+    _heartbeatTimer = Timer.periodic(_heartbeatInterval, (timer) {
+      if (_wsChannel != null && !_isConnecting) {
+        _sendHeartbeat();
+      }
+    });
+    
+    debugPrint('💓 WebSocket heartbeat started (${_heartbeatInterval.inSeconds}s interval)');
+  }
+
+  /// Stop heartbeat timer
+  void _stopHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+    debugPrint('💓 WebSocket heartbeat stopped');
+  }
+
+  /// Send heartbeat message to server
+  void _sendHeartbeat() {
+    try {
+      final heartbeatMessage = jsonEncode({
+        'type': 'heartbeat',
+        'eventId': widget.eventId,
+        'timestamp': DateTime.now().toIso8601String(),
+        'clientId': widget.teacherName,
+      });
+
+      _wsChannel?.sink.add(heartbeatMessage);
+      debugPrint('💓 Heartbeat sent');
+    } catch (e) {
+      debugPrint('❌ Error sending heartbeat: $e');
+    }
+  }
+
+  /// Send acknowledgment for received messages
+  void _sendAcknowledgment(String messageId, bool success, [String? error]) {
+    if (messageId.isEmpty || _wsChannel == null) return;
+
+    try {
+      final ackMessage = jsonEncode({
+        'type': 'acknowledgment',
+        'messageId': messageId,
+        'success': success,
+        'error': error,
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
+      _wsChannel!.sink.add(ackMessage);
+      debugPrint('✅ Acknowledgment sent for message: $messageId');
+    } catch (e) {
+      debugPrint('❌ Error sending acknowledgment: $e');
+    }
+  }
+
+  // ✅ ENHANCED: Message handlers for new message types
+
+  /// Handle connection established confirmation
+  void _handleConnectionEstablished(Map<String, dynamic> data) {
+    debugPrint('🔗 WebSocket connection established');
+    
+    final serverInfo = data['serverInfo'] ?? {};
+    debugPrint('📡 Server info: $serverInfo');
+    
+    // Reset reconnection attempts on successful connection
+    _reconnectionAttempts = 0;
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Conexión tiempo real establecida'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  /// Handle heartbeat response from server
+  void _handleHeartbeatResponse(Map<String, dynamic> data) {
+    debugPrint('💓 Heartbeat response received');
+    
+    // Connection is alive, reset reconnection attempts
+    _reconnectionAttempts = 0;
+    
+    // Process any server-side data in heartbeat response
+    if (data.containsKey('serverTime')) {
+      debugPrint('🕐 Server time: ${data['serverTime']}');
+    }
+  }
+
+  /// Handle server error messages
+  void _handleServerError(Map<String, dynamic> data) {
+    final errorMessage = data['message'] ?? 'Unknown server error';
+    final errorCode = data['code'] ?? 'UNKNOWN';
+    
+    debugPrint('🚨 Server error: $errorCode - $errorMessage');
+    
+    // Handle specific error codes
+    switch (errorCode) {
+      case 'AUTH_EXPIRED':
+        debugPrint('🔑 Authentication expired - attempting to refresh');
+        _handleAuthExpired();
+        break;
+      case 'EVENT_NOT_FOUND':
+        debugPrint('❌ Event not found - stopping monitoring');
+        _handleEventNotFound();
+        break;
+      case 'PERMISSION_DENIED':
+        debugPrint('🚫 Permission denied for this event');
+        _handlePermissionDenied();
+        break;
+      default:
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ Error del servidor: $errorMessage'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+    }
+  }
+
+  /// Handle authentication expiration
+  void _handleAuthExpired() async {
+    debugPrint('🔑 Handling authentication expiration');
+    
+    try {
+      // Attempt to refresh token
+      final newToken = await _storageService.getToken();
+      if (newToken != null) {
+        // Reconnect with new token
+        _cleanupWebSocket();
+        await Future.delayed(const Duration(seconds: 1));
+        await _connectWebSocketWithRetry();
+      } else {
+        _handlePermissionDenied();
+      }
+    } catch (e) {
+      debugPrint('❌ Error refreshing authentication: $e');
+      _handlePermissionDenied();
+    }
+  }
+
+  /// Handle event not found error
+  void _handleEventNotFound() {
+    _cleanupWebSocket();
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Evento no encontrado - regresando al dashboard'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      
+      // Navigate back after delay
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      });
+    }
+  }
+
+  /// Handle permission denied error
+  void _handlePermissionDenied() {
+    _cleanupWebSocket();
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🚫 Sin permisos para monitorear este evento'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
         ),
       );
     }

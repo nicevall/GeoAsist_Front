@@ -1,68 +1,78 @@
 // lib/services/notification_service.dart
-// 🎯 SERVICIO DE NOTIFICACIONES FASE C - Sistema básico funcional
+// 🔄 WRAPPER MIGRATED - Este servicio ahora delega al NotificationManager unificado
+// ✅ FASE 1.2: Sistema de notificaciones unificado - Wrapper de compatibilidad
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'notifications/notification_manager.dart';
 
-/// Servicio completo de notificaciones contextuales
-/// Maneja notificaciones específicas por contexto de asistencia
+/// Wrapper de compatibilidad que delega al NotificationManager unificado
+/// DEPRECATED: Use NotificationManager directly for new implementations
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  // Estado interno
+  // 🎯 DELEGACIÓN AL NOTIFICATION MANAGER UNIFICADO
+  final NotificationManager _notificationManager = NotificationManager();
+
+  // Estado interno para compatibilidad
   bool _isInitialized = false;
   final Map<String, DateTime> _lastNotificationTimes = {};
 
-  /// Inicializar el servicio de notificaciones
+  /// Inicializar el servicio de notificaciones - DELEGADO
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      await _notificationManager.initialize();
       _isInitialized = true;
-      debugPrint('📢 NotificationService inicializado');
+      debugPrint('📢 NotificationService (wrapper) inicializado - delegando a NotificationManager');
     } catch (e) {
-      debugPrint('❌ Error inicializando NotificationService: $e');
+      debugPrint('❌ Error inicializando NotificationService wrapper: $e');
+      rethrow;
     }
   }
 
-  /// Notificación persistente de evento activo
+  /// Notificación persistente de evento activo - DELEGADO
   Future<void> showEventActiveNotification({
     required String eventName,
     required String eventId,
   }) async {
     try {
-      debugPrint('📢 Mostrando notificación: Evento $eventName activo');
-
-      // Vibración háptica suave para evento iniciado
+      debugPrint('📢 [WRAPPER] Delegando evento activo: $eventName');
+      
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      await _notificationManager.showEventStartedNotification(eventName);
+      await _notificationManager.showTrackingActiveNotification();
+      
       await _triggerHapticFeedback('light');
-
-      _logNotification(
-          'event_active', 'Evento $eventName iniciado - Tracking activo');
+      _logNotification('event_active', 'Evento $eventName iniciado - Tracking activo');
     } catch (e) {
-      debugPrint('❌ Error en showEventActiveNotification: $e');
+      debugPrint('❌ Error en showEventActiveNotification wrapper: $e');
     }
   }
 
-  /// Alerta inmediata de entrada al geofence
+  /// Alerta inmediata de entrada al geofence - DELEGADO
   Future<void> showGeofenceEnteredNotification({
     required String eventName,
   }) async {
     if (_shouldThrottleNotification('geofence_entered', seconds: 10)) return;
 
     try {
-      debugPrint('📢 Entrada al geofence: $eventName');
-
-      // Vibración háptica de éxito
+      debugPrint('📢 [WRAPPER] Delegando entrada al geofence: $eventName');
+      
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      await _notificationManager.showGeofenceEnteredNotification(eventName);
+      
       await _triggerHapticFeedback('medium');
-
       _logNotification('geofence_entered', '✅ Llegaste al área de $eventName');
     } catch (e) {
-      debugPrint('❌ Error en showGeofenceEnteredNotification: $e');
+      debugPrint('❌ Error en showGeofenceEnteredNotification wrapper: $e');
     }
   }
 
-  /// Alerta inmediata de salida del geofence
+  /// Alerta inmediata de salida del geofence - DELEGADO
   Future<void> showGeofenceExitedNotification({
     required String eventName,
     double? distance,
@@ -74,27 +84,30 @@ class NotificationService {
           ? ' (${distance.toStringAsFixed(0)}m del evento)'
           : '';
 
-      debugPrint('📢 Salida del geofence: $eventName$distanceText');
-
-      // Vibración háptica de advertencia
+      debugPrint('📢 [WRAPPER] Delegando salida del geofence: $eventName$distanceText');
+      
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      await _notificationManager.showGeofenceExitedNotification(eventName);
+      
       await _triggerHapticFeedback('heavy');
-
-      _logNotification(
-          'geofence_exited', '⚠️ Saliste del área de $eventName$distanceText');
+      _logNotification('geofence_exited', '⚠️ Saliste del área de $eventName$distanceText');
     } catch (e) {
-      debugPrint('❌ Error en showGeofenceExitedNotification: $e');
+      debugPrint('❌ Error en showGeofenceExitedNotification wrapper: $e');
     }
   }
 
-  /// Notificación crítica de período de gracia iniciado
+  /// Notificación crítica de período de gracia iniciado - DELEGADO
   Future<void> showGracePeriodStartedNotification({
     required int remainingSeconds,
   }) async {
     try {
-      debugPrint(
-          '📢 Período de gracia iniciado: ${remainingSeconds}s restantes');
+      debugPrint('📢 [WRAPPER] Delegando período de gracia iniciado: ${remainingSeconds}s');
 
-      // Vibración háptica doble para urgencia
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      await _notificationManager.showGracePeriodStartedNotification(
+        remainingSeconds: remainingSeconds,
+      );
+
       await _triggerHapticFeedback('heavy');
       await Future.delayed(const Duration(milliseconds: 200));
       await _triggerHapticFeedback('heavy');
@@ -102,14 +115,17 @@ class NotificationService {
       _logNotification('grace_period_started',
           '⏰ Período de gracia: ${remainingSeconds}s para regresar');
     } catch (e) {
-      debugPrint('❌ Error en showGracePeriodStartedNotification: $e');
+      debugPrint('❌ Error en showGracePeriodStartedNotification wrapper: $e');
     }
   }
 
-  /// Notificación crítica de período de gracia expirado
+  /// Notificación crítica de período de gracia expirado - DELEGADO
   Future<void> showGracePeriodExpiredNotification() async {
     try {
-      debugPrint('📢 Período de gracia expirado');
+      debugPrint('📢 [WRAPPER] Delegando período de gracia expirado');
+
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      await _notificationManager.showGracePeriodExpiredNotification();
 
       // Vibración háptica crítica
       for (int i = 0; i < 3; i++) {
@@ -120,72 +136,84 @@ class NotificationService {
       _logNotification('grace_period_expired',
           '❌ Tiempo agotado - Regresa al evento lo antes posible');
     } catch (e) {
-      debugPrint('❌ Error en showGracePeriodExpiredNotification: $e');
+      debugPrint('❌ Error en showGracePeriodExpiredNotification wrapper: $e');
     }
   }
 
-  /// Confirmación de asistencia registrada
+  /// Confirmación de asistencia registrada - DELEGADO
   Future<void> showAttendanceRegisteredNotification({
     required String eventName,
   }) async {
     try {
-      debugPrint('📢 Asistencia registrada para: $eventName');
-
-      // Vibración de confirmación exitosa
+      debugPrint('📢 [WRAPPER] Delegando asistencia registrada: $eventName');
+      
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      await _notificationManager.showAttendanceRegisteredNotification();
+      
       await _triggerHapticFeedback('selection');
-
-      _logNotification(
-          'attendance_registered', '✅ Asistencia registrada en $eventName');
+      _logNotification('attendance_registered', '✅ Asistencia registrada en $eventName');
     } catch (e) {
-      debugPrint('❌ Error en showAttendanceRegisteredNotification: $e');
+      debugPrint('❌ Error en showAttendanceRegisteredNotification wrapper: $e');
     }
   }
 
-  /// Notificación de tracking pausado durante receso
+  /// Notificación de tracking pausado durante receso - DELEGADO
   Future<void> showTrackingPausedNotification() async {
     try {
-      debugPrint('📢 Tracking pausado - Receso activo');
-
+      debugPrint('📢 [WRAPPER] Delegando tracking pausado');
+      
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      await _notificationManager.showBreakStartedNotification();
+      
       await _triggerHapticFeedback('light');
-
-      _logNotification(
-          'tracking_paused', '⏸️ Tracking pausado - Disfruta tu receso');
+      _logNotification('tracking_paused', '⏸️ Tracking pausado - Disfruta tu receso');
     } catch (e) {
-      debugPrint('❌ Error en showTrackingPausedNotification: $e');
+      debugPrint('❌ Error en showTrackingPausedNotification wrapper: $e');
     }
   }
 
-  /// Notificación de tracking reanudado después de receso
+  /// Notificación de tracking reanudado después de receso - DELEGADO
   Future<void> showTrackingResumedNotification() async {
     try {
-      debugPrint('📢 Tracking reanudado - Receso terminado');
-
+      debugPrint('📢 [WRAPPER] Delegando tracking reanudado');
+      
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      await _notificationManager.showBreakEndedNotification();
+      await _notificationManager.showTrackingResumedNotification();
+      
       await _triggerHapticFeedback('medium');
-
-      _logNotification(
-          'tracking_resumed', '▶️ Tracking reanudado - Regresa al evento');
+      _logNotification('tracking_resumed', '▶️ Tracking reanudado - Regresa al evento');
     } catch (e) {
-      debugPrint('❌ Error en showTrackingResumedNotification: $e');
+      debugPrint('❌ Error en showTrackingResumedNotification wrapper: $e');
     }
   }
 
-  /// Limpiar todas las notificaciones al finalizar evento
+  /// Limpiar todas las notificaciones al finalizar evento - DELEGADO
   Future<void> clearAllNotifications() async {
     try {
-      debugPrint('🧹 Limpiando todas las notificaciones');
+      debugPrint('🧹 [WRAPPER] Delegando limpieza de notificaciones');
+      
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      await _notificationManager.clearAllNotifications();
+      
       _lastNotificationTimes.clear();
     } catch (e) {
-      debugPrint('❌ Error en clearAllNotifications: $e');
+      debugPrint('❌ Error en clearAllNotifications wrapper: $e');
     }
   }
 
-  /// Cancelar notificación específica por ID
+  /// Cancelar notificación específica por ID - DELEGADO
   Future<void> cancelNotification(String notificationId) async {
     try {
-      debugPrint('🗑️ Cancelando notificación: $notificationId');
+      debugPrint('🗑️ [WRAPPER] Delegando cancelación: $notificationId');
+      
+      // ✅ DELEGAR AL NOTIFICATION MANAGER
+      final notificationIdInt = int.tryParse(notificationId) ?? 0;
+      await _notificationManager.cancelNotification(notificationIdInt);
+      
       _lastNotificationTimes.remove(notificationId);
     } catch (e) {
-      debugPrint('❌ Error cancelando notificación: $e');
+      debugPrint('❌ Error cancelando notificación wrapper: $e');
     }
   }
 
@@ -233,20 +261,25 @@ class NotificationService {
     }
   }
 
-  /// Dispose de recursos
+  /// Dispose de recursos - WRAPPER
   void dispose() {
     _lastNotificationTimes.clear();
-    debugPrint('🧹 NotificationService disposed');
+    debugPrint('🧹 NotificationService (wrapper) disposed');
+    // Nota: No disposamos el NotificationManager ya que puede ser usado por otros servicios
   }
 
   /// Verificar si el servicio está inicializado
   bool get isInitialized => _isInitialized;
 
-  /// Obtener estadísticas de notificaciones (para debugging)
+  /// Obtener estadísticas de notificaciones (para debugging) - WRAPPER + DELEGADO
   Map<String, dynamic> getNotificationStats() {
+    final managerStatus = _notificationManager.getNotificationStatus();
     return {
-      'isInitialized': _isInitialized,
+      'wrapper_initialized': _isInitialized,
+      'manager_initialized': managerStatus['initialized'],
       'lastNotificationTimes': _lastNotificationTimes,
+      'manager_status': managerStatus,
+      'delegation_note': 'This service is now a compatibility wrapper for NotificationManager',
     };
   }
 }

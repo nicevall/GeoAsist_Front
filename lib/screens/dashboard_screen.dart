@@ -167,8 +167,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   /// Carga eventos sin setState
   Future<List<Evento>> _loadEventsSync() async {
     try {
-      final eventos = await _eventoService.obtenerEventos();
-      debugPrint('Eventos cargados: ${eventos.length}');
+      List<Evento> eventos;
+      
+      // ✅ CARGAR EVENTOS SEGÚN EL ROL DEL USUARIO
+      if (_currentUser?.rol == 'docente' || _currentUser?.rol == 'admin') {
+        // Para docentes: solo sus eventos
+        eventos = await _eventoService.obtenerEventosDocente(_currentUser!.id);
+        debugPrint('Eventos del docente ${_currentUser!.nombre} cargados: ${eventos.length}');
+      } else {
+        // Para estudiantes: todos los eventos públicos
+        eventos = await _eventoService.obtenerEventos();
+        debugPrint('Eventos públicos cargados: ${eventos.length}');
+      }
+      
       return eventos;
     } catch (e) {
       debugPrint('Error cargando eventos: $e');
@@ -294,10 +305,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           const SizedBox(height: 16),
 
-          // ✅ EVENTOS REALES DEL BACKEND
+          // ✅ EVENTOS REALES DEL BACKEND CON VISTA EXPANDIDA
           if (_isLoadingEvents)
             SkeletonLoaders.eventsList(count: 3)
-          else if (_eventos.isNotEmpty)
+          else if (_eventos.isNotEmpty) ...[
+            AdminDashboardWidgets.buildSystemEventsOverview(_eventos),
+            const SizedBox(height: 16),
+          ],
+
+          // 📊 NUEVO: Alertas del sistema
+          AdminDashboardWidgets.buildSystemAlerts(),
+
+          const SizedBox(height: 16),
+
+          // ✅ EVENTOS REALES DEL BACKEND (lista detallada)
+          if (_eventos.isNotEmpty)
             _buildRealSystemEvents()
           else
             _buildEmptyEventsState('No hay eventos en el sistema'),
@@ -1197,55 +1219,160 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ✅ BOTONES DE ACCIÓN ESTUDIANTE - SOLUCIÓN DEFINITIVA
+  /// ✅ BOTONES DE ACCIÓN ESTUDIANTE - CON JUSTIFICACIONES
   Widget _buildStudentActionButtons() {
-    return Row(
+    return Column(
       children: [
-        // ✅ BOTÓN 1 CON RESTRICCIONES EXPLÍCITAS
-        Expanded(
-          child: SizedBox(
-            height: 50,
-            child: TextButton.icon(
-              onPressed: () => Navigator.pushNamed(
-                  context, AppConstants.availableEventsRoute),
-              icon: const Icon(Icons.event_available, size: 16),
-              label: const Text(
-                'Ver Eventos',
-                style: TextStyle(fontSize: 12),
-              ),
-              style: TextButton.styleFrom(
-                backgroundColor: AppColors.primaryOrange,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+        // Primera fila - Eventos y Tracking
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 50,
+                child: TextButton.icon(
+                  onPressed: () => Navigator.pushNamed(
+                      context, AppConstants.availableEventsRoute),
+                  icon: const Icon(Icons.event_available, size: 16),
+                  label: const Text(
+                    'Ver Eventos',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.primaryOrange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: 50,
+                child: TextButton.icon(
+                  onPressed: _navigateToTracking,
+                  icon: const Icon(Icons.location_on, size: 16),
+                  label: const Text(
+                    'Mi Tracking',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.secondaryTeal,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        // ✅ BOTÓN 2 CON RESTRICCIONES EXPLÍCITAS
-        Expanded(
-          child: SizedBox(
-            height: 50,
-            child: TextButton.icon(
-              onPressed: _navigateToTracking,
-              icon: const Icon(Icons.location_on, size: 16),
-              label: const Text(
-                'Mi Tracking',
-                style: TextStyle(fontSize: 12),
-              ),
-              style: TextButton.styleFrom(
-                backgroundColor: AppColors.secondaryTeal,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+        
+        const SizedBox(height: 12),
+        
+        // Segunda fila - Justificaciones
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 50,
+                child: TextButton.icon(
+                  onPressed: () => AppRouter.goToJustifications(),
+                  icon: const Icon(Icons.description, size: 16),
+                  label: const Text(
+                    'Mis Justificaciones',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.purple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: 50,
+                child: TextButton.icon(
+                  onPressed: () => AppRouter.goToCreateJustification(),
+                  icon: const Icon(Icons.add_circle, size: 16),
+                  label: const Text(
+                    'Nueva Justificación',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Tercera fila - Configuraciones
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 50,
+                child: TextButton.icon(
+                  onPressed: () => AppRouter.goToNotificationSettings(),
+                  icon: const Icon(Icons.notifications, size: 16),
+                  label: const Text(
+                    'Notificaciones',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: 50,
+                child: TextButton.icon(
+                  onPressed: () => AppRouter.goToNotificationSettings(),
+                  icon: const Icon(Icons.settings, size: 16),
+                  label: const Text(
+                    'Configuración',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.blueGrey,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -1281,6 +1408,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       return defaultValue;
     }
+  }
+
+  // ===========================================
+  // ✅ NUEVOS MÉTODOS NAVEGACIÓN MULTIROL
+  // ===========================================
+
+  /// ✅ NUEVO: Manejo de tap en evento para estudiante
+  void _handleStudentEventTap(Evento evento) {
+    debugPrint('🎓 Estudiante tocó evento: ${evento.titulo}');
+    // ESTUDIANTE -> Ir directamente a tracking
+    Navigator.pushNamed(
+      context,
+      AppConstants.attendanceTrackingRoute,
+      arguments: {
+        'userName': widget.userName,
+        'eventoId': evento.id,
+      },
+    );
+  }
+
+  /// ✅ NUEVO: Manejo de tap en evento para docente
+  void _handleTeacherEventTap(Evento evento) {
+    debugPrint('👩‍🏫 Docente tocó evento: ${evento.titulo}');
+    // DOCENTE -> Ir a gestión/monitor
+    Navigator.pushNamed(
+      context,
+      AppConstants.eventMonitorRoute,
+      arguments: {
+        'eventId': evento.id!,
+        'teacherName': widget.userName,
+      },
+    );
   }
 
   /// ✅ TARJETA DE MÉTRICA REUTILIZABLE
@@ -1415,101 +1574,169 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ✅ MI EVENTO ITEM (PROFESOR)
+  /// ✅ MI EVENTO ITEM (PROFESOR) - CON NAVEGACIÓN MULTIROL
   Widget _buildMyEventItem(Evento evento) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.lightGray,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  evento.titulo,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkGray,
+    return GestureDetector(
+      onTap: () => _handleTeacherEventTap(evento), // ✅ NUEVO MÉTODO
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.lightGray,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: AppColors.primaryOrange.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.event,
+                        size: 16,
+                        color: AppColors.primaryOrange,
+                      ),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          evento.titulo,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkGray,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                Text(
-                  evento.lugar ?? 'Sin ubicación',
-                  style: const TextStyle(
-                    color: AppColors.textGray,
-                    fontSize: 12,
+                  SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 12,
+                        color: AppColors.textGray,
+                      ),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          evento.lugar ?? 'Sin ubicación',
+                          style: const TextStyle(
+                            color: AppColors.textGray,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  SizedBox(height: 4),
+                  Text(
+                    '👆 Toca para gestionar',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: AppColors.primaryOrange,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Switch(
-            value: evento.isActive,
-            onChanged: (value) => _toggleEventActive(evento.id!, value),
-            activeColor: Colors.green,
-          ),
-        ],
+            Switch(
+              value: evento.isActive,
+              onChanged: (value) => _toggleEventActive(evento.id!, value),
+              activeColor: Colors.green,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  /// ✅ ITEM DE EVENTO ESTUDIANTE - SOLUCIÓN DEFINITIVA
+  /// ✅ ITEM DE EVENTO ESTUDIANTE - CON NAVEGACIÓN MULTIROL
   Widget _buildStudentEventItem(Evento evento) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.lightGray,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  evento.titulo,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkGray,
-                  ),
-                ),
-                Text(
-                  evento.lugar ?? 'Sin ubicación',
-                  style: const TextStyle(
-                    color: AppColors.textGray,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
+    return GestureDetector(
+      onTap: () => _handleStudentEventTap(evento), // ✅ NUEVO MÉTODO
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.lightGray,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: AppColors.secondaryTeal.withValues(alpha: 0.3),
+            width: 1,
           ),
-          // ✅ BOTÓN CON TAMAÑO FIJO - SOLUCIÓN DEFINITIVA
-          SizedBox(
-            width: 80,
-            height: 32,
-            child: TextButton(
-              onPressed: () => _joinEvent(evento),
-              style: TextButton.styleFrom(
-                backgroundColor: AppColors.primaryOrange,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              child: const Text(
-                'Unirse',
-                style: TextStyle(fontSize: 11),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.school,
+                        size: 16,
+                        color: AppColors.secondaryTeal,
+                      ),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          evento.titulo,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkGray,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 12,
+                        color: AppColors.textGray,
+                      ),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          evento.lugar ?? 'Sin ubicación',
+                          style: const TextStyle(
+                            color: AppColors.textGray,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    '👆 Toca para tracking',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: AppColors.secondaryTeal,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+            // ✅ BOTÓN MEJORADO - Con estados inteligentes
+            SizedBox(
+              width: 80,
+              height: 32,
+              child: _buildJoinEventButton(evento),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1698,15 +1925,184 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  /// ✅ UNIRSE A EVENTO (ESTUDIANTE)
+  /// ✅ UNIRSE A EVENTO (ESTUDIANTE) - FIXED: Enhanced with proper state management
   Future<void> _joinEvent(Evento evento) async {
-    Navigator.pushNamed(
-      context,
-      AppConstants.attendanceTrackingRoute,
-      arguments: {
-        'userName': widget.userName,
-        'eventoId': evento.id,
-      },
+    if (evento.id == null || evento.id!.isEmpty) {
+      _showErrorDialog('Error', 'El evento no tiene un ID válido');
+      return;
+    }
+
+    // Show loading indicator
+    setState(() {
+      _isLoadingEvents = true;
+    });
+
+    try {
+      // 1. Validate that the user can join this event
+      if (!_canUserJoinEvent(evento)) {
+        _showErrorDialog('No disponible', 
+          'Este evento no está disponible para unirse en este momento');
+        return;
+      }
+
+      // 2. Check if user is already in an active event
+      if (_eventoActivo != null && _eventoActivo!.id != evento.id) {
+        if (!mounted) return; // Check if widget is still mounted
+        final shouldSwitch = await _showEventSwitchDialog(_eventoActivo!.titulo, evento.titulo);
+        if (!shouldSwitch || !mounted) return;
+      }
+
+      // 3. Set this event as active
+      setState(() {
+        _eventoActivo = evento;
+      });
+
+      // 4. Navigate to attendance tracking
+      if (!mounted) return;
+      final result = await Navigator.pushNamed(
+        context,
+        AppConstants.attendanceTrackingRoute,
+        arguments: {
+          'userName': widget.userName,
+          'eventoId': evento.id,
+          'evento': evento, // Pass full event object
+        },
+      );
+
+      // 5. Handle result from attendance screen
+      if (result == 'tracking_stopped' || result == 'attendance_lost') {
+        setState(() {
+          _eventoActivo = null;
+        });
+        _refreshData(); // Refresh dashboard data
+      }
+
+    } catch (e) {
+      debugPrint('❌ Error joining event: $e');
+      _showErrorDialog('Error', 'No se pudo unir al evento. Inténtalo de nuevo.');
+    } finally {
+      setState(() {
+        _isLoadingEvents = false;
+      });
+    }
+  }
+
+  /// Check if user can join the given event
+  bool _canUserJoinEvent(Evento evento) {
+    // Event must be active and not ended
+    if (evento.horaFinal.isBefore(DateTime.now())) {
+      return false; // Event has ended
+    }
+
+    // Event should be started or starting soon (within 10 minutes)
+    final now = DateTime.now();
+    final eventStart = evento.horaInicio;
+    final timeDiff = eventStart.difference(now).inMinutes;
+    
+    // Event hasn't started yet and is more than 10 minutes away
+    if (timeDiff > 10) {
+      return false;
+    }
+
+    return true; // Event is joinable
+  }
+
+  /// Show dialog to confirm switching between events
+  Future<bool> _showEventSwitchDialog(String currentEvent, String newEvent) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cambiar de Evento'),
+        content: Text(
+          'Ya estás participando en "$currentEvent". ¿Deseas cambiar a "$newEvent"?'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cambiar'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  /// Refresh dashboard data after event changes
+  Future<void> _refreshData() async {
+    await _initializeData();
+  }
+
+  /// Show error dialog with custom title and message
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build intelligent join event button with different states
+  Widget _buildJoinEventButton(Evento evento) {
+    final isCurrentEvent = _eventoActivo?.id == evento.id;
+    final canJoin = _canUserJoinEvent(evento);
+    
+    String buttonText;
+    Color backgroundColor;
+    Color textColor;
+    VoidCallback? onPressed;
+
+    if (isCurrentEvent) {
+      buttonText = 'Activo';
+      backgroundColor = Colors.green;
+      textColor = Colors.white;
+      onPressed = () => _joinEvent(evento); // Allow re-entering
+    } else if (!canJoin) {
+      buttonText = 'No disp.';
+      backgroundColor = Colors.grey;
+      textColor = Colors.white;
+      onPressed = null; // Disabled
+    } else {
+      buttonText = 'Unirse';
+      backgroundColor = AppColors.primaryOrange;
+      textColor = Colors.white;
+      onPressed = () => _joinEvent(evento);
+    }
+
+    return TextButton(
+      onPressed: _isLoadingEvents ? null : onPressed,
+      style: TextButton.styleFrom(
+        backgroundColor: backgroundColor,
+        foregroundColor: textColor,
+        padding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+      ),
+      child: _isLoadingEvents
+          ? const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : Text(
+              buttonText,
+              style: const TextStyle(fontSize: 11),
+            ),
     );
   }
 

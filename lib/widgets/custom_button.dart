@@ -5,12 +5,14 @@ class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isPrimary;
+  final Color? backgroundColor;
 
   const CustomButton({
     super.key,
     required this.text,
     required this.onPressed,
     this.isPrimary = true,
+    this.backgroundColor,
   });
 
   @override
@@ -22,8 +24,8 @@ class CustomButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              isPrimary ? AppColors.primaryOrange : AppColors.secondaryTeal,
+          backgroundColor: backgroundColor ?? 
+              (isPrimary ? AppColors.primaryOrange : AppColors.secondaryTeal),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),

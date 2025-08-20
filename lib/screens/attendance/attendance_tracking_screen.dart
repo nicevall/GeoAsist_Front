@@ -6,6 +6,8 @@ import '../../utils/colors.dart';
 import '../../services/storage_service.dart';
 import '../../services/evento_service.dart';
 import '../../services/asistencia_service.dart';
+import '../../services/permission_service.dart'; // ✅ NUEVO IMPORT
+import '../../services/notifications/notification_manager.dart'; // ✅ NUEVO IMPORT
 import '../../models/usuario_model.dart';
 import '../../models/evento_model.dart';
 import '../../models/asistencia_model.dart';
@@ -32,6 +34,8 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   final StorageService _storageService = StorageService();
   final EventoService _eventoService = EventoService();
   final AsistenciaService _asistenciaService = AsistenciaService();
+  final PermissionService _permissionService = PermissionService(); // ✅ NUEVO SERVICIO
+  final NotificationManager _notificationManager = NotificationManager(); // ✅ NUEVO SERVICIO
 
   // 🎯 CONTROLADORES DE ANIMACIÓN
   late AnimationController _trackingController;
@@ -53,11 +57,13 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   Position? _currentPosition;
   String _trackingStatus = 'inactive';
 
-  // 🎯 TIMERS Y CONTADORES
+  // 🎯 TIMERS Y CONTADORES - FIXED: Separate timers to avoid conflicts
   Timer? _positionUpdateTimer;
   Timer? _heartbeatTimer;
-  Timer? _countdownTimer;
-  int _secondsRemaining = 0;
+  Timer? _geofenceGraceTimer; // ✅ SEPARADO: Para violations de geofence
+  Timer? _appClosedGraceTimer; // ✅ SEPARADO: Para app lifecycle
+  int _geofenceSecondsRemaining = 0; // ✅ SEPARADO: Contador geofence
+  int _appClosedSecondsRemaining = 0; // ✅ SEPARADO: Contador app closed
   Duration _timeInEvent = Duration.zero;
   int _exitWarningCount = 0;
 
@@ -66,12 +72,17 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   double _currentAccuracy = 0.0;
   String _lastUpdateTime = '';
 
+  // ✅ NUEVAS VARIABLES PARA PERMISOS CRÍTICOS
+  bool _showingPermissionDialog = false;
+  bool _allPermissionsGranted = false;
+  Map<String, bool> _permissionStatus = {};
+
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-    _initializeTracking();
     WidgetsBinding.instance.addObserver(this);
+    _initializeAnimations();
+    _checkCriticalPermissionsBeforeTracking(); // ✅ MODIFICAR ESTA LÍNEA
   }
 
   @override
@@ -79,9 +90,11 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     WidgetsBinding.instance.removeObserver(this);
     _trackingController.dispose();
     _pulseController.dispose();
+    // ✅ FIXED: Cleanup all timers properly
     _positionUpdateTimer?.cancel();
     _heartbeatTimer?.cancel();
-    _countdownTimer?.cancel();
+    _geofenceGraceTimer?.cancel();
+    _appClosedGraceTimer?.cancel();
     super.dispose();
   }
 
@@ -166,40 +179,14 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     }
   }
 
+  // ✅ REEMPLAZADO: Sistema de validación de permisos críticos obsoleto
+  // Ahora se maneja en _checkCriticalPermissionsBeforeTracking()
   Future<void> _validateCriticalPermissions() async {
-    debugPrint('🔒 Validando permisos críticos');
-
-    try {
-      // Verificar permisos de ubicación
-      LocationPermission permission = await Geolocator.checkPermission();
-
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        throw Exception('Permisos de ubicación denegados');
-      }
-
-      // Verificar servicios de ubicación
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        throw Exception('Servicios de ubicación deshabilitados');
-      }
-
-      setState(() {
-        _hasPermissions = true;
-      });
-
-      debugPrint('✅ Permisos validados');
-    } catch (e) {
-      debugPrint('❌ Error validando permisos: $e');
-      setState(() {
-        _hasPermissions = false;
-        _errorMessage = 'Permisos requeridos: $e';
-      });
-    }
+    debugPrint('🔒 Método legacy - usar _checkCriticalPermissionsBeforeTracking');
+    // Método legacy - no se usa más
+    setState(() {
+      _hasPermissions = _allPermissionsGranted;
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -262,6 +249,547 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     }
   }
 
+  // ===========================================
+  // ✅ NUEVOS MÉTODOS - SISTEMA DE PERMISOS CRÍTICOS
+  // ===========================================
+
+  /// ✅ NUEVO: Verificar permisos críticos antes del tracking
+  Future<void> _checkCriticalPermissionsBeforeTracking() async {
+    debugPrint('🔐 Verificando permisos críticos antes del tracking...');
+    
+    // Verificar todos los permisos críticos
+    _permissionStatus = await _permissionService.checkCriticalPermissions();
+    
+    debugPrint('📋 Estado de permisos: $_permissionStatus');
+    
+    // Si no todos los permisos están otorgados, mostrar diálogos
+    if (!_areAllPermissionsGranted()) {
+      await _showCriticalPermissionsDialog();
+    } else {
+      // Solo si todos los permisos están OK, iniciar tracking
+      _allPermissionsGranted = true;
+      await _startAutomaticTracking();
+    }
+  }
+
+  /// ✅ NUEVO: Verificar si todos los permisos están otorgados
+  bool _areAllPermissionsGranted() {
+    return _permissionStatus['location_precise'] == true &&
+           _permissionStatus['location_always'] == true &&
+           _permissionStatus['battery_optimization'] == true &&
+           _permissionStatus['location_services'] == true;
+  }
+
+  /// ✅ NUEVO: Mostrar diálogos de permisos críticos
+  Future<void> _showCriticalPermissionsDialog() async {
+    if (_showingPermissionDialog) return; // Evitar diálogos múltiples
+    
+    _showingPermissionDialog = true;
+    
+    // Verificar en orden: servicios → preciso → siempre → batería
+    if (_permissionStatus['location_services'] != true) {
+      await _showLocationServicesDialog();
+    } else if (_permissionStatus['location_precise'] != true) {
+      await _showPreciseLocationDialog();
+    } else if (_permissionStatus['location_always'] != true) {
+      await _showAlwaysLocationDialog();
+    } else if (_permissionStatus['battery_optimization'] != true) {
+      await _showBatteryOptimizationDialog();
+    }
+  }
+
+  /// ✅ NUEVO: Diálogo de servicios de ubicación
+  Future<void> _showLocationServicesDialog() async {
+    if (!mounted) return;
+    
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false, // No permite cerrar con back
+          child: AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.location_off, color: Colors.red, size: 28),
+                SizedBox(width: 12),
+                Expanded(child: Text('📍 Ubicación Desactivada')),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '⚠️ REQUERIDO PARA ASISTENCIA',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text('Para registrar tu asistencia necesitas:'),
+                SizedBox(height: 8),
+                _buildRequirementItem('📍', 'Activar servicios de ubicación del dispositivo'),
+                SizedBox(height: 16),
+                Text(
+                  'Este popup seguirá apareciendo hasta que actives la ubicación.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange[700],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await _permissionService.openLocationSettings();
+                  // Recheck después de 2 segundos
+                  Timer(Duration(seconds: 2), () async {
+                    await _recheckPermissionsAndContinue();
+                  });
+                },
+                icon: Icon(Icons.settings),
+                label: Text('Abrir Configuración'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// ✅ NUEVO: Diálogo de ubicación precisa
+  Future<void> _showPreciseLocationDialog() async {
+    if (!mounted) return;
+    
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.gps_not_fixed, color: Colors.orange, size: 28),
+                SizedBox(width: 12),
+                Expanded(child: Text('🎯 Ubicación Precisa')),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.precision_manufacturing, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'PRECISIÓN REQUERIDA',
+                          style: TextStyle(
+                            color: Colors.orange[700],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text('Para detectar cuando entres al área del evento:'),
+                SizedBox(height: 8),
+                _buildRequirementItem('🎯', 'Ubicación PRECISA (no aproximada)'),
+                _buildRequirementItem('📐', 'Para geofencing exacto'),
+                SizedBox(height: 16),
+                Text(
+                  'Nota: Sin ubicación precisa no se puede registrar asistencia automáticamente.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.red[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await _recheckPermissionsAndContinue();
+                },
+                child: Text('❌ Rechazar'),
+              ),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  final granted = await _permissionService.requestPreciseLocationPermissionEnhanced();
+                  if (granted) {
+                    await _recheckPermissionsAndContinue();
+                  } else {
+                    // Volver a mostrar el diálogo
+                    Timer(Duration(milliseconds: 500), () async {
+                      await _recheckPermissionsAndContinue();
+                    });
+                  }
+                },
+                icon: Icon(Icons.check),
+                label: Text('✅ Permitir Precisa'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// ✅ NUEVO: Diálogo de ubicación siempre
+  Future<void> _showAlwaysLocationDialog() async {
+    if (!mounted) return;
+    
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.access_time, color: Colors.blue, size: 28),
+                SizedBox(width: 12),
+                Expanded(child: Text('⏰ Ubicación Todo el Tiempo')),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.all_inclusive, color: Colors.blue),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'TRACKING CONTINUO',
+                          style: TextStyle(
+                            color: Colors.blue[700],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text('Para asistencia automática necesitas:'),
+                SizedBox(height: 8),
+                _buildRequirementItem('📱', 'Ubicación activa aunque cambies de app'),
+                _buildRequirementItem('🔄', 'Tracking continuo durante el evento'),
+                _buildRequirementItem('⚡', 'Detección inmediata de entrada/salida'),
+                SizedBox(height: 16),
+                Text(
+                  '💡 Tranquilo: Solo se usa durante eventos activos.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.green[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await _recheckPermissionsAndContinue();
+                },
+                child: Text('❌ Solo cuando use la app'),
+              ),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  final granted = await _permissionService.requestAlwaysLocationPermission();
+                  if (granted) {
+                    await _recheckPermissionsAndContinue();
+                  } else {
+                    Timer(Duration(milliseconds: 500), () async {
+                      await _recheckPermissionsAndContinue();
+                    });
+                  }
+                },
+                icon: Icon(Icons.check),
+                label: Text('✅ Permitir Siempre'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// ✅ NUEVO: Diálogo de optimización de batería
+  Future<void> _showBatteryOptimizationDialog() async {
+    if (!mounted) return;
+    
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.battery_alert, color: Colors.red, size: 28),
+                SizedBox(width: 12),
+                Expanded(child: Text('🔋 Optimización de Batería')),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.red),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '⚠️ CRÍTICO PARA ASISTENCIA',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text('Android está optimizando la batería de GeoAsist.'),
+                SizedBox(height: 12),
+                Text('Esto causará:'),
+                SizedBox(height: 8),
+                _buildRequirementItem('❌', 'App se cierre automáticamente'),
+                _buildRequirementItem('💔', 'Pérdida de asistencia registrada'),
+                _buildRequirementItem('📍', 'Tracking interrumpido'),
+                SizedBox(height: 16),
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '✅ Desactivar optimización = Asistencia garantizada',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await _recheckPermissionsAndContinue();
+                },
+                child: Text('❌ Mantener Optimización'),
+              ),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  final granted = await _permissionService.requestBatteryOptimizationPermission();
+                  if (granted) {
+                    await _recheckPermissionsAndContinue();
+                  } else {
+                    Timer(Duration(milliseconds: 500), () async {
+                      await _recheckPermissionsAndContinue();
+                    });
+                  }
+                },
+                icon: Icon(Icons.check),
+                label: Text('🔋 Desactivar Optimización'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// ✅ NUEVO: Widget helper para elementos de requisito
+  Widget _buildRequirementItem(String icon, String text) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(icon, style: TextStyle(fontSize: 16)),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// ✅ NUEVO: Revericar permisos y continuar
+  Future<void> _recheckPermissionsAndContinue() async {
+    _showingPermissionDialog = false;
+    
+    // Verificar nuevamente todos los permisos
+    _permissionStatus = await _permissionService.checkCriticalPermissions();
+    
+    if (_areAllPermissionsGranted()) {
+      // ¡Todos los permisos están OK! Iniciar tracking
+      _allPermissionsGranted = true;
+      await _startAutomaticTracking();
+    } else {
+      // Todavía faltan permisos, mostrar el siguiente diálogo
+      Timer(Duration(milliseconds: 800), () async {
+        await _showCriticalPermissionsDialog();
+      });
+    }
+  }
+
+  /// ✅ MÉTODO MODIFICADO: Iniciar tracking automático (solo cuando permisos OK)
+  Future<void> _startAutomaticTracking() async {
+    if (!_allPermissionsGranted) {
+      debugPrint('❌ No se puede iniciar tracking - faltan permisos críticos');
+      return;
+    }
+    
+    debugPrint('🚀 Iniciando tracking automático con permisos completos...');
+    
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Cargar datos del usuario y evento primero
+      await _loadUserData();
+      await _loadEventData();
+      await _loadAttendanceHistory();
+      
+      // Activar tracking automáticamente
+      await _activateTracking();
+      
+      // Mostrar notificación de tracking iniciado
+      await _notificationManager.showTrackingActiveNotification();
+      
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      
+      debugPrint('✅ Tracking automático activado exitosamente');
+    } catch (e) {
+      debugPrint('❌ Error en tracking automático: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Error iniciando tracking: $e';
+        });
+      }
+    }
+  }
+
+  /// ✅ NUEVO: Método de activación de tracking (equivalente a _startTracking)
+  Future<void> _activateTracking() async {
+    if (_activeEvent == null) {
+      throw Exception('No hay evento activo para tracking');
+    }
+
+    try {
+      debugPrint('▶️ Activando tracking automático');
+
+      // Iniciar timers
+      _startPositionUpdates();
+      _startHeartbeat();
+
+      // Actualizar UI
+      setState(() {
+        _isTrackingActive = true;
+        _trackingStatus = 'active';
+        _hasPermissions = true;
+      });
+
+      _trackingController.forward();
+      debugPrint('✅ Tracking automático activado');
+    } catch (e) {
+      debugPrint('❌ Error activando tracking: $e');
+      rethrow;
+    }
+  }
+
   // 🎯 CONTROL DE TRACKING
 
   Future<void> _startTracking() async {
@@ -303,9 +831,11 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       debugPrint('⏹️ Deteniendo tracking');
 
       // Detener timers
+      // ✅ FIXED: Cancel all timers properly
       _positionUpdateTimer?.cancel();
       _heartbeatTimer?.cancel();
-      _countdownTimer?.cancel();
+      _geofenceGraceTimer?.cancel();
+      _appClosedGraceTimer?.cancel();
 
       // Actualizar UI
       setState(() {
@@ -454,6 +984,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   }
 
   /// 🎯 NUEVO: Registra asistencia automáticamente cuando entra al geofence
+  /// ✅ MEJORADO: Registro automático con notificaciones contextuales
   Future<void> _registerAttendanceAutomatically() async {
     if (_currentPosition == null ||
         _activeEvent == null ||
@@ -465,6 +996,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     try {
       debugPrint('📝 Registrando asistencia automáticamente');
 
+      // ✅ MOSTRAR NOTIFICACIÓN DE PROCESO
+      await _notificationManager.showGeofenceEnteredWithAutoRegistration(_activeEvent!.titulo);
+
       final response = await _asistenciaService.registrarAsistencia(
         eventoId: _activeEvent!.id!,
         usuarioId: _currentUser!.id,
@@ -475,7 +1009,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       );
 
       if (response.success) {
-        // El backend ahora devuelve los datos en response.data
+        // Procesar respuesta exitosa
         if (response.data != null && response.data is Map<String, dynamic>) {
           try {
             final asistenciaData = response.data as Map<String, dynamic>;
@@ -488,40 +1022,63 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
           }
         }
 
-        HapticFeedback.mediumImpact();
+        // ✅ MOSTRAR NOTIFICACIÓN DE ÉXITO MEJORADA
+        await _notificationManager.showAttendanceRegisteredAutomaticallyNotification(
+          eventName: _activeEvent!.titulo,
+          studentName: _currentUser!.nombre,
+        );
+
+        // ✅ SNACKBAR EN LA APP TAMBIÉN
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Asistencia registrada automáticamente'),
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text('✅ ¡Asistencia registrada automáticamente en "${_activeEvent!.titulo}"!'),
+                  ),
+                ],
+              ),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
+              duration: Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
           );
         }
 
         debugPrint('✅ Asistencia automática registrada exitosamente');
       } else {
-        debugPrint('❌ Error en registro automático: ${response.error}');
-        
-        // Si ya está registrado, no es un error crítico
+        // Manejar errores específicos
         if (response.error?.contains('ya registró') == true) {
+          // Ya registrado - no es error crítico
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Ya tienes asistencia registrada para este evento'),
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.info, color: Colors.white),
+                    SizedBox(width: 8),
+                    Expanded(child: Text('ℹ️ Ya tienes asistencia registrada para este evento')),
+                  ],
+                ),
                 backgroundColor: Colors.orange,
-                duration: Duration(seconds: 2),
+                duration: Duration(seconds: 3),
               ),
             );
           }
         } else {
-          // Solo mostrar error si es algo diferente
+          // Error real - mostrar en notificación
+          await _notificationManager.showConnectionErrorNotification();
+          
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error en registro automático: ${response.error}'),
+                content: Text('❌ Error: ${response.error}'),
                 backgroundColor: Colors.red,
-                duration: const Duration(seconds: 3),
+                duration: Duration(seconds: 4),
               ),
             );
           }
@@ -529,12 +1086,14 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       }
     } catch (e) {
       debugPrint('❌ Excepción en registro automático: $e');
+      await _notificationManager.showConnectionErrorNotification();
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error registrando asistencia automáticamente'),
+          SnackBar(
+            content: Text('❌ Error de conexión registrando asistencia'),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
+            duration: Duration(seconds: 3),
           ),
         );
       }
@@ -564,13 +1123,15 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
 
   // 🎯 APP LIFECYCLE HANDLERS
 
+  // ✅ FIXED: Handle app resumed with separate timers
   void _handleAppResumed() {
     debugPrint('✅ App resumed');
 
-    if (_countdownTimer != null) {
-      _countdownTimer!.cancel();
-      _countdownTimer = null;
-      _secondsRemaining = 0;
+    // Stop app closed grace timer if running
+    if (_appClosedGraceTimer != null) {
+      _appClosedGraceTimer!.cancel();
+      _appClosedGraceTimer = null;
+      _appClosedSecondsRemaining = 0;
     }
 
     setState(() {
@@ -607,45 +1168,63 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     });
   }
 
+  // ✅ FIXED: Use dedicated geofence grace timer
   void _startGracePeriod() {
-    _secondsRemaining = 60; // 1 minuto de gracia
+    // Cancel any existing geofence grace timer
+    _geofenceGraceTimer?.cancel();
+    
+    _geofenceSecondsRemaining = 60; // 1 minuto de gracia
 
-    _countdownTimer = Timer.periodic(
+    _geofenceGraceTimer = Timer.periodic(
       const Duration(seconds: 1),
       (timer) {
         if (mounted) {
           setState(() {
-            _secondsRemaining--;
+            _geofenceSecondsRemaining--;
           });
 
-          if (_secondsRemaining <= 0) {
+          if (_geofenceSecondsRemaining <= 0) {
             timer.cancel();
+            _geofenceGraceTimer = null;
             if (!_isInGeofence) {
               _triggerAttendanceLoss('Fuera del área por más de 1 minuto');
             }
           }
         } else {
           timer.cancel();
+          _geofenceGraceTimer = null;
         }
       },
     );
   }
 
+  // ✅ FIXED: Use dedicated app closed grace timer
   void _startAppClosedGracePeriod() {
-    _secondsRemaining = 30; // 30 segundos para reabrir
+    // Cancel any existing app closed grace timer
+    _appClosedGraceTimer?.cancel();
+    
+    _appClosedSecondsRemaining = 30; // 30 segundos para reabrir
 
     setState(() {
       _trackingStatus = 'warning';
     });
 
-    _countdownTimer = Timer.periodic(
+    _appClosedGraceTimer = Timer.periodic(
       const Duration(seconds: 1),
       (timer) {
-        _secondsRemaining--;
+        if (mounted) {
+          setState(() {
+            _appClosedSecondsRemaining--;
+          });
 
-        if (_secondsRemaining <= 0) {
+          if (_appClosedSecondsRemaining <= 0) {
+            timer.cancel();
+            _appClosedGraceTimer = null;
+            _triggerAttendanceLoss('App cerrada por más de 30 segundos');
+          }
+        } else {
           timer.cancel();
-          _triggerAttendanceLoss('App cerrada por más de 30 segundos');
+          _appClosedGraceTimer = null;
         }
       },
     );
@@ -1133,7 +1712,8 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
                 ),
               ],
             ),
-            if (_secondsRemaining > 0) ...[
+            // ✅ FIXED: Display both grace periods appropriately
+            if (_geofenceSecondsRemaining > 0) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -1145,12 +1725,37 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.timer, color: Colors.orange),
+                    const Icon(Icons.location_off, color: Colors.orange),
                     const SizedBox(width: 8),
                     Text(
-                      'Grace Period: ${_secondsRemaining}s',
+                      'Geofence Grace Period: ${_geofenceSecondsRemaining}s',
                       style: const TextStyle(
                         color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (_appClosedSecondsRemaining > 0) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border:
+                      Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.phone_android, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Text(
+                      'App Closed Grace Period: ${_appClosedSecondsRemaining}s',
+                      style: const TextStyle(
+                        color: Colors.red,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

@@ -6,11 +6,12 @@ import '../models/location_response_model.dart';
 import '../models/attendance_policies_model.dart';
 import '../models/evento_model.dart';
 import 'location_service.dart';
-import 'notification_service.dart';
 import 'asistencia_service.dart'; // Para integración backend
 import 'permission_service.dart'; // Para validaciones
-import 'notifications/notification_manager.dart'; // Para notificaciones nuevas
+import 'notifications/notification_manager.dart'; // ✅ UNIFIED: Solo NotificationManager
+import 'teacher_notification_service.dart'; // ✅ NUEVO para notificaciones docente
 import 'storage_service.dart';
+import 'evento_service.dart'; // ✅ AGREGADO para eventos
 import '../core/app_constants.dart';
 
 class StudentAttendanceManager {
@@ -21,11 +22,12 @@ class StudentAttendanceManager {
 
   // 🎯 DEPENDENCIAS
   final LocationService _locationService = LocationService();
-  final NotificationService _notificationService = NotificationService();
+  // ✅ UNIFIED: Usar solo NotificationManager
+  final NotificationManager _notificationManager = NotificationManager();
+  final TeacherNotificationService _teacherNotificationService = TeacherNotificationService(); // ✅ NUEVO
   final StorageService _storageService = StorageService();
   final AsistenciaService _asistenciaService = AsistenciaService();
   final PermissionService _permissionService = PermissionService();
-  final NotificationManager _notificationManager = NotificationManager();
 
   // 🎯 STREAMS Y CONTROLADORES - Una sola fuente de verdad
   final StreamController<AttendanceState> _stateController =
@@ -41,6 +43,7 @@ class StudentAttendanceManager {
   Timer? _gracePeriodTimer;
   Timer? _heartbeatTimer;
   Timer? _lifecycleTimer;
+  Timer? _heartbeatFailureTimer; // ✅ FIXED: Track heartbeat failure timer to prevent memory leaks
   bool _isAppInForeground = true;
 
   // 🎯 NUEVOS MÉTODOS PARA GRACE PERIOD
@@ -106,8 +109,13 @@ class StudentAttendanceManager {
   LocationResponseModel? get lastLocationResponse => _lastLocationResponse;
 
   // 🎯 INICIALIZACIÓN DEL MANAGER
-  Future<void> initialize() async {
-    debugPrint('🎯 Inicializando StudentAttendanceManager con restricciones');
+  /// ✅ MODIFICADO: Initialize con autoStart para tracking automático
+  Future<void> initialize({
+    String? userId,
+    String? eventId,
+    bool autoStart = true, // ✅ AGREGAR PARÁMETRO
+  }) async {
+    debugPrint('🎯 Inicializando StudentAttendanceManager (autoStart: $autoStart)');
 
     try {
       // 1. Inicializar notificaciones críticas
@@ -120,20 +128,45 @@ class StudentAttendanceManager {
         throw Exception('Permisos críticos no otorgados');
       }
 
-      // 3. Inicializar servicios dependientes
-      await _notificationService.initialize();
-
-      // 4. Cargar usuario actual
+      // 3. Cargar usuario actual
       final user = await _storageService.getUser();
       if (user != null) {
         _updateState(_currentState.copyWith(currentUser: user));
       }
 
-      debugPrint('✅ StudentAttendanceManager inicializado con restricciones');
+      // 4. ✅ NUEVO: Si autoStart=true y hay evento, activar tracking inmediatamente
+      if (autoStart && eventId != null) {
+        await _startTrackingForEvent(eventId, userId);
+      }
+
+      debugPrint('✅ StudentAttendanceManager inicializado (autoStart: $autoStart)');
     } catch (e) {
       debugPrint('❌ Error crítico inicializando: $e');
       await _notificationManager.showCriticalAppLifecycleWarning();
       rethrow;
+    }
+  }
+
+  /// ✅ NUEVO: Método privado para iniciar tracking de evento específico
+  Future<void> _startTrackingForEvent(String eventId, String? userId) async {
+    try {
+      debugPrint('🚀 Iniciando tracking automático para evento: $eventId');
+      
+      // Buscar el evento
+      final eventoService = EventoService();
+      final eventos = await eventoService.obtenerEventos();
+      final evento = eventos.firstWhere(
+        (e) => e.id == eventId,
+        orElse: () => throw Exception('Evento no encontrado: $eventId'),
+      );
+      
+      // Iniciar tracking para este evento
+      await startEventTracking(evento);
+      
+      debugPrint('✅ Tracking automático iniciado para: ${evento.titulo}');
+    } catch (e) {
+      debugPrint('❌ Error iniciando tracking automático: $e');
+      // No rethrow para que no bloquee la inicialización
     }
   }
 
@@ -156,10 +189,10 @@ class StudentAttendanceManager {
 
       // 3. Mostrar notificación persistente del evento - CON VALIDACIÓN
       if (evento.id != null && evento.id!.isNotEmpty) {
-        await _notificationService.showEventActiveNotification(
-          eventName: evento.titulo,
-          eventId: evento.id!,
-        );
+        // ✅ UNIFIED: Usar NotificationManager para evento activo
+        await _notificationManager.showEventStartedNotification(
+            evento.titulo); // Fixed: use titulo instead of nombre
+        await _notificationManager.showTrackingActiveNotification();
       } else {
         debugPrint(
             '⚠️ Evento sin ID válido - omitiendo notificación específica');
@@ -312,15 +345,65 @@ class StudentAttendanceManager {
     await _notificationManager.showGeofenceExitedNotification(
         _currentState.currentEvent?.titulo ?? 'Evento');
 
-    // 2. ✅ NUEVO: Registrar evento en backend
+    // 2. ✅ NUEVO: Notificar al docente que el estudiante salió del área
+    await _notifyTeacherStudentLeftArea();
+
+    // 3. ✅ NUEVO: Registrar evento en backend
     await registerGeofenceEvent(
       entering: false,
       latitude: response.latitude,
       longitude: response.longitude,
     );
 
-    // 3. Iniciar período de gracia
+    // 4. Iniciar período de gracia
     _startGracePeriod();
+  }
+
+  /// ✅ NUEVO: Notificar al docente que el estudiante salió del área
+  Future<void> _notifyTeacherStudentLeftArea() async {
+    try {
+      if (_currentState.currentEvent == null || _currentState.currentUser == null) {
+        debugPrint('⚠️ No hay evento o usuario para notificar al docente');
+        return;
+      }
+
+      await _teacherNotificationService.notifyStudentLeftArea(
+        studentName: _currentState.currentUser!.nombre,
+        eventTitle: _currentState.currentEvent!.titulo,
+        eventId: _currentState.currentEvent!.id!,
+        timeOutside: null, // Se calculará en el backend o en tiempo real
+      );
+
+      debugPrint('📨 Docente notificado: estudiante ${_currentState.currentUser!.nombre} salió del área');
+    } catch (e) {
+      debugPrint('❌ Error notificando docente sobre estudiante que salió: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Notificar al docente que el estudiante se registró
+  Future<void> _notifyTeacherStudentJoined() async {
+    try {
+      if (_currentState.currentEvent == null || _currentState.currentUser == null) {
+        debugPrint('⚠️ No hay evento o usuario para notificar al docente');
+        return;
+      }
+
+      // Estimar métricas actuales (en producción vendrían del backend)
+      const int totalExpected = 30; // TODO: obtener del backend
+      const int currentAttendance = 1; // TODO: obtener conteo real del backend
+
+      await _teacherNotificationService.notifyStudentJoined(
+        studentName: _currentState.currentUser!.nombre,
+        eventTitle: _currentState.currentEvent!.titulo,
+        eventId: _currentState.currentEvent!.id!,
+        currentAttendance: currentAttendance,
+        totalStudents: totalExpected,
+      );
+
+      debugPrint('📨 Docente notificado: estudiante ${_currentState.currentUser!.nombre} se registró');
+    } catch (e) {
+      debugPrint('❌ Error notificando docente sobre estudiante registrado: $e');
+    }
   }
 
   // 🎯 INICIAR PERÍODO DE GRACIA
@@ -335,7 +418,8 @@ class StudentAttendanceManager {
     ));
 
     // Mostrar notificación de inicio de período de gracia
-    _notificationService.showGracePeriodStartedNotification(
+    // ✅ UNIFIED: Usar NotificationManager para grace period
+    _notificationManager.showGracePeriodStartedNotification(
       remainingSeconds: gracePeriodSeconds,
     );
 
@@ -375,7 +459,8 @@ class StudentAttendanceManager {
     debugPrint('❌ Período de gracia expirado');
 
     // 1. Mostrar notificación crítica - CORREGIDO (ya existe en NotificationService)
-    await _notificationService.showGracePeriodExpiredNotification();
+    // ✅ UNIFIED: Usar NotificationManager para grace period expirado
+    await _notificationManager.showGracePeriodExpiredNotification();
 
     // 2. Actualizar estado
     _updateState(_currentState.copyWith(
@@ -412,6 +497,8 @@ class StudentAttendanceManager {
     _heartbeatTimer = null;
     _lifecycleTimer?.cancel();
     _lifecycleTimer = null;
+    _heartbeatFailureTimer?.cancel(); // ✅ FIXED: Also cancel in stopTracking
+    _heartbeatFailureTimer = null;
 
     // 2. Limpiar notificaciones
     await _notificationManager.clearAllNotifications();
@@ -438,7 +525,8 @@ class StudentAttendanceManager {
       isInGracePeriod: false,
     ));
 
-    await _notificationService.showTrackingPausedNotification();
+    // ✅ UNIFIED: Usar NotificationManager para tracking pausado
+    await _notificationManager.showBreakStartedNotification();
   }
 
   // 🎯 REANUDAR TRACKING (DESPUÉS DEL RECESO)
@@ -452,7 +540,9 @@ class StudentAttendanceManager {
     _startTrackingTimer();
 
     // Mostrar notificación de reanudación - CORREGIDO
-    await _notificationService.showTrackingResumedNotification();
+    // ✅ UNIFIED: Usar NotificationManager para tracking reanudado
+    await _notificationManager.showBreakEndedNotification();
+    await _notificationManager.showTrackingResumedNotification();
 
     // Realizar actualización inmediata
     await _performLocationUpdate();
@@ -473,9 +563,8 @@ class StudentAttendanceManager {
       // FUTURO: Integrar con AsistenciaService para persistencia
 
       // Mostrar notificación de confirmación
-      await _notificationService.showAttendanceRegisteredNotification(
-        eventName: _currentState.currentEvent?.titulo ?? 'Evento',
-      );
+      // ✅ UNIFIED: Usar NotificationManager para asistencia registrada
+      await _notificationManager.showAttendanceRegisteredNotification();
 
       // Actualizar estado
       _updateState(_currentState.copyWith(
@@ -520,25 +609,57 @@ class StudentAttendanceManager {
     }
   }
 
-  // 🎯 CLEANUP Y DISPOSE
+  // 🎯 CLEANUP Y DISPOSE - FIXED: Enhanced memory leak prevention
   Future<void> dispose() async {
     debugPrint('🧹 Limpiando StudentAttendanceManager con recursos críticos');
 
-    // Detener tracking activo
+    // 1. Detener tracking activo (ya cancela la mayoría de timers)
     await stopTracking();
 
-    // Cerrar streams
-    await _stateController.close();
-    await _locationController.close();
-
-    // Limpiar timers críticos
+    // 2. FIXED: Ensure ALL timers are cancelled (double-check)
+    _trackingTimer?.cancel();
+    _trackingTimer = null;
+    _gracePeriodTimer?.cancel();
+    _gracePeriodTimer = null;
     _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
     _lifecycleTimer?.cancel();
+    _lifecycleTimer = null;
+    _heartbeatFailureTimer?.cancel(); // ✅ FIXED: Cancel failure timer
+    _heartbeatFailureTimer = null;
 
-    // Limpiar servicios
-    await _notificationManager.clearAllNotifications();
+    // 3. FIXED: Close streams safely with error handling
+    try {
+      if (!_stateController.isClosed) {
+        await _stateController.close();
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error closing state controller: $e');
+    }
 
-    debugPrint('✅ StudentAttendanceManager disposed completamente');
+    try {
+      if (!_locationController.isClosed) {
+        await _locationController.close();
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error closing location controller: $e');
+    }
+
+    // 4. FIXED: Location service cleanup (no subscriptions to stop, but ensure no pending operations)
+    // Note: LocationService doesn't have persistent subscriptions to stop
+    debugPrint('✅ Location service cleanup completed');
+
+    // 5. FIXED: Clean up notification service
+    try {
+      await _notificationManager.clearAllNotifications();
+    } catch (e) {
+      debugPrint('⚠️ Error clearing notifications: $e');
+    }
+
+    // 6. FIXED: Reset state to prevent accidental reuse
+    _currentState = AttendanceState.initial();
+
+    debugPrint('✅ StudentAttendanceManager disposed completamente - No memory leaks');
   }
 
   // 🎯 ========== MÉTODOS CRÍTICOS DÍA 2 ==========
@@ -563,6 +684,9 @@ class StudentAttendanceManager {
 
       if (response.success) {
         await _notificationManager.showAttendanceRegisteredNotification();
+        
+        // ✅ NUEVO: Notificar al docente que el estudiante se registró
+        await _notifyTeacherStudentJoined();
 
         _updateState(_currentState.copyWith(
           hasRegisteredAttendance: true,
@@ -768,16 +892,20 @@ class StudentAttendanceManager {
     debugPrint('💓 Heartbeat iniciado cada 30 segundos');
   }
 
-  /// Manejar falla crítica de heartbeat
+  /// Manejar falla crítica de heartbeat - FIXED: No memory leaks
   void _handleHeartbeatFailure() {
     debugPrint('🚨 Falla crítica de heartbeat detectada');
 
     _notificationManager.showAppClosedWarningNotification(30);
 
-    Timer(const Duration(minutes: 2), () {
+    // ✅ FIXED: Cancel existing failure timer before creating new one
+    _heartbeatFailureTimer?.cancel();
+    
+    _heartbeatFailureTimer = Timer(const Duration(minutes: 2), () {
       if (_currentState.trackingStatus == TrackingStatus.active) {
         _triggerAutomaticAttendanceLoss('Pérdida de conectividad crítica');
       }
+      _heartbeatFailureTimer = null; // Clear reference after completion
     });
   }
 

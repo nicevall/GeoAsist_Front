@@ -168,8 +168,8 @@ class ProfessorDashboardWidgets {
           subtitle: 'Revisar asistencias de mis eventos',
           color: Colors.green,
           onTap: () {
-            // ✅ CORREGIDO - TODO válido para PHASE 4
-            AppRouter.showSnackBar('Próximamente: Reporte de asistencias');
+            // ✅ NAVEGAR A PANTALLA DE REPORTES
+            AppRouter.navigateToReports();
           },
         ),
       ],
@@ -203,8 +203,8 @@ class ProfessorDashboardWidgets {
             ),
             TextButton(
               onPressed: () {
-                // ✅ CORREGIDO - TODO válido para PHASE 4
-                AppRouter.showSnackBar('Próximamente: Todos mis eventos');
+                // ✅ NAVEGAR A TODOS LOS EVENTOS DEL PROFESOR
+                AppRouter.navigateToAllMyEvents();
               },
               child: const Text('Ver todos'),
             ),
@@ -524,47 +524,95 @@ class ProfessorDashboardWidgets {
   }
 
   static void _handleEventDelete(Evento evento) {
-    // Mostrar confirmación antes de eliminar
     final context = AppRouter.navigatorKey.currentContext!;
     showDialog(
       context: context,
+      barrierDismissible: false, // ✅ AGREGAR
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar Evento'),
-        content: Text(
-            '¿Estás seguro de eliminar "${evento.titulo}"?\n\nEsta acción no se puede deshacer.'),
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red, size: 24),
+            SizedBox(width: 8),
+            Text('⚠️ ELIMINAR EVENTO'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '¿Estás COMPLETAMENTE SEGURO de eliminar este evento?',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text('📅 Evento: "${evento.titulo}"'),
+            SizedBox(height: 4),
+            Text('📍 Lugar: ${evento.lugar ?? "Sin ubicación"}'),
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '⚠️ ESTA ACCIÓN ES IRREVERSIBLE\nSe eliminarán todas las asistencias registradas',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text('❌ Cancelar'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              await _confirmarEliminacion(evento);
+              await _confirmarEliminacionSegura(evento);
             },
-            child: const Text(
-              'Eliminar',
-              style: TextStyle(color: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
             ),
+            child: Text('🗑️ SÍ, ELIMINAR'),
           ),
         ],
       ),
     );
   }
 
-  static Future<void> _confirmarEliminacion(Evento evento) async {
+  /// ✅ NUEVO MÉTODO: Confirmación segura con mejor UX
+  static Future<void> _confirmarEliminacionSegura(Evento evento) async {
     try {
+      AppRouter.showSnackBar('Eliminando evento...');
+      
       final eventoService = EventoService();
       final result = await eventoService.eliminarEvento(evento.id!);
-
+      
       if (result.success) {
-        AppRouter.showSnackBar(
-            'Evento "${evento.titulo}" eliminado exitosamente');
+        AppRouter.showSnackBar('✅ Evento eliminado exitosamente');
+        // Refrescar dashboard
+        AppRouter.goToDashboard();
       } else {
-        AppRouter.showSnackBar('Error: ${result.message}', isError: true);
+        AppRouter.showSnackBar('❌ Error: ${result.error}', isError: true);
       }
     } catch (e) {
-      AppRouter.showSnackBar('Error eliminando evento: $e', isError: true);
+      AppRouter.showSnackBar('❌ Error de conexión: $e', isError: true);
     }
   }
 

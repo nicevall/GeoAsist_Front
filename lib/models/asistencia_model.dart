@@ -16,6 +16,8 @@ class Asistencia {
   final String? observaciones; // ✅ AGREGADO campo observaciones
   final DateTime? creadoEn;
   final DateTime? actualizadoEn;
+  final DateTime? fechaRegistro; // ✅ AGREGADO fechaRegistro
+  final String? nombreUsuario; // ✅ AGREGADO nombreUsuario
 
   Asistencia({
     this.id,
@@ -32,6 +34,8 @@ class Asistencia {
     this.observaciones, // ✅ OPCIONAL
     this.creadoEn,
     this.actualizadoEn,
+    this.fechaRegistro, // ✅ OPCIONAL
+    this.nombreUsuario, // ✅ OPCIONAL
   });
 
   factory Asistencia.fromJson(Map<String, dynamic> json) {
@@ -98,6 +102,12 @@ class Asistencia {
           json['withinRange'] == true;
 
       final String? observaciones = json['observaciones']?.toString();
+      final String? nombreUsuario = json['nombreUsuario']?.toString() ?? 
+                                     json['usuarioNombre']?.toString() ??
+                                     json['studentName']?.toString();
+      final DateTime? fechaRegistro = json['fechaRegistro'] != null
+          ? DateTime.parse(json['fechaRegistro'].toString())
+          : (json['creadoEn'] != null ? DateTime.parse(json['creadoEn'].toString()) : null);
 
       return Asistencia(
         id: json['id']?.toString() ?? json['_id']?.toString(),
@@ -118,6 +128,8 @@ class Asistencia {
         actualizadoEn: json['actualizadoEn'] != null
             ? DateTime.parse(json['actualizadoEn'].toString())
             : null,
+        fechaRegistro: fechaRegistro,
+        nombreUsuario: nombreUsuario,
       );
     } catch (e) {
       debugPrint('❌ Error parsing Asistencia from JSON: $e');
@@ -143,6 +155,8 @@ class Asistencia {
       'dentroDelRango': dentroDelRango,
       'enRango': dentroDelRango, // ✅ PARA BACKEND
       'observaciones': observaciones,
+      'fechaRegistro': fechaRegistro?.toIso8601String(),
+      'nombreUsuario': nombreUsuario,
     };
   }
 
@@ -161,6 +175,8 @@ class Asistencia {
     String? observaciones,
     DateTime? creadoEn,
     DateTime? actualizadoEn,
+    DateTime? fechaRegistro,
+    String? nombreUsuario,
   }) {
     return Asistencia(
       id: id ?? this.id,
@@ -177,6 +193,8 @@ class Asistencia {
       observaciones: observaciones ?? this.observaciones,
       creadoEn: creadoEn ?? this.creadoEn,
       actualizadoEn: actualizadoEn ?? this.actualizadoEn,
+      fechaRegistro: fechaRegistro ?? this.fechaRegistro,
+      nombreUsuario: nombreUsuario ?? this.nombreUsuario,
     );
   }
 

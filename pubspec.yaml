@@ -40,6 +40,9 @@ dependencies:
 
   # Utils - Mantenido
   intl: ^0.20.2
+  
+  # 📋 NUEVO: URL launcher para justificaciones
+  url_launcher: ^6.3.1
 
   # ✅ ACTUALIZADO: Notificaciones push reales - CRÍTICO
   flutter_local_notifications: ^19.4.0  # Era: ^17.2.3 - 2 versiones más nueva

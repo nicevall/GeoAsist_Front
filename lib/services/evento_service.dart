@@ -6,7 +6,41 @@ import 'api_service.dart';
 import 'storage_service.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
+import 'dart:async';
 import 'notifications/notification_manager.dart';
+
+/// ✅ ENHANCED: Loading states for better synchronization
+enum EventoLoadingState {
+  idle,
+  loading,
+  success,
+  error,
+}
+
+/// ✅ ENHANCED: Loading state data
+class EventoStateData {
+  final EventoLoadingState state;
+  final String? error;
+  final DateTime lastUpdate;
+
+  const EventoStateData({
+    required this.state,
+    this.error,
+    required this.lastUpdate,
+  });
+
+  EventoStateData copyWith({
+    EventoLoadingState? state,
+    String? error,
+    DateTime? lastUpdate,
+  }) {
+    return EventoStateData(
+      state: state ?? this.state,
+      error: error ?? this.error,
+      lastUpdate: lastUpdate ?? this.lastUpdate,
+    );
+  }
+}
 
 class EventoService {
   static final EventoService _instance = EventoService._internal();
@@ -17,12 +51,49 @@ class EventoService {
   final StorageService _storageService = StorageService();
   final NotificationManager _notificationManager = NotificationManager();
 
+  // ✅ ENHANCED: Loading state management
+  final Map<String, EventoStateData> _loadingStates = {};
+  final StreamController<Map<String, EventoStateData>> _stateController = 
+      StreamController<Map<String, EventoStateData>>.broadcast();
+
+  /// Stream to listen to loading state changes
+  Stream<Map<String, EventoStateData>> get loadingStatesStream => _stateController.stream;
+
+  /// Get current loading state for an operation
+  EventoLoadingState getLoadingState(String operation) {
+    return _loadingStates[operation]?.state ?? EventoLoadingState.idle;
+  }
+
+  /// Get error for an operation
+  String? getError(String operation) {
+    return _loadingStates[operation]?.error;
+  }
+
+  /// Update loading state and notify listeners
+  void _updateLoadingState(String operation, EventoLoadingState state, {String? error}) {
+    _loadingStates[operation] = EventoStateData(
+      state: state,
+      error: error,
+      lastUpdate: DateTime.now(),
+    );
+    
+    if (!_stateController.isClosed) {
+      _stateController.add(Map.from(_loadingStates));
+    }
+    
+    debugPrint('🔄 [$operation] Estado: $state ${error != null ? "Error: $error" : ""}');
+  }
+
   Future<void> notifyEventCreated() async {
     await _notificationManager.showEventStartedNotification('Evento creado');
   }
 
+  // ✅ ENHANCED: obtenerEventos with synchronized loading states
   Future<List<Evento>> obtenerEventos() async {
+    const operation = 'obtenerEventos';
+    
     try {
+      _updateLoadingState(operation, EventoLoadingState.loading);
       debugPrint('📋 Loading events from backend');
 
       final response = await _apiService.get(AppConstants.eventosEndpoint);
@@ -103,19 +174,28 @@ class EventoService {
         }
 
         debugPrint('✅ Total events loaded: ${eventos.length}');
+        _updateLoadingState(operation, EventoLoadingState.success);
         return eventos;
       }
 
       debugPrint('❌ Failed to load events: ${response.error}');
+      _updateLoadingState(operation, EventoLoadingState.error, 
+          error: response.error ?? 'Error desconocido al cargar eventos');
       return <Evento>[];
     } catch (e) {
       debugPrint('❌ Exception loading events: $e');
+      _updateLoadingState(operation, EventoLoadingState.error, 
+          error: 'Excepción: $e');
       return <Evento>[];
     }
   }
 
+  // ✅ ENHANCED: obtenerEventoPorId with synchronized loading states
   Future<Evento?> obtenerEventoPorId(String eventoId) async {
+    final operation = 'obtenerEventoPorId_$eventoId';
+    
     try {
+      _updateLoadingState(operation, EventoLoadingState.loading);
       debugPrint('🔍 Loading event by ID: $eventoId');
 
       final response =
@@ -129,17 +209,24 @@ class EventoService {
           final eventoMapeado = _mapBackendToFlutter(eventoData);
           final evento = Evento.fromJson(eventoMapeado);
           debugPrint('✅ Individual event parsed: ${evento.titulo}');
+          _updateLoadingState(operation, EventoLoadingState.success);
           return evento;
         } else {
           debugPrint('❌ Invalid event data for ID: $eventoId');
+          _updateLoadingState(operation, EventoLoadingState.error, 
+              error: 'Datos de evento inválidos');
           return null;
         }
       }
 
       debugPrint('❌ Failed to load event: ${response.error}');
+      _updateLoadingState(operation, EventoLoadingState.error, 
+          error: response.error ?? 'Error cargando evento');
       return null;
     } catch (e) {
       debugPrint('❌ Exception loading event: $e');
+      _updateLoadingState(operation, EventoLoadingState.error, 
+          error: 'Excepción: $e');
       return null;
     }
   }
@@ -780,5 +867,78 @@ class EventoService {
       debugPrint('❌ Error mapping backend data: $e');
       rethrow;
     }
+  }
+
+  // ✅ ENHANCED: Loading state management utilities
+
+  /// Clear loading state for a specific operation
+  void clearLoadingState(String operation) {
+    _loadingStates.remove(operation);
+    if (!_stateController.isClosed) {
+      _stateController.add(Map.from(_loadingStates));
+    }
+    debugPrint('🧹 Cleared loading state for: $operation');
+  }
+
+  /// Clear all loading states
+  void clearAllLoadingStates() {
+    _loadingStates.clear();
+    if (!_stateController.isClosed) {
+      _stateController.add(<String, EventoStateData>{});
+    }
+    debugPrint('🧹 Cleared all loading states');
+  }
+
+  /// Get all current loading states (for debugging)
+  Map<String, EventoStateData> getAllLoadingStates() {
+    return Map.from(_loadingStates);
+  }
+
+  /// Check if any operation is currently loading
+  bool get hasLoadingOperations {
+    return _loadingStates.values.any((state) => state.state == EventoLoadingState.loading);
+  }
+
+  /// Get all operations with errors
+  List<String> get operationsWithErrors {
+    return _loadingStates.entries
+        .where((entry) => entry.value.state == EventoLoadingState.error)
+        .map((entry) => entry.key)
+        .toList();
+  }
+
+  // 🎯 MÉTODO 5: Obtener eventos públicos (para justificaciones) - FASE B
+  Future<List<Evento>> obtenerEventosPublicos() async {
+    try {
+      debugPrint('🌍 Loading public events');
+
+      final response = await _apiService.get(AppConstants.eventosEndpoint);
+
+      debugPrint('📡 Public events response success: ${response.success}');
+
+      if (response.success && response.data != null) {
+        final eventos = await _procesarEventosResponse(response.data!);
+        debugPrint('✅ Public events loaded: ${eventos.length} events');
+        return eventos;
+      }
+
+      debugPrint('❌ Failed to load public events: ${response.error}');
+      return [];
+    } catch (e) {
+      debugPrint('❌ Public events exception: $e');
+      return [];
+    }
+  }
+
+  /// Dispose resources and cleanup
+  void dispose() {
+    debugPrint('🧹 Disposing EventoService resources');
+    clearAllLoadingStates();
+    
+    if (!_stateController.isClosed) {
+      _stateController.close();
+    }
+    
+    debugPrint('✅ EventoService disposed successfully');
   }
 }

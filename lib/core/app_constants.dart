@@ -100,10 +100,20 @@ class AppConstants {
   static const String justificationsRoute = '/justifications';
   static const String submitJustificationRoute = '/submit-justification';
   static const String justificationListRoute = '/justification-list';
+  
+  // ⚙️ RUTAS DE CONFIGURACIÓN DE NOTIFICACIONES
+  static const String notificationSettingsRoute = '/notification-settings';
 
   // ✅ MANTENER COMPATIBILIDAD TEMPORAL
   static const String studentDashboardRoute =
       '/student-dashboard'; // Dashboard de estudiante
+
+  // ✅ NUEVAS RUTAS PARA ADMINISTRACIÓN Y PROFESORES
+  static const String reportsRoute = '/reports';
+  static const String allMyEventsRoute = '/professor/events';
+  static const String adminUsersRoute = '/admin/users';
+  static const String adminEventsRoute = '/admin/events';
+  static const String adminStatsRoute = '/admin/stats';
 
   // Error Messages
   static const String networkErrorMessage =

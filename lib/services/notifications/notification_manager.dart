@@ -452,6 +452,58 @@ class NotificationManager {
     }
   }
 
+  // 🎯 NOTIFICACIONES DE GRACE PERIOD
+
+  /// Notificación crítica de período de gracia iniciado
+  Future<void> showGracePeriodStartedNotification({
+    required int remainingSeconds,
+    String? eventName,
+  }) async {
+    try {
+      debugPrint('⏰ Mostrando notificación - Período de gracia iniciado: ${remainingSeconds}s');
+
+      await _showAlertNotification(
+        1020, // ID único para grace period started
+        '⏰ Período de Gracia Iniciado',
+        'Tienes $remainingSeconds segundos para regresar al área del evento.',
+        'warning',
+        autoCloseAfter: 0, // No auto-close para alertas críticas
+      );
+
+      // Vibración háptica doble para urgencia
+      await HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 200));
+      await HapticFeedback.heavyImpact();
+    } catch (e) {
+      debugPrint('❌ Error notificación período de gracia iniciado: $e');
+    }
+  }
+
+  /// Notificación crítica de período de gracia expirado
+  Future<void> showGracePeriodExpiredNotification({
+    String? eventName,
+  }) async {
+    try {
+      debugPrint('🚨 Mostrando notificación - Período de gracia expirado');
+
+      await _showAlertNotification(
+        1021, // ID único para grace period expired
+        '🚨 Período de Gracia Expirado',
+        'El tiempo ha terminado. Regresa al evento lo antes posible o tu asistencia se verá afectada.',
+        'error',
+        autoCloseAfter: 0, // No auto-close para alertas críticas
+      );
+
+      // Vibración háptica crítica (triple)
+      for (int i = 0; i < 3; i++) {
+        await HapticFeedback.heavyImpact();
+        await Future.delayed(const Duration(milliseconds: 150));
+      }
+    } catch (e) {
+      debugPrint('❌ Error notificación período de gracia expirado: $e');
+    }
+  }
+
   // 🎯 NOTIFICACIONES CRÍTICAS DE APP LIFECYCLE
 
   /// Advertencia crítica cuando la app se cierra
@@ -963,4 +1015,112 @@ class NotificationManager {
       debugPrint('❌ Error mostrando notificación de estudiante: $e');
     }
   }
+
+  // ===========================================
+  // ✅ NUEVAS NOTIFICACIONES DE ASISTENCIA AUTOMÁTICA
+  // ===========================================
+
+  /// ✅ NUEVO: Notificación de asistencia registrada automáticamente
+  Future<void> showAttendanceRegisteredAutomaticallyNotification({
+    required String eventName,
+    required String studentName,
+  }) async {
+    try {
+      debugPrint('✅ Mostrando notificación - Asistencia automática registrada');
+
+      const androidDetails = AndroidNotificationDetails(
+        'attendance_alerts',
+        'Asistencia Registrada',
+        importance: Importance.high,
+        priority: Priority.high,
+        ongoing: false,
+        autoCancel: true,
+        playSound: true,
+        enableVibration: true,
+        category: AndroidNotificationCategory.status,
+        ticker: 'Asistencia registrada automáticamente',
+        color: Color(0xFF27AE60), // Verde éxito
+        icon: '@drawable/ic_check',
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.active,
+        sound: 'success.aiff',
+      );
+
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notifications.show(
+        1010, // ID específico para asistencia automática
+        '✅ ¡ASISTENCIA REGISTRADA!',
+        '🎓 $studentName registrado en "$eventName" automáticamente',
+        details,
+      );
+
+      // Vibración de éxito
+      await HapticFeedback.mediumImpact();
+      
+      // Auto-close después de 5 segundos
+      Timer(Duration(seconds: 5), () async {
+        await cancelNotification(1010);
+      });
+
+    } catch (e) {
+      debugPrint('❌ Error notificación asistencia automática: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Notificación de entrada al geofence con auto-registro
+  Future<void> showGeofenceEnteredWithAutoRegistration(String eventName) async {
+    try {
+      debugPrint('🎯 Mostrando notificación - Entrada al geofence con auto-registro');
+
+      const androidDetails = AndroidNotificationDetails(
+        'geofence_alerts',
+        'Área de Evento',
+        importance: Importance.high,
+        priority: Priority.high,
+        ongoing: false,
+        autoCancel: true,
+        playSound: true,
+        enableVibration: true,
+        category: AndroidNotificationCategory.status,
+        ticker: 'Entraste al área del evento',
+        color: Color(0xFF3498DB), // Azul información
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.active,
+      );
+
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notifications.show(
+        1011, // ID específico para entrada geofence
+        '🎯 ¡Entraste al Área!',
+        '📍 Área de "$eventName" - Registrando asistencia...',
+        details,
+      );
+
+      // Vibración de confirmación
+      await HapticFeedback.lightImpact();
+
+    } catch (e) {
+      debugPrint('❌ Error notificación entrada geofence: $e');
+    }
+  }
+
+
 }

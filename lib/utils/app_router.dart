@@ -14,6 +14,9 @@ import '../screens/available_events_screen.dart';
 import '../screens/attendance/attendance_tracking_screen.dart';
 import '../screens/location_picker_screen.dart';
 import '../screens/events/event_monitor_screen.dart';
+import '../screens/justifications/justifications_screen.dart';
+import '../screens/justifications/create_justification_screen.dart';
+import '../screens/settings/notification_settings_screen.dart';
 
 class AppRouter {
   // Private constructor to prevent instantiation
@@ -116,11 +119,7 @@ class AppRouter {
 
       case AppConstants.eventManagementRoute:
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(
-              child: Text('Event Management - Próximamente'),
-            ),
-          ),
+          builder: (_) => const CreateEventScreen(),
         );
 
       case AppConstants.eventDetailsRoute:
@@ -134,10 +133,9 @@ class AppRouter {
           );
         }
         return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(
-              child: Text('Event Details - Próximamente'),
-            ),
+          builder: (_) => EventMonitorScreen(
+            eventId: eventoId,
+            teacherName: 'Profesor', // TODO: obtener nombre real del usuario logueado
           ),
         );
 
@@ -151,6 +149,52 @@ class AppRouter {
             initialLocationName:
                 args?['initialLocationName'] ?? 'UIDE Campus Principal',
           ),
+        );
+
+      // 📄 JUSTIFICATIONS ROUTES
+      case AppConstants.justificationsRoute:
+        return MaterialPageRoute(
+          builder: (_) => const JustificationsScreen(),
+        );
+
+      case AppConstants.submitJustificationRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => CreateJustificationScreen(
+            eventoId: args?['eventoId'] as String?,
+          ),
+        );
+
+      // ⚙️ NOTIFICATION SETTINGS ROUTE
+      case AppConstants.notificationSettingsRoute:
+        return MaterialPageRoute(
+          builder: (_) => const NotificationSettingsScreen(),
+        );
+
+      // ✅ NUEVAS RUTAS PARA ADMINISTRACIÓN Y PROFESORES
+      case AppConstants.reportsRoute:
+        return MaterialPageRoute(
+          builder: (_) => const DashboardScreen(), // Usar dashboard que ya tiene reportes
+        );
+
+      case AppConstants.allMyEventsRoute:
+        return MaterialPageRoute(
+          builder: (_) => const AvailableEventsScreen(), // Usar pantalla de eventos disponibles
+        );
+
+      case AppConstants.adminUsersRoute:
+        return MaterialPageRoute(
+          builder: (_) => const ProfessorManagementScreen(),
+        );
+
+      case AppConstants.adminEventsRoute:
+        return MaterialPageRoute(
+          builder: (_) => const CreateEventScreen(), // Usar pantalla de crear eventos para gestión
+        );
+
+      case AppConstants.adminStatsRoute:
+        return MaterialPageRoute(
+          builder: (_) => const DashboardScreen(), // Usar dashboard que ya tiene estadísticas
         );
 
       default:
@@ -223,6 +267,20 @@ class AppRouter {
     );
   }
 
+  /// ✅ NUEVO: Navegar a monitor de eventos (para docentes)
+  static void goToEventMonitor({
+    required String eventId,
+    required String teacherName,
+  }) {
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppConstants.eventMonitorRoute,
+      arguments: {
+        'eventId': eventId,
+        'teacherName': teacherName,
+      },
+    );
+  }
+
   /// Navegar al map view
   static void goToMapView({
     bool isAdminMode = false,
@@ -275,6 +333,55 @@ class AppRouter {
       AppConstants.eventDetailsRoute,
       arguments: {'eventoId': eventoId},
     );
+  }
+
+  /// 📊 NAVEGACIÓN REAL PARA ADMINISTRACIÓN
+  static void goToUserManagement() {
+    navigatorKey.currentState?.pushNamed(AppConstants.adminUsersRoute);
+  }
+
+  static void goToSystemEvents() {
+    navigatorKey.currentState?.pushNamed(AppConstants.adminEventsRoute);
+  }
+
+  static void goToAdvancedStats() {
+    navigatorKey.currentState?.pushNamed(AppConstants.adminStatsRoute);
+  }
+
+  static void goToSystemAlerts() {
+    goToNotificationSettings(); // Usa la pantalla de configuración de notificaciones
+  }
+
+  static void goToSystemConfig() {
+    goToNotificationSettings(); // Configuración del sistema
+  }
+
+  /// 📊 NAVEGACIÓN PARA PROFESORES
+  static void navigateToReports() {
+    navigatorKey.currentState?.pushNamed(AppConstants.reportsRoute);
+  }
+
+  static void navigateToAllMyEvents() {
+    navigatorKey.currentState?.pushNamed(AppConstants.allMyEventsRoute);
+  }
+
+  /// 📄 NAVEGACIÓN DE JUSTIFICACIONES
+  static void goToJustifications() {
+    Navigator.of(navigatorKey.currentContext!)
+        .pushNamed(AppConstants.justificationsRoute);
+  }
+
+  static void goToCreateJustification({String? eventoId}) {
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppConstants.submitJustificationRoute,
+      arguments: {'eventoId': eventoId},
+    );
+  }
+
+  /// ⚙️ NAVEGACIÓN DE CONFIGURACIONES
+  static void goToNotificationSettings() {
+    Navigator.of(navigatorKey.currentContext!)
+        .pushNamed(AppConstants.notificationSettingsRoute);
   }
 
   /// ✅ NAVEGACIÓN BASADA EN ROL - UNIFICADA
@@ -400,19 +507,6 @@ class AppRouter {
           ),
         ],
       ),
-    );
-  }
-
-  static void goToEventMonitor({
-    required String eventId,
-    required String teacherName,
-  }) {
-    Navigator.of(navigatorKey.currentContext!).pushNamed(
-      AppConstants.eventMonitorRoute,
-      arguments: {
-        'eventId': eventId,
-        'teacherName': teacherName,
-      },
     );
   }
 

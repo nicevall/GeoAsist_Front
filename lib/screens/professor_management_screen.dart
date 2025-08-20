@@ -225,8 +225,8 @@ class _ProfessorManagementScreenState extends State<ProfessorManagementScreen> {
   void _handleMenuAction(String action, Map<String, dynamic> professor) {
     switch (action) {
       case 'edit':
-        // TODO: Implementar edición de docente
-        AppRouter.showSnackBar('Función de editar próximamente');
+        // ✅ IMPLEMENTAR EDICIÓN DE DOCENTE
+        _showEditProfessorDialog(professor);
         break;
       case 'delete':
         _showDeleteConfirmation(professor);
@@ -264,5 +264,55 @@ class _ProfessorManagementScreenState extends State<ProfessorManagementScreen> {
   Future<void> _deleteProfessor(Map<String, dynamic> professor) async {
     // TODO: Implementar eliminación en backend
     AppRouter.showSnackBar('Docente eliminado (simulado)');
+  }
+
+  void _showEditProfessorDialog(Map<String, dynamic> professor) {
+    final TextEditingController nameController = TextEditingController(text: professor['nombre']);
+    final TextEditingController emailController = TextEditingController(text: professor['email']);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Editar Docente'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Nombre',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _updateProfessor(professor, nameController.text, emailController.text);
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateProfessor(Map<String, dynamic> professor, String name, String email) async {
+    // TODO: Implementar actualización en backend
+    AppRouter.showSnackBar('Docente actualizado: $name');
   }
 }

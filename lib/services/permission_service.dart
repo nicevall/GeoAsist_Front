@@ -766,4 +766,116 @@ class PermissionService {
       return LocationPermissionResult.denied;
     }
   }
+
+  // ===========================================
+  // ✅ NUEVOS MÉTODOS PARA PERMISOS CRÍTICOS
+  // ===========================================
+
+  /// ✅ NUEVO: Verificar todos los permisos críticos para tracking
+  Future<Map<String, bool>> checkCriticalPermissions() async {
+    return {
+      'location_precise': await _isLocationPreciseEnabled(),
+      'location_always': await _isLocationAlwaysEnabled(), 
+      'battery_optimization': await _isBatteryOptimizationDisabled(),
+      'location_services': await _areLocationServicesEnabled(),
+    };
+  }
+
+  /// ✅ NUEVO: Verificar ubicación precisa
+  Future<bool> _isLocationPreciseEnabled() async {
+    try {
+      if (Platform.isAndroid) {
+        // En Android, verificar que tenga permiso FINE_LOCATION
+        final permission = await Permission.locationWhenInUse.status;
+        final precisePermission = await Permission.location.status;
+        return permission.isGranted && precisePermission.isGranted;
+      }
+      return true; // iOS maneja esto automáticamente
+    } catch (e) {
+      debugPrint('❌ Error verificando ubicación precisa: $e');
+      return false;
+    }
+  }
+
+  /// ✅ NUEVO: Verificar ubicación siempre
+  Future<bool> _isLocationAlwaysEnabled() async {
+    try {
+      final permission = await Permission.locationAlways.status;
+      return permission.isGranted;
+    } catch (e) {
+      debugPrint('❌ Error verificando ubicación siempre: $e');
+      return false;
+    }
+  }
+
+  /// ✅ NUEVO: Verificar optimización de batería desactivada
+  Future<bool> _isBatteryOptimizationDisabled() async {
+    try {
+      if (Platform.isAndroid) {
+        // En Android verificar si está en whitelist de batería
+        final permission = await Permission.ignoreBatteryOptimizations.status;
+        return permission.isGranted;
+      }
+      return true; // iOS no tiene optimización de batería configurable
+    } catch (e) {
+      debugPrint('❌ Error verificando optimización batería: $e');
+      return false;
+    }
+  }
+
+  /// ✅ NUEVO: Verificar servicios de ubicación habilitados
+  Future<bool> _areLocationServicesEnabled() async {
+    try {
+      return await Geolocator.isLocationServiceEnabled();
+    } catch (e) {
+      debugPrint('❌ Error verificando servicios ubicación: $e');
+      return false;
+    }
+  }
+
+  /// ✅ NUEVO: Solicitar permiso de optimización de batería
+  Future<bool> requestBatteryOptimizationPermission() async {
+    try {
+      if (Platform.isAndroid) {
+        final permission = await Permission.ignoreBatteryOptimizations.request();
+        return permission.isGranted;
+      }
+      return true;
+    } catch (e) {
+      debugPrint('❌ Error solicitando permiso batería: $e');
+      return false;
+    }
+  }
+
+  /// ✅ NUEVO: Solicitar ubicación precisa (mejorado)
+  Future<bool> requestPreciseLocationPermissionEnhanced() async {
+    try {
+      final locationWhenInUse = await Permission.locationWhenInUse.request();
+      final location = await Permission.location.request();
+      return locationWhenInUse.isGranted && location.isGranted;
+    } catch (e) {
+      debugPrint('❌ Error solicitando ubicación precisa: $e');
+      return false;
+    }
+  }
+
+  /// ✅ NUEVO: Solicitar ubicación siempre
+  Future<bool> requestAlwaysLocationPermission() async {
+    try {
+      final permission = await Permission.locationAlways.request();
+      return permission.isGranted;
+    } catch (e) {
+      debugPrint('❌ Error solicitando ubicación siempre: $e');
+      return false;
+    }
+  }
+
+  /// ✅ NUEVO: Abrir configuración específica
+  Future<void> openLocationSettings() async {
+    try {
+      await openAppSettings();
+    } catch (e) {
+      debugPrint('❌ Error abriendo configuración: $e');
+    }
+  }
 }

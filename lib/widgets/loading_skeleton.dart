@@ -80,6 +80,20 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
 
 /// Widgets predefinidos de skeleton loading
 class SkeletonLoaders {
+  /// ✅ NUEVO: Skeleton para tarjeta genérica
+  static Widget card({double? height, double? width}) {
+    return Container(
+      width: width ?? double.infinity,
+      height: height ?? 80,
+      margin: const EdgeInsets.only(bottom: 8),
+      child: LoadingSkeleton(
+        width: width ?? double.infinity,
+        height: height ?? 80,
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
+
   /// ✅ NUEVO: Skeleton para item de lista genérico
   static Widget listItem() {
     return Container(

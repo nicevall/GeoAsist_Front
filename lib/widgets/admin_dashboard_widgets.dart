@@ -84,6 +84,119 @@ class AdminDashboardWidgets {
     );
   }
 
+  /// 📊 NUEVO: Widget para mostrar alertas del sistema
+  static Widget buildSystemAlerts() {
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.warning_amber, color: Colors.red, size: 24),
+                const SizedBox(width: 8),
+                const Text(
+                  'Alertas del Sistema',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkGray,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildAlertItem(
+              'Usuarios sin verificar', 
+              '5 profesores pendientes de verificación',
+              Icons.person_off,
+              Colors.orange,
+            ),
+            _buildAlertItem(
+              'Eventos problemáticos', 
+              '2 eventos con baja asistencia',
+              Icons.event_busy,
+              Colors.red,
+            ),
+            _buildAlertItem(
+              'Sistema operativo', 
+              'Todos los servicios funcionando',
+              Icons.check_circle,
+              Colors.green,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 📊 NUEVO: Widget para vista rápida de eventos del sistema
+  static Widget buildSystemEventsOverview(List<Evento> eventos) {
+    final eventosHoy = eventos.where((e) => 
+        e.fechaInicio.day == DateTime.now().day).length;
+    final eventosActivos = eventos.where((e) => e.isActive).length;
+    
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.event, color: AppColors.primaryOrange, size: 24),
+                const SizedBox(width: 8),
+                const Text(
+                  'Eventos del Sistema',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkGray,
+                  ),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => AppRouter.goToSystemEvents(),
+                  child: const Text('Ver todos'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildQuickStat('Total', '${eventos.length}'),
+                ),
+                Expanded(
+                  child: _buildQuickStat('Hoy', '$eventosHoy'),
+                ),
+                Expanded(
+                  child: _buildQuickStat('Activos', '$eventosActivos'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (eventos.isNotEmpty) ...[
+              const Text(
+                'Eventos Recientes:',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textGray,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...eventos.take(3).map((evento) => _buildEventQuickItem(evento)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Sección de métricas del sistema para admin
   static Widget buildSystemMetrics(List<DashboardMetric> metrics) {
     if (metrics.isEmpty) {
@@ -111,6 +224,7 @@ class AdminDashboardWidgets {
   }
 
   /// Sección de acciones rápidas para admin
+  /// 📊 EXPANDIDO: Acciones rápidas del administrador con más opciones
   static Widget buildQuickActions() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,6 +238,8 @@ class AdminDashboardWidgets {
           ),
         ),
         const SizedBox(height: 16),
+        
+        // Primera fila - Gestión de usuarios
         Row(
           children: [
             Expanded(
@@ -139,10 +255,64 @@ class AdminDashboardWidgets {
             Expanded(
               child: _buildActionCard(
                 icon: Icons.manage_accounts,
-                title: 'Gestionar Docentes',
-                subtitle: 'Ver y editar docentes',
+                title: 'Gestionar Usuarios',
+                subtitle: 'Ver usuarios del sistema',
                 color: AppColors.secondaryTeal,
-                onTap: () => AppRouter.goToProfessorManagement(),
+                onTap: () => AppRouter.goToUserManagement(),
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Segunda fila - Monitoreo y eventos
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.event,
+                title: 'Eventos Sistema',
+                subtitle: 'Ver todos los eventos',
+                color: AppColors.primaryOrange,
+                onTap: () => AppRouter.goToSystemEvents(),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.analytics,
+                title: 'Estadísticas',
+                subtitle: 'Métricas avanzadas',
+                color: Colors.purple,
+                onTap: () => AppRouter.goToAdvancedStats(),
+              ),
+            ),
+          ],
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Tercera fila - Configuración y alertas
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.warning_amber,
+                title: 'Alertas Sistema',
+                subtitle: 'Ver alertas críticas',
+                color: Colors.red,
+                onTap: () => AppRouter.goToSystemAlerts(),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.settings,
+                title: 'Configuración',
+                subtitle: 'Configurar sistema',
+                color: AppColors.darkGray,
+                onTap: () => AppRouter.goToSystemConfig(),
               ),
             ),
           ],
@@ -166,8 +336,7 @@ class AdminDashboardWidgets {
                 title: 'Reportes',
                 subtitle: 'Generar reportes',
                 color: Colors.purple,
-                onTap: () => AppRouter.showSnackBar(
-                    'Sistema de reportes - Próximamente en PHASE 4'), // ✅ CORREGIDO
+                onTap: () => AppRouter.navigateToReports(),
               ),
             ),
           ],
@@ -471,5 +640,101 @@ class AdminDashboardWidgets {
       if (word.isEmpty) return word;
       return word[0].toUpperCase() + word.substring(1).toLowerCase();
     }).join(' ');
+  }
+
+  /// 📊 NUEVO: Widget para items de alerta
+  static Widget _buildAlertItem(String title, String description, IconData icon, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.darkGray,
+                  ),
+                ),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textGray,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 📊 NUEVO: Widget para estadísticas rápidas
+  static Widget _buildQuickStat(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primaryOrange,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.textGray,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 📊 NUEVO: Widget para items de eventos rápidos
+  static Widget _buildEventQuickItem(Evento evento) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: evento.isActive ? Colors.green : AppColors.textGray,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              evento.titulo,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.darkGray,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Text(
+            evento.isActive ? 'Activo' : 'Inactivo',
+            style: TextStyle(
+              fontSize: 11,
+              color: evento.isActive ? Colors.green : AppColors.textGray,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

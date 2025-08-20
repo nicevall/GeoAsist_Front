@@ -48,4 +48,24 @@ class EmailVerificationService {
       return ApiResponse.error('Error de conexión: $e');
     }
   }
+
+  /// 🚨 NUEVO: Enviar código de verificación específico para docentes
+  Future<ApiResponse<bool>> sendTeacherVerificationCode(String email) async {
+    try {
+      final response = await _apiService.post(
+        '/api/usuarios/enviar-codigo-docente', // Endpoint específico para docentes
+        body: {
+          'correo': email,
+        },
+      );
+
+      if (response.success) {
+        return ApiResponse.success(true, message: response.message ?? 'Código enviado');
+      } else {
+        return ApiResponse.error(response.error ?? 'Error al enviar código');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión: $e');
+    }
+  }
 }

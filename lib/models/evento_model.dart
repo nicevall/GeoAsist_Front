@@ -20,6 +20,7 @@ class Evento {
   final bool isActive; // ✅ AGREGADO campo isActive
   final double? latitud; // ✅ AGREGADO getter latitud
   final double? longitud; // ✅ AGREGADO getter longitud
+  final int duracionMinutos; // ✅ AGREGADO duración en minutos
 
   Evento({
     this.id,
@@ -37,8 +38,15 @@ class Evento {
     this.updatedAt,
     this.estado = 'programado', // ✅ VALOR DEFAULT
     this.isActive = false, // ✅ VALOR DEFAULT
+    int? duracionMinutos,
   }) : latitud = ubicacion.latitud, // ✅ GETTER CALCULADO
-       longitud = ubicacion.longitud; // ✅ GETTER CALCULADO
+       longitud = ubicacion.longitud, // ✅ GETTER CALCULADO
+       duracionMinutos = duracionMinutos ?? _calculateDuration(horaInicio, horaFinal); // ✅ CALCULAR DURACIÓN
+
+  // ✅ MÉTODO PARA CALCULAR DURACIÓN
+  static int _calculateDuration(DateTime inicio, DateTime fin) {
+    return fin.difference(inicio).inMinutes;
+  }
 
   factory Evento.fromJson(Map<String, dynamic> json) {
     try {
@@ -142,6 +150,7 @@ class Evento {
             : null,
         estado: estado,
         isActive: isActive,
+        duracionMinutos: json['duracionMinutos'] as int?,
       );
     } catch (e) {
       debugPrint('❌ Error parsing Evento from JSON: $e');
@@ -176,6 +185,7 @@ class Evento {
       'estado': estado,
       'isActive': isActive,
       'activo': isActive,
+      'duracionMinutos': duracionMinutos,
     };
   }
 
@@ -196,6 +206,7 @@ class Evento {
     DateTime? updatedAt,
     String? estado,
     bool? isActive,
+    int? duracionMinutos,
   }) {
     return Evento(
       id: id ?? this.id,
@@ -213,8 +224,25 @@ class Evento {
       updatedAt: updatedAt ?? this.updatedAt,
       estado: estado ?? this.estado,
       isActive: isActive ?? this.isActive,
+      duracionMinutos: duracionMinutos ?? this.duracionMinutos,
     );
   }
+
+  // ✅ GETTERS PARA FECHAS FORMATEADAS
+  String get fechaInicioFormatted {
+    return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+  }
+
+  String get horaInicioFormatted {
+    return '${horaInicio.hour.toString().padLeft(2, '0')}:${horaInicio.minute.toString().padLeft(2, '0')}';
+  }
+
+  String get horaFinalFormatted {
+    return '${horaFinal.hour.toString().padLeft(2, '0')}:${horaFinal.minute.toString().padLeft(2, '0')}';
+  }
+
+  // ✅ GETTER PARA COMPATIBILIDAD
+  DateTime get fechaInicio => fecha;
 
   @override
   String toString() {

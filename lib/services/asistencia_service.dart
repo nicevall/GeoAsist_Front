@@ -8,8 +8,20 @@ import '../models/asistencia_model.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
 import 'dart:io';
+import 'dart:math' as math;
+
+/// ✅ ENHANCED: Error types for better categorization
+enum AsistenciaErrorType {
+  network,      // Network connectivity issues
+  timeout,      // Request timeout
+  authentication, // Auth token issues
+  validation,   // Input validation errors
+  server,       // Server-side errors (5xx)
+  unknown       // Unexpected errors
+}
 
 /// Servicio para manejar todas las operaciones de asistencia con el backend real
+/// ✅ ENHANCED: Improved HTTP error handling and network resilience
 class AsistenciaService {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
@@ -18,7 +30,128 @@ class AsistenciaService {
   static String? _sessionId;
   static int _heartbeatSequence = 0;
 
-  // 🎯 MÉTODO 2: Actualizar ubicación en tiempo real
+  // ✅ ENHANCED: Error handling configuration
+  static const int _maxRetries = 3;
+  static const int _baseRetryDelayMs = 1000; // 1 second
+  static const int _timeoutSeconds = 30;
+
+  /// ✅ ENHANCED: Robust error handling with retry logic and categorization
+  Future<ApiResponse<T>> _executeWithRetry<T>(
+    Future<ApiResponse<T>> Function() operation, {
+    int maxRetries = _maxRetries,
+    bool shouldRetry = true,
+    String operationName = 'operation',
+  }) async {
+    int attempt = 1;
+    
+    while (attempt <= maxRetries) {
+      try {
+        debugPrint('🔄 [$operationName] Intento $attempt/$maxRetries');
+        
+        final response = await operation().timeout(
+          Duration(seconds: _timeoutSeconds),
+          onTimeout: () => ApiResponse<T>.error('Timeout después de ${_timeoutSeconds}s'),
+        );
+        
+        if (response.success || !shouldRetry || attempt == maxRetries) {
+          if (response.success) {
+            debugPrint('✅ [$operationName] Exitoso en intento $attempt');
+          }
+          return response;
+        }
+        
+        // Determine if we should retry based on error type
+        final errorType = _categorizeError(response.error ?? '');
+        if (!_shouldRetryForErrorType(errorType)) {
+          debugPrint('❌ [$operationName] Error no recuperable: ${response.error}');
+          return response;
+        }
+        
+      } catch (e) {
+        debugPrint('❌ [$operationName] Excepción en intento $attempt: $e');
+        
+        if (attempt == maxRetries) {
+          return ApiResponse<T>.error(_formatError(e, operationName));
+        }
+      }
+      
+      if (attempt < maxRetries) {
+        final delayMs = _calculateRetryDelay(attempt);
+        debugPrint('⏳ [$operationName] Esperando ${delayMs}ms antes del siguiente intento...');
+        await Future.delayed(Duration(milliseconds: delayMs));
+      }
+      
+      attempt++;
+    }
+    
+    return ApiResponse<T>.error('$operationName falló después de $maxRetries intentos');
+  }
+
+  /// Categorize error for appropriate handling
+  AsistenciaErrorType _categorizeError(String error) {
+    final lowerError = error.toLowerCase();
+    
+    if (lowerError.contains('timeout') || lowerError.contains('time out')) {
+      return AsistenciaErrorType.timeout;
+    }
+    if (lowerError.contains('network') || lowerError.contains('connection') || 
+        lowerError.contains('unreachable') || lowerError.contains('dns')) {
+      return AsistenciaErrorType.network;
+    }
+    if (lowerError.contains('unauthorized') || lowerError.contains('401') ||
+        lowerError.contains('token') || lowerError.contains('sesión')) {
+      return AsistenciaErrorType.authentication;
+    }
+    if (lowerError.contains('validation') || lowerError.contains('400') ||
+        lowerError.contains('bad request') || lowerError.contains('invalid')) {
+      return AsistenciaErrorType.validation;
+    }
+    if (lowerError.contains('500') || lowerError.contains('502') || 
+        lowerError.contains('503') || lowerError.contains('server error')) {
+      return AsistenciaErrorType.server;
+    }
+    
+    return AsistenciaErrorType.unknown;
+  }
+
+  /// Determine if we should retry based on error type
+  bool _shouldRetryForErrorType(AsistenciaErrorType errorType) {
+    switch (errorType) {
+      case AsistenciaErrorType.network:
+      case AsistenciaErrorType.timeout:
+      case AsistenciaErrorType.server:
+        return true; // Retryable
+      case AsistenciaErrorType.authentication:
+      case AsistenciaErrorType.validation:
+        return false; // Not retryable
+      case AsistenciaErrorType.unknown:
+        return true; // Assume retryable for unknown errors
+    }
+  }
+
+  /// Calculate exponential backoff delay
+  int _calculateRetryDelay(int attempt) {
+    final exponentialDelay = _baseRetryDelayMs * math.pow(2, attempt - 1);
+    final jitter = math.Random().nextInt(500); // Add 0-500ms jitter
+    return (exponentialDelay + jitter).toInt().clamp(0, 10000); // Max 10s
+  }
+
+  /// Format error messages consistently
+  String _formatError(dynamic error, String operation) {
+    if (error is SocketException) {
+      return 'Sin conexión de red para $operation';
+    }
+    if (error is TimeoutException) {
+      return 'Timeout en $operation - verifique su conexión';
+    }
+    if (error is HttpException) {
+      return 'Error HTTP en $operation: ${error.message}';
+    }
+    
+    return 'Error en $operation: ${error.toString()}';
+  }
+
+  // 🎯 MÉTODO 2: Actualizar ubicación en tiempo real - ENHANCED with retry logic
   Future<ApiResponse<bool>> actualizarUbicacion({
     required String usuarioId,
     required String eventoId,
@@ -27,47 +160,43 @@ class AsistenciaService {
     double? precision,
     double? speed,
   }) async {
-    try {
-      debugPrint('📍 Actualizando ubicación en tiempo real');
-      debugPrint('🌍 Usuario: $usuarioId en evento: $eventoId');
-      debugPrint(
-          '📊 Coords: ($latitud, $longitud), precisión: ${precision ?? 'N/A'}m');
+    debugPrint('📍 Actualizando ubicación en tiempo real');
+    debugPrint('🌍 Usuario: $usuarioId en evento: $eventoId');
+    debugPrint('📊 Coords: ($latitud, $longitud), precisión: ${precision ?? 'N/A'}m');
 
-      final token = await _storageService.getToken();
-      if (token == null) {
-        debugPrint('❌ No hay sesión activa para actualizar ubicación');
-        return ApiResponse.error('No hay sesión activa');
-      }
+    return _executeWithRetry<bool>(
+      () async {
+        final token = await _storageService.getToken();
+        if (token == null) {
+          debugPrint('❌ No hay sesión activa para actualizar ubicación');
+          return ApiResponse.error('No hay sesión activa');
+        }
 
-      final locationData = {
-        'usuarioId': usuarioId,
-        'eventoId': eventoId,
-        'latitud': latitud,
-        'longitud': longitud,
-        'timestamp': DateTime.now().toIso8601String(),
-        if (precision != null) 'precision': precision,
-        if (speed != null) 'speed': speed,
-      };
+        final locationData = {
+          'usuarioId': usuarioId,
+          'eventoId': eventoId,
+          'latitud': latitud,
+          'longitud': longitud,
+          'timestamp': DateTime.now().toIso8601String(),
+          if (precision != null) 'precision': precision,
+          if (speed != null) 'speed': speed,
+        };
 
-      // ✅ CORREGIDO: Usar body en lugar de data
-      final response = await _apiService.post(
-        '/location/update',
-        body: locationData,
-        headers: AppConstants.getAuthHeaders(token),
-      );
+        final response = await _apiService.post(
+          '/location/update',
+          body: locationData,
+          headers: AppConstants.getAuthHeaders(token),
+        );
 
-      if (response.success) {
-        debugPrint('✅ Ubicación actualizada exitosamente');
-        return ApiResponse.success(true, message: 'Ubicación actualizada');
-      }
+        if (response.success) {
+          return ApiResponse.success(true, message: 'Ubicación actualizada');
+        }
 
-      debugPrint('❌ Error actualizando ubicación: ${response.error}');
-      return ApiResponse.error(
-          response.error ?? 'Error actualizando ubicación');
-    } catch (e) {
-      debugPrint('❌ Excepción actualizando ubicación: $e');
-      return ApiResponse.error('Error de conexión: $e');
-    }
+        return ApiResponse.error(response.error ?? 'Error actualizando ubicación');
+      },
+      operationName: 'ActualizarUbicacion',
+      shouldRetry: true,
+    );
   }
 
   // 🎯 MÉTODO 3: Obtener asistencias de un evento específico (para profesor)
@@ -874,6 +1003,7 @@ class AsistenciaService {
     }
   }
 
+  // ✅ ENHANCED: Registration with improved error handling and retry logic
   Future<ApiResponse<bool>> registrarAsistencia({
     required String eventoId,
     required String usuarioId,
@@ -881,50 +1011,49 @@ class AsistenciaService {
     required double longitud,
     String estado = 'presente',
     String? observaciones,
-    bool validateAppState = true, // ✅ NUEVO: Validar estado de app
+    bool validateAppState = true,
   }) async {
-    try {
-      final token = await _storageService.getToken();
-      if (token == null) {
-        return ApiResponse.error('No hay sesión activa');
-      }
+    debugPrint('📝 Registrando asistencia con validaciones DÍA 4');
 
-      debugPrint('📝 Registrando asistencia con validaciones DÍA 4');
+    return _executeWithRetry<bool>(
+      () async {
+        final token = await _storageService.getToken();
+        if (token == null) {
+          return ApiResponse.error('No hay sesión activa');
+        }
 
-      // ✅ NUEVO: Información adicional para el registro
-      final registroCompleto = {
-        'eventoId': eventoId,
-        'usuarioId': usuarioId,
-        'latitud': latitud,
-        'longitud': longitud,
-        'estado': estado,
-        'observaciones': observaciones,
-        'timestamp': DateTime.now().toIso8601String(),
-        'platform': Platform.operatingSystem,
-        'appVersion': AppConstants.appVersion,
-        'registroTipo': 'manual', // manual vs automático
-        'gpsAccuracy': 5.0, // Precisión GPS
-        'validatedAppState': validateAppState,
-      };
+        // ✅ NUEVO: Información adicional para el registro
+        final registroCompleto = {
+          'eventoId': eventoId,
+          'usuarioId': usuarioId,
+          'latitud': latitud,
+          'longitud': longitud,
+          'estado': estado,
+          'observaciones': observaciones,
+          'timestamp': DateTime.now().toIso8601String(),
+          'platform': Platform.operatingSystem,
+          'appVersion': AppConstants.appVersion,
+          'registroTipo': 'manual',
+          'gpsAccuracy': 5.0,
+          'validatedAppState': validateAppState,
+        };
 
-      final response = await _apiService.post(
-        AppConstants.asistenciaEndpoint,
-        body: registroCompleto,
-        headers: AppConstants.getAuthHeaders(token),
-      );
+        final response = await _apiService.post(
+          AppConstants.asistenciaEndpoint,
+          body: registroCompleto,
+          headers: AppConstants.getAuthHeaders(token),
+        );
 
-      if (response.success) {
-        debugPrint('✅ Asistencia registrada exitosamente');
-        return ApiResponse.success(true);
-      }
+        if (response.success) {
+          return ApiResponse.success(true);
+        }
 
-      debugPrint('❌ Error registrando asistencia: ${response.error}');
-      return ApiResponse.error(
-          response.error ?? 'Error registrando asistencia');
-    } catch (e) {
-      debugPrint('❌ Excepción registrando asistencia: $e');
-      return ApiResponse.error('Error de conexión: $e');
-    }
+        return ApiResponse.error(response.error ?? 'Error registrando asistencia');
+      },
+      operationName: 'RegistrarAsistencia',
+      shouldRetry: true, // Critical operation, retry on transient failures
+      maxRetries: 2, // Fewer retries for registration to avoid duplicates
+    );
   }
 
   // ✅ NUEVO: Validar si el heartbeat está funcionando correctamente
