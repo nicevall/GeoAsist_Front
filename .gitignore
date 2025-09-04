@@ -1,90 +1,45 @@
-# ==========================================
-# .gitignore para Frontend Flutter - SEGURIDAD API KEYS
-# ==========================================
+# 🔥 Flutter/Dart .gitignore - GeoAsist Frontend
+# Archivo de ignore completo para proyecto Flutter
 
-# ===== ARCHIVOS DE CREDENCIALES Y SEGURIDAD =====
-# ⚠️ CRÍTICO: Nunca subir estos archivos
-**/google-services.json      # Android Firebase config
-**/GoogleService-Info.plist  # iOS Firebase config
-**/firebase_options.dart     # Dart Firebase autogenerado
-*.keystore                   # Android signing keys
-*.jks                        # Android signing keys
-*.p12                        # iOS certificates
-*.key                        # Private keys
-*.pem                        # Certificate files
-*.mobileprovision           # iOS provisioning profiles
-*.certSigningRequest        # Certificate requests
-key.properties              # Android key properties
-
-# ===== API KEYS Y CONFIGURACIONES SENSIBLES =====
-# ⚠️ MUY IMPORTANTE: Proteger API keys específicamente
-lib/config/api_keys.dart
-lib/config/secrets.dart
-assets/config/production.json
-android/app/src/main/res/values/api_keys.xml
-android/app/src/debug/res/values/api_keys.xml
-android/app/src/release/res/values/api_keys.xml
-android/local.properties     # Contiene API keys locales
-ios/Runner/Config.xcconfig   # Configuraciones iOS sensibles
-
-# ===== ARCHIVOS ESPECÍFICOS DE GOOGLE MAPS =====
-# Si usas Google Maps, proteger estos archivos:
-android/app/src/main/AndroidManifest.xml.backup
-ios/Runner/Info.plist.backup
-
-# ===== FLUTTER CORE =====
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# VS Code (opcional - descomentar si no quieres versionar configuraciones)
-# .vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# =====================================================
+# 📱 Flutter Core
+# =====================================================
 .dart_tool/
+.packages
+.package_info.json
 .flutter-plugins
 .flutter-plugins-dependencies
-.packages
-.pub-cache/
+pubspec.lock
 .pub/
-/build/
+build/
 
-# Symbolication related
-app.*.symbols
+# =====================================================
+# 🔥 Firebase & Google Services
+# =====================================================
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
 
-# Obfuscation related
-app.*.map.json
+# =====================================================
+# 🎯 Android Specific
+# =====================================================
+**/android/**/gradle-wrapper.jar
+**/android/.gradle
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/key.properties
+**/android/**/*.jks
+**/android/**/*.keystore
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
 
-# ===== ANDROID - EXCLUIR TODA LA CARPETA PARA PROTEGER API KEYS =====
-# ⚠️ DESARROLLADOR ÚNICO: Excluir toda la carpeta android/ por seguridad
-android/
-
-# Si necesitas versionar algún archivo específico de Android, úsalo así:
-# !android/archivo-especifico-que-quieras-incluir
-
-# Android keystore files (por si están fuera de la carpeta android/)
-**/*.keystore
-**/*.jks
-
-# ===== iOS - MANTENER ESTRUCTURA, PROTEGER SECRETS =====
-# iOS build artifacts
+# =====================================================
+# 🍎 iOS Specific
+# =====================================================
 **/ios/**/*.mode1v3
 **/ios/**/*.mode2v3
 **/ios/**/*.moved-aside
@@ -113,142 +68,50 @@ android/
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
 
-# Xcode workspace files
-**/ios/**/*.xcworkspace
-**/ios/**/*.xcodeproj/xcuserdata/
-**/ios/**/*.xcodeproj/project.xcworkspace/xcuserdata/
+# =====================================================
+# 🐧 Linux Specific
+# =====================================================
+**/linux/flutter/generated_plugin_registrant.cc
+**/linux/flutter/generated_plugin_registrant.h
 
-# ===== macOS =====
-**/macos/Flutter/GeneratedPluginRegistrant.swift
-**/macos/Flutter/ephemeral/
+# =====================================================
+# 🪟 Windows Specific
+# =====================================================
+**/windows/flutter/generated_plugin_registrant.cc
+**/windows/flutter/generated_plugin_registrant.h
 
-# ===== Linux =====
-**/linux/flutter/ephemeral/
+# =====================================================
+# 🌐 Web Specific
+# =====================================================
+**/web/
+lib/generated_plugin_registrant.dart
 
-# ===== Windows =====
-**/windows/flutter/ephemeral/
+# =====================================================
+# ⚡ IDE & Editor Files
+# =====================================================
 
-# Visual Studio user-specific files.
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# Visual Studio build-related files.
-x64/
-x86/
-
-# Visual Studio cache files
-*.[Cc]ache
-!*.[Cc]ache/
-
-# ===== Web =====
-/web/*.dart.js
-/web/*.dart.js.map
-/web/*.dart.js.deps
-/web/*.dart.js.symbols
-
-# ===== COVERAGE =====
-coverage/
-*.lcov
-
-# ===== DART ESPECÍFICO =====
-*.dart.js
-*.dart.js_
-*.dart.js.deps
-*.dart.js.map
-
-# Dart analysis server
-.analysis_options_lint_cache/
-
-# ===== BUILDS Y RELEASES =====
-# APKs y bundles de Android
-*.apk
-*.aab
-
-# iOS archives
-*.ipa
-
-# ===== ASSETS GRANDES =====
-# Archivos multimedia grandes para testing
-test_assets/
-sample_videos/
-*.mp4
-*.avi
-*.mov
-*.mp3
-*.wav
-# (mantener solo assets necesarios en assets/ folder)
-
-# Imágenes de alta resolución para testing
-**/test_images/
-**/sample_images/
-
-# ===== SISTEMA OPERATIVO =====
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-*.lnk
-
-# Linux
-*~
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
-
-# ===== EDITORES Y IDEs =====
 # Visual Studio Code
-.vscode/settings.json
-.vscode/tasks.json
-.vscode/launch.json
-.vscode/extensions.json
-.vscode/*.code-snippets
+.vscode/
+*.code-workspace
 
-# IntelliJ / Android Studio
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/gradle.xml
-.idea/assetWizardSettings.xml
-.idea/dictionaries
-.idea/libraries
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/scopes/scope_settings.xml
-.idea/vcs.xml
-.idea/jsLibraryMappings.xml
-.idea/datasources.xml
-.idea/dataSources.ids
-.idea/sqlDataSources.xml
-.idea/dynamic.xml
-.idea/uiDesigner.xml
+# Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+android/app/google-services.json
+
+# IntelliJ IDEA
+*.idea/
+*.iml
+
+# VS Code
+.vscode/
+*.code-workspace
 
 # Sublime Text
-*.sublime-workspace
 *.sublime-project
+*.sublime-workspace
 
 # Vim
 *.swp
@@ -258,56 +121,222 @@ Desktop.ini
 # Emacs
 *~
 \#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
 .\#*
 
-# ===== TESTING Y DEBUGGING =====
-# Test coverage
+# =====================================================
+# 📊 Testing & Coverage
+# =====================================================
 coverage/
-.nyc_output/
+test_coverage/
+test/.test_coverage.dart
+*.lcov
+.coverage
+.nyc_output
 
-# Integration test app
-**/integration_test_app/
-
-# Flutter driver test results
-flutter_driver.log
-
-# ===== FASTLANE =====
-# Fastlane
-**/fastlane/report.xml
-**/fastlane/Preview.html
-**/fastlane/screenshots
-**/fastlane/test_output
-
-# ===== OTROS =====
-# Temporary files
-*.tmp
-*.temp
-.tmp/
-
-# Backup files
-*.backup
-*.bak
-
-# Log files
-*.log
-
-# Cache directories
-.cache/
-
-# Screenshots for app store
+# Integration test results
+integration_test/screenshots/
+integration_test/goldens/
+test_driver/
 screenshots/
 
-# Metadata for app stores
-metadata/
+# =====================================================
+# 📱 App Signing & Security
+# =====================================================
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.cer
+*.pem
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
 
-# ===== ARCHIVOS DE EJEMPLO Y PLANTILLAS =====
-# Crear archivos .example para guía de otros desarrolladores
-!android/local.properties.example
-!lib/config/api_keys.dart.example
-!android/app/src/main/res/values/api_keys.xml.example
-android/app/src/main/AndroidManifest.xml
+# Keystore files
+*.jks
+*.keystore
+key.properties
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+*.env
+
+# API Keys y secrets
+secrets.dart
+api_keys.dart
+config/secrets.dart
+
+# =====================================================
+# 🗂️ OS Generated Files
+# =====================================================
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# =====================================================
+# 📦 Dependencies & Packages
+# =====================================================
+node_modules/
+*.tgz
+npm-debug.log*
+yarn-error.log*
+
+# =====================================================
+# 🔧 Build & Deployment
+# =====================================================
+dist/
+tmp/
+temp/
+.tmp/
+.sass-cache/
+.jekyll-metadata
+
+# Flutter Web
+web/icons/Icon-*
+web/splash/
+web/manifest.json
+
+# =====================================================
+# 📷 Assets & Media (generated)
+# =====================================================
+assets/images/generated/
+assets/icons/generated/
+assets/fonts/generated/
+
+# =====================================================
+# 📝 Logs & Debug
+# =====================================================
+*.log
+logs/
+log/
+flutter_logs/
+dart_logs/
+
+# Crash reports
+*.crash
+
+# =====================================================
+# 🔬 Analysis & Linting
+# =====================================================
+.analysis_options_default.yaml
+analysis_options_override.yaml
+
+# =====================================================
+# ⚡ Performance & Profiling
+# =====================================================
+*.profile
+*.trace
+*.trace.json
+profiling/
+
+# =====================================================
+# 🗄️ Database & Storage
+# =====================================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# =====================================================
+# 📍 Location & Maps (si aplica)
+# =====================================================
+google_maps_api_key.dart
+maps_config.dart
+
+# =====================================================
+# 🔔 Push Notifications
+# =====================================================
+notification_service_worker.js
+firebase-messaging-sw.js
+
+# =====================================================
+# 🎨 Generated Assets
+# =====================================================
+lib/generated/
+assets/images/2.0x/
+assets/images/3.0x/
+
+# =====================================================
+# 📱 Device Testing
+# =====================================================
+.flutter-devtools/
+.dart_tool/chrome-device/
+.dart_tool/flutter_build/
+
+# =====================================================
+# 🚀 Deployment & Release
+# =====================================================
+release/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# =====================================================
+# 💾 Backup Files
+# =====================================================
+*.bak
+*.backup
+*~
+
+# =====================================================
+# 🔄 Git & Version Control
+# =====================================================
+.git/
+.gitattributes
+
+# =====================================================
+# 📊 Analytics & Crash Reporting
+# =====================================================
+crashlytics-build.properties
+crashlytics.properties
+
+# =====================================================
+# 🎯 Specific to GeoAsist Project
+# =====================================================
+# Archivos específicos del proyecto de asistencias
+attendance_logs/
+location_cache/
+
+# =====================================================
+# ⚙️ Flutter Version Management
+# =====================================================
+.fvm/
+
+# =====================================================
+# 🧪 Generated Test Files
+# =====================================================
+test/fixtures/generated/
+test/mocks/generated/
+
+# =====================================================
+# 🧪 Ignore All Test Files
+# =====================================================
+test/
+integration_test/
+flutter_test_config.dart
+*_test.dart
+**/*_test.dart
+**/*.test.dart
+
+# =====================================================
+# End of .gitignore
+# =====================================================
