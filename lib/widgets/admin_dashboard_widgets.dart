@@ -246,7 +246,7 @@ class AdminDashboardWidgets {
               child: _buildActionCard(
                 icon: Icons.person_add,
                 title: 'Crear Docente',
-                subtitle: 'Registrar nuevo docente',
+                subtitle: 'Registrar nuevo profesor',
                 color: Colors.green,
                 onTap: () => AppRouter.goToCreateProfessor(),
               ),
@@ -554,7 +554,7 @@ class AdminDashboardWidgets {
             ),
           ),
           Text(
-            'Los eventos creados por docentes aparecerán aquí',
+            'Los eventos creados por profesors aparecerán aquí',
             style: TextStyle(
               fontSize: 12,
               color: AppColors.textGray,

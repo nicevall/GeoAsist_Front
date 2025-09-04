@@ -17,7 +17,7 @@ enum NotificationPriority {
   final Color color;
 }
 
-/// Tipos de notificaciones para docentes
+/// Tipos de notificaciones para profesors
 enum TeacherNotificationType {
   // ⏰ NOTIFICACIONES TEMPORALES/PROGRAMADAS
   eventStartingSoon('event_starting_soon', 'Evento Próximo', Icons.access_time, Color(0xFFFF6B35), NotificationPriority.high),
@@ -64,7 +64,7 @@ enum TeacherNotificationType {
   final NotificationPriority priority;
 }
 
-/// Modelo de notificación para docentes
+/// Modelo de notificación para profesors
 class TeacherNotification {
   final String id;
   final String title;
@@ -331,7 +331,7 @@ class TeacherNotification {
   int get hashCode => id.hashCode;
 }
 
-/// Configuración de notificaciones para docentes
+/// Configuración de notificaciones para profesors
 class TeacherNotificationSettings {
   final bool enableEventReminders;
   final bool enableAttendanceUpdates;

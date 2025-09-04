@@ -1,11 +1,21 @@
 // lib/screens/admin/system_events_management_screen.dart
 import 'package:flutter/material.dart';
-import '../../models/evento_model.dart';
-import '../../services/evento_service.dart';
 import '../../utils/colors.dart';
 import '../../utils/app_router.dart';
+import '../../services/evento_service.dart';
+import '../../services/storage_service.dart';
+import '../../models/evento_model.dart';
+import '../../models/usuario_model.dart';
+import '../../widgets/loading_skeleton.dart';
+import '../../core/app_constants.dart';
 
-/// Pantalla específica para que los administradores gestionen todos los eventos del sistema
+/// ✅ PANTALLA MEJORADA: Gestión de eventos del sistema (Admin) basada en la pantalla del profesor
+/// Características:
+/// - Diseño limpio y profesional igual al del profesor
+/// - Muestra TODOS los eventos del sistema
+/// - Incluye información de "Creado por" para cada evento
+/// - Filtros y búsqueda avanzada
+/// - Estadísticas del sistema completas
 class SystemEventsManagementScreen extends StatefulWidget {
   const SystemEventsManagementScreen({super.key});
 
@@ -15,258 +25,268 @@ class SystemEventsManagementScreen extends StatefulWidget {
 
 class _SystemEventsManagementScreenState extends State<SystemEventsManagementScreen> {
   final EventoService _eventoService = EventoService();
-  List<Evento> _eventos = [];
+  final StorageService _storageService = StorageService();
+  
+  List<Evento> _allSystemEvents = [];
+  Usuario? _currentUser;
   bool _isLoading = true;
-  String? _errorMessage;
   String _searchQuery = '';
-  bool _showOnlyActiveEvents = false;
+  String _filterStatus = 'todos'; // todos, activos, inactivos, programados
 
   @override
   void initState() {
     super.initState();
-    _loadSystemEvents();
+    _loadData();
   }
 
-  /// Cargar todos los eventos del sistema
-  Future<void> _loadSystemEvents() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    
     try {
+      // Cargar usuario actual para verificar permisos
+      _currentUser = await _storageService.getUser();
+      
+      if (_currentUser?.rol != AppConstants.adminRole) {
+        throw Exception('Solo los administradores pueden acceder a esta pantalla');
+      }
+      
+      // ✅ ADMIN: Cargar TODOS los eventos del sistema
+      debugPrint('👑 Cargando todos los eventos del sistema...');
       final eventos = await _eventoService.obtenerEventos();
       setState(() {
-        _eventos = eventos;
+        _allSystemEvents = eventos;
         _isLoading = false;
       });
+      debugPrint('✅ Admin: Cargados ${eventos.length} eventos del sistema');
+      
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Error de conexión: $e';
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
+      AppRouter.showSnackBar('Error cargando eventos: $e', isError: true);
     }
   }
 
-  /// Filtrar eventos según búsqueda y estado
   List<Evento> get _filteredEvents {
-    List<Evento> filtered = _eventos;
-
-    // Filtrar por búsqueda
+    List<Evento> filtered = _allSystemEvents;
+    
+    // Filtro por búsqueda
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((evento) =>
-          evento.titulo.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          evento.descripcion?.toLowerCase().contains(_searchQuery.toLowerCase()) == true ||
-          (evento.creadoPor?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)).toList();
+        evento.titulo.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+        (evento.lugar?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+        (evento.creadoPor?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
+      ).toList();
     }
-
-    // Filtrar por estado si está activo el toggle
-    if (_showOnlyActiveEvents) {
-      final now = DateTime.now();
-      filtered = filtered.where((evento) {
-        return evento.isActive || 
-               (evento.fecha.isAfter(now) && evento.estado.toLowerCase() != 'cancelado');
-      }).toList();
+    
+    // Filtro por estado
+    switch (_filterStatus) {
+      case 'activos':
+        filtered = filtered.where((e) => e.isActive).toList();
+        break;
+      case 'inactivos':
+        filtered = filtered.where((e) => !e.isActive && e.fecha.isBefore(DateTime.now())).toList();
+        break;
+      case 'programados':
+        filtered = filtered.where((e) => !e.isActive && e.fecha.isAfter(DateTime.now())).toList();
+        break;
     }
-
-    // Ordenar por fecha de creación (más recientes primero)
-    filtered.sort((a, b) => (b.createdAt ?? DateTime.now()).compareTo(a.createdAt ?? DateTime.now()));
-
+    
+    // Ordenar por fecha (más recientes primero)
+    filtered.sort((a, b) => b.fecha.compareTo(a.fecha));
+    
     return filtered;
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightGray.withValues(alpha: 0.1),
-      appBar: AppBar(
-        title: const Text(
-          'Gestión de Eventos del Sistema',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.white,
-          ),
+      backgroundColor: AppColors.lightGray,
+      appBar: _buildAppBar(),
+      body: _isLoading ? _buildLoadingState() : _buildMainContent(),
+      floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: const Text(
+        'Gestión del Sistema',
+        style: TextStyle(fontWeight: FontWeight.w600),
+      ),
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      foregroundColor: Colors.black,
+      elevation: 0.5,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(120),
+        child: _buildSearchAndFilter(),
+      ),
+      actions: [
+        IconButton(
+          onPressed: _loadData,
+          icon: const Icon(Icons.refresh),
+          tooltip: 'Actualizar eventos',
         ),
-        backgroundColor: AppColors.primaryOrange,
-        elevation: 2,
-        actions: [
-          IconButton(
-            onPressed: _loadSystemEvents,
-            icon: const Icon(Icons.refresh, color: AppColors.white),
-            tooltip: 'Actualizar eventos',
-          ),
-          IconButton(
-            onPressed: () => AppRouter.goToCreateEvent(),
-            icon: const Icon(Icons.add, color: AppColors.white),
-            tooltip: 'Crear nuevo evento',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Header con estadísticas
-          _buildHeader(),
-          
-          // Controles de búsqueda y filtros
-          _buildSearchAndFilters(),
-          
-          // Lista de eventos
-          Expanded(
-            child: _buildEventsList(),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => AppRouter.goToCreateEvent(),
-        backgroundColor: AppColors.primaryOrange,
-        child: const Icon(Icons.add, color: AppColors.white),
-      ),
+      ],
     );
   }
 
-  /// Header con estadísticas del sistema
-  Widget _buildHeader() {
-    final totalEvents = _eventos.length;
-    final activeEvents = _eventos.where((e) => e.isActive).length;
-    final todayEvents = _eventos.where((e) => 
-        e.fecha.day == DateTime.now().day &&
-        e.fecha.month == DateTime.now().month &&
-        e.fecha.year == DateTime.now().year).length;
-
+  Widget _buildSearchAndFilter() {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatCard('Total', '$totalEvents', Colors.blue),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard('Activos', '$activeEvents', Colors.green),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard('Hoy', '$todayEvents', AppColors.primaryOrange),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Card individual de estadística
-  Widget _buildStatCard(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textGray,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Controles de búsqueda y filtros
-  Widget _buildSearchAndFilters() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         children: [
           // Barra de búsqueda
           TextField(
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
+            onChanged: (value) => setState(() => _searchQuery = value),
             decoration: InputDecoration(
-              hintText: 'Buscar por título, descripción o creador...',
-              prefixIcon: const Icon(Icons.search, color: AppColors.textGray),
+              hintText: 'Buscar eventos o creadores...',
+              prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: AppColors.lightGray),
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: AppColors.primaryOrange),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              filled: true,
+              fillColor: AppColors.lightGray.withValues(alpha: 0.5),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
           ),
           
           const SizedBox(height: 12),
           
-          // Toggle para mostrar solo eventos activos
+          // Filtros
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip('Todos', 'todos'),
+                _buildFilterChip('Activos', 'activos'),
+                _buildFilterChip('Programados', 'programados'),
+                _buildFilterChip('Finalizados', 'inactivos'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value) {
+    final isSelected = _filterStatus == value;
+    
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: FilterChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (_) => setState(() => _filterStatus = value),
+        selectedColor: AppColors.primaryOrange.withValues(alpha: 0.2),
+        checkmarkColor: AppColors.primaryOrange,
+        labelStyle: TextStyle(
+          color: isSelected ? AppColors.primaryOrange : AppColors.textGray,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
+          LoadingSkeleton(height: 120, width: double.infinity),
+          SizedBox(height: 16),
+          LoadingSkeleton(height: 120, width: double.infinity),
+          SizedBox(height: 16),
+          LoadingSkeleton(height: 120, width: double.infinity),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainContent() {
+    final filteredEvents = _filteredEvents;
+    
+    if (filteredEvents.isEmpty) {
+      return _buildEmptyState();
+    }
+    
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Estadísticas del sistema
+          _buildSystemStats(),
+          
+          const SizedBox(height: 20),
+          
+          // Lista de eventos
+          ...filteredEvents.map((evento) => _buildEventCard(evento)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSystemStats() {
+    final totalEvents = _allSystemEvents.length;
+    final activeEvents = _allSystemEvents.where((e) => e.isActive).length;
+    final upcomingEvents = _allSystemEvents.where((e) => 
+      e.fecha.isAfter(DateTime.now()) && !e.isActive
+    ).length;
+    
+    // ✅ ESTADÍSTICA ADICIONAL PARA ADMIN: Eventos creados hoy
+    final todayEvents = _allSystemEvents.where((e) => 
+      e.createdAt != null &&
+      e.createdAt!.day == DateTime.now().day &&
+      e.createdAt!.month == DateTime.now().month &&
+      e.createdAt!.year == DateTime.now().year
+    ).length;
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Estadísticas del Sistema',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkGray,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // Primera fila de estadísticas
           Row(
             children: [
-              Switch(
-                value: _showOnlyActiveEvents,
-                onChanged: (value) {
-                  setState(() {
-                    _showOnlyActiveEvents = value;
-                  });
-                },
-                activeColor: Colors.green,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Mostrar solo eventos activos/próximos',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.darkGray,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${_filteredEvents.length} evento(s) encontrado(s)',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textGray,
-                ),
-              ),
+              Expanded(child: _buildStatItem('Total', totalEvents.toString(), AppColors.primaryOrange)),
+              Expanded(child: _buildStatItem('Activos', activeEvents.toString(), Colors.green)),
+              Expanded(child: _buildStatItem('Próximos', upcomingEvents.toString(), AppColors.secondaryTeal)),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Segunda fila - estadística específica de admin
+          Row(
+            children: [
+              Expanded(child: _buildStatItem('Hoy', todayEvents.toString(), Colors.purple)),
+              Expanded(child: Container()), // Espacio vacío
+              Expanded(child: Container()), // Espacio vacío
             ],
           ),
         ],
@@ -274,134 +294,58 @@ class _SystemEventsManagementScreenState extends State<SystemEventsManagementScr
     );
   }
 
-  /// Lista de eventos con manejo de estados
-  Widget _buildEventsList() {
-    if (_isLoading) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(color: AppColors.primaryOrange),
-            SizedBox(height: 16),
-            Text(
-              'Cargando eventos del sistema...',
-              style: TextStyle(color: AppColors.textGray),
-            ),
-          ],
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
-      );
-    }
-
-    if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _errorMessage!,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.red,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadSystemEvents,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryOrange,
-                foregroundColor: AppColors.white,
-              ),
-              child: const Text('Reintentar'),
-            ),
-          ],
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.textGray,
+          ),
         ),
-      );
-    }
-
-    final filteredEvents = _filteredEvents;
-
-    if (filteredEvents.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _searchQuery.isNotEmpty || _showOnlyActiveEvents
-                  ? Icons.search_off
-                  : Icons.event_available,
-              size: 64,
-              color: AppColors.textGray.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _searchQuery.isNotEmpty || _showOnlyActiveEvents
-                  ? 'No se encontraron eventos'
-                  : 'No hay eventos en el sistema',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textGray,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _searchQuery.isNotEmpty
-                  ? 'Intenta con otros términos de búsqueda'
-                  : 'Los eventos creados aparecerán aquí',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textGray,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (_eventos.isEmpty) ...[
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => AppRouter.goToCreateEvent(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryOrange,
-                  foregroundColor: AppColors.white,
-                ),
-                child: const Text('Crear primer evento'),
-              ),
-            ],
-          ],
-        ),
-      );
-    }
-
-    // Lista personalizada de eventos con botones de acción
-    return RefreshIndicator(
-      onRefresh: _loadSystemEvents,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: filteredEvents.length,
-        itemBuilder: (context, index) {
-          final evento = filteredEvents[index];
-          return _buildEventManagementCard(evento);
-        },
-      ),
+      ],
     );
   }
 
-  /// Card de gestión para cada evento
-  Widget _buildEventManagementCard(Evento evento) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header del evento
-            Row(
+  Widget _buildEventCard(Evento evento) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header del evento
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: evento.isActive 
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : AppColors.lightGray.withValues(alpha: 0.3),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
               children: [
                 Expanded(
                   child: Column(
@@ -410,27 +354,58 @@ class _SystemEventsManagementScreenState extends State<SystemEventsManagementScr
                       Text(
                         evento.titulo,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.darkGray,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        evento.creadoPor ?? 'Desconocido',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textGray,
-                        ),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on, size: 16, color: AppColors.textGray),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              evento.lugar ?? 'Sin ubicación',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textGray,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
+                      
+                      // ✅ INFORMACIÓN ESPECÍFICA PARA ADMIN: Creado por
+                      if (evento.creadoPor != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.person, size: 16, color: AppColors.primaryOrange),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                'Creado por: ${evento.creadoPor}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.primaryOrange,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
+                
+                // Estado del evento
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: evento.isActive ? Colors.green : Colors.grey,
-                    borderRadius: BorderRadius.circular(12),
+                    color: evento.isActive ? Colors.green : AppColors.textGray,
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     evento.isActive ? 'ACTIVO' : 'INACTIVO',
@@ -443,72 +418,144 @@ class _SystemEventsManagementScreenState extends State<SystemEventsManagementScr
                 ),
               ],
             ),
-            
-            const SizedBox(height: 12),
-            
-            // Información del evento
-            Row(
+          ),
+          
+          // Cuerpo del evento
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: [
-                const Icon(Icons.calendar_today, size: 16, color: AppColors.textGray),
-                const SizedBox(width: 8),
-                Text(
-                  _formatDate(evento.fecha),
-                  style: const TextStyle(fontSize: 14, color: AppColors.textGray),
+                // Información del evento
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildEventInfo('Fecha', _formatDate(evento.fecha)),
+                    ),
+                    Expanded(
+                      child: _buildEventInfo('Hora', evento.horaInicioFormatted),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                const Icon(Icons.access_time, size: 16, color: AppColors.textGray),
-                const SizedBox(width: 8),
-                Text(
-                  '${_formatTime(evento.horaInicio)} - ${_formatTime(evento.horaFinal)}',
-                  style: const TextStyle(fontSize: 14, color: AppColors.textGray),
+                
+                const SizedBox(height: 12),
+                
+                if (evento.descripcion?.isNotEmpty == true) ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      evento.descripcion!,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textGray,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                
+                // Botones de acción
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _viewEventDetails(evento),
+                        icon: const Icon(Icons.visibility, size: 16),
+                        label: const Text('Ver Detalles'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primaryOrange,
+                          side: BorderSide(color: AppColors.primaryOrange),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _manageEvent(evento),
+                        icon: const Icon(Icons.settings, size: 16),
+                        label: const Text('Gestionar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryOrange,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEventInfo(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.textGray,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.darkGray,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.event_busy,
+              size: 80,
+              color: AppColors.textGray.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'No hay eventos en el sistema',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkGray,
+              ),
+            ),
             const SizedBox(height: 12),
-            
-            // Botones de acción
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => AppRouter.goToCreateEvent(editEvent: evento),
-                    icon: const Icon(Icons.edit, size: 16),
-                    label: const Text('Editar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.secondaryTeal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _deleteEvent(evento),
-                    icon: const Icon(Icons.delete, size: 16),
-                    label: const Text('Eliminar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _goToEventMonitor(evento),
-                    icon: const Icon(Icons.monitor, size: 16),
-                    label: const Text('Monitor'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryOrange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                  ),
-                ),
-              ],
+            const Text(
+              'Los eventos creados por profesores aparecerán aquí.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: AppColors.textGray,
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () => AppRouter.goToCreateEvent(),
+              icon: const Icon(Icons.add),
+              label: const Text('Crear Primer Evento'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryOrange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
             ),
           ],
         ),
@@ -516,46 +563,36 @@ class _SystemEventsManagementScreenState extends State<SystemEventsManagementScr
     );
   }
 
-  /// Eliminar evento del sistema
-  Future<void> _deleteEvent(Evento evento) async {
-    final confirmed = await AppRouter.showConfirmDialog(
-      title: 'Eliminar Evento',
-      content: '¿Estás seguro de eliminar "${evento.titulo}"?\n\n'
-               'Esta acción eliminará el evento y toda su información de asistencia.',
-      confirmText: 'Eliminar',
-      cancelText: 'Cancelar',
-    );
-
-    if (confirmed == true) {
-      try {
-        final result = await _eventoService.eliminarEvento(evento.id!);
-        if (result.success) {
-          AppRouter.showSnackBar('Evento "${evento.titulo}" eliminado exitosamente');
-          await _loadSystemEvents(); // Recargar lista
-        } else {
-          AppRouter.showSnackBar('Error: ${result.message}', isError: true);
-        }
-      } catch (e) {
-        AppRouter.showSnackBar('Error eliminando evento: $e', isError: true);
-      }
-    }
-  }
-
-  /// Ir al monitor del evento
-  void _goToEventMonitor(Evento evento) {
-    AppRouter.goToEventMonitor(
-      eventId: evento.id!,
-      teacherName: evento.creadoPor ?? 'Admin',
+  Widget _buildFloatingActionButton() {
+    return FloatingActionButton(
+      onPressed: () => AppRouter.goToCreateEvent(),
+      backgroundColor: AppColors.primaryOrange,
+      child: const Icon(Icons.add, color: Colors.white),
     );
   }
 
-  /// Formatear fecha
   String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+    final months = [
+      'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  /// Formatear hora
-  String _formatTime(DateTime time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  void _viewEventDetails(Evento evento) {
+    // TODO: Navegar a pantalla de detalles
+    AppRouter.showSnackBar('Ver detalles de: ${evento.titulo}');
+  }
+
+  void _manageEvent(Evento evento) {
+    // Navegar a pantalla de gestión específica del evento
+    Navigator.pushNamed(
+      context,
+      AppConstants.eventMonitorRoute,
+      arguments: {
+        'eventId': evento.id!,
+        'teacherName': 'Admin',
+      },
+    );
   }
 }

@@ -8,7 +8,6 @@ import '../services/evento_service.dart';
 import '../services/location_service.dart';
 import '../models/evento_model.dart';
 import '../core/app_constants.dart';
-import 'package:flutter/foundation.dart';
 
 // ✅ NUEVO: Modelo para día específico del evento
 class EventDay {
@@ -337,8 +336,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         // ✅ MEJORADO: Información de ubicación con rango
         _buildLocationInfo(),
         
-        // ✅ DEBUG: Widget de depuración (solo en modo debug)
-        if (kDebugMode) _buildLocationDebugInfo(),
+        // ✅ DEBUG REMOVIDO: Widget de depuración ya no es necesario
+        // if (kDebugMode) _buildLocationDebugInfo(), // REMOVIDO PARA PRODUCCIÓN
         
         // ✅ NUEVO: Configuraciones de política de asistencia
         _buildAttendancePolicyConfig(),
@@ -362,7 +361,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        value: _selectedTipo,
+        initialValue: _selectedTipo,
         decoration: const InputDecoration(
           prefixIcon: Icon(Icons.category, color: AppColors.textGray),
           hintText: 'Tipo de evento',
@@ -464,7 +463,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 }
               });
             },
-            activeColor: AppColors.primaryOrange,
+            activeThumbColor: AppColors.primaryOrange,
           ),
         ],
       ),
@@ -1090,7 +1089,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 style: TextStyle(fontSize: 12)),
             value: _verificacionContinua,
             onChanged: (value) => setState(() => _verificacionContinua = value),
-            activeColor: AppColors.primaryOrange,
+            activeThumbColor: AppColors.primaryOrange,
             contentPadding: EdgeInsets.zero,
           ),
 
@@ -1102,7 +1101,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             value: _requiereJustificacion,
             onChanged: (value) =>
                 setState(() => _requiereJustificacion = value),
-            activeColor: AppColors.primaryOrange,
+            activeThumbColor: AppColors.primaryOrange,
             contentPadding: EdgeInsets.zero,
           ),
         ],
@@ -1110,78 +1109,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     );
   }
 
-  /// ✅ DEBUG: Widget temporal para verificar datos de ubicación (solo debug)
-  Widget _buildLocationDebugInfo() {
-    if (!kDebugMode) return const SizedBox.shrink(); // Solo en debug
-    
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.red, width: 2),
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.red.withValues(alpha: 0.1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'DEBUG - Ubicación seleccionada:',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.red,
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text('Latitud: ${_selectedLatitude ?? "No seleccionada"}'),
-          Text('Longitud: ${_selectedLongitude ?? "No seleccionada"}'),
-          Text('Nombre: $_selectedLocationName'),
-          Text('Rango: ${_selectedRadius ?? 100} m'),
-          Text('¿Es ubicación por defecto?: ${(_selectedLatitude == null || _selectedLongitude == null) ? "Sin coordenadas" : "No"}'),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    debugPrint('=== DEBUG MANUAL ===');
-                    debugPrint('Coordenadas validadas: $_coordinatesValidated');
-                    debugPrint('==================');
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: const Text(
-                    'Debug Validation',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedLatitude = -0.2;
-                      _selectedLongitude = -78.5;
-                      _selectedRadius = 150.0;
-                      _selectedLocationName = 'Ubicación de prueba';
-                      _coordinatesValidated = false;
-                      _coordinateValidationError = null;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                  child: const Text(
-                    'Test Custom',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   /// ✅ NUEVO: Método para abrir el selector de ubicación
   Future<void> _openLocationPicker() async {

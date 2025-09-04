@@ -327,20 +327,11 @@ class _MapViewScreenState extends State<MapViewScreen>
         throw Exception('Evento no está activo');
       }
 
-      // 4. Validar horarios del evento
-      final now = DateTime.now();
-      if (now.isBefore(evento.horaInicio)) {
-        throw Exception('Evento aún no ha iniciado');
-      }
-      if (now.isAfter(evento.horaFinal)) {
-        throw Exception('Evento ya terminó');
-      }
-
       setState(() {
         _currentEvento = evento;
       });
 
-      debugPrint('✅ Evento cargado y validado: ${evento.titulo}');
+      debugPrint('✅ Evento cargado: ${evento.titulo}');
     } catch (e) {
       debugPrint('❌ Error cargando evento: $e');
       throw Exception('Error cargando evento: $e');
@@ -353,22 +344,33 @@ class _MapViewScreenState extends State<MapViewScreen>
         throw Exception('No hay evento para iniciar tracking');
       }
 
-      // 1. Obtener userId del AttendanceManager
+      // 1. Validar horarios del evento para tracking
+      final now = DateTime.now();
+      if (now.isBefore(_currentEvento!.horaInicio)) {
+        throw Exception('El evento aún no ha iniciado, no se puede iniciar tracking');
+      }
+      if (now.isAfter(_currentEvento!.horaFinal)) {
+        debugPrint('⚠️ Evento terminado, mostrar solo vista de información');
+        // No permitir tracking para eventos terminados, pero no lanzar error
+        return;
+      }
+
+      // 2. Obtener userId del AttendanceManager
       final userId = _attendanceManager.currentState.currentUser?.id;
       if (userId == null) {
         throw Exception('No hay usuario para iniciar tracking');
       }
 
-      // 2. Iniciar ForegroundService con parámetros requeridos
+      // 3. Iniciar ForegroundService con parámetros requeridos
       await _backgroundService.startForegroundService(
         userId: userId,
         eventId: _currentEvento!.id!,
       );
 
-      // 3. Iniciar tracking con evento real
+      // 4. Iniciar tracking con evento real
       await _attendanceManager.startEventTracking(_currentEvento!);
 
-      // 4. Mostrar notificación de tracking iniciado
+      // 5. Mostrar notificación de tracking iniciado
       await _notificationManager.showTrackingActiveNotification();
 
       setState(() => _isTrackingActive = true);

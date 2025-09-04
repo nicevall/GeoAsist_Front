@@ -8,9 +8,9 @@ class AppConstants {
   static const String appVersion = '1.0.0';
   static const String appDescription = 'Geo-location based attendance system';
 
-  // ✅ PRODUCTION: IP del servidor en producción
+  // 🏠 LOCAL DEVELOPMENT: ADB Port forwarding for Samsung device
   static const String baseUrl =
-      'http://44.211.171.188/api'; // IP de producción
+      'http://192.168.2.5:8080/api'; // Physical device to PC connection
   static const String apiVersion = 'v1';
   // ✅ CRITICAL FIX: Timeout configuration
   static const Duration apiTimeout = Duration(seconds: 30);
@@ -18,14 +18,15 @@ class AppConstants {
   static const Duration locationTimeout = Duration(seconds: 30);
   static const Duration criticalTimeout = Duration(seconds: 45);
 
-  // ✅ PRODUCTION: WebSocket para tiempo real - IP de producción
-  static const String baseUrlWebSocket = 'ws://44.211.171.188';
+  // 🏠 LOCAL DEVELOPMENT: WebSocket ADB port forwarding connection
+  static const String baseUrlWebSocket = 'ws://192.168.2.5:8080';
 
-  // ✅ CONFIGURACIÓN CRÍTICA Día 4 - APP ACTIVE VALIDATION
+  // ⚠️ HEARTBEAT TEMPORALMENTE DESHABILITADO - Backend endpoint no existe
   static const Duration heartbeatInterval = Duration(seconds: 30);
+  static const bool heartbeatEnabled = false; // ✅ DESHABILITAR hasta backend esté listo
   static const Duration gracePeriodDuration =
       Duration(seconds: 30); // ✅ CORREGIDO: 30 segundos según Día 4
-  static const double maxGpsAccuracyMeters = 20.0;
+  static const double maxGpsAccuracyMeters = 150.0; // ✅ RELAJADO: 150 metros para desarrollo
   static const Duration permissionCheckInterval = Duration(minutes: 10);
 
   // ✅ NUEVAS CONSTANTES DÍA 4 - LIFECYCLE MANAGEMENT
@@ -39,22 +40,24 @@ class AppConstants {
   static const Duration appRestartGracePeriod =
       Duration(seconds: 15); // Grace para restart automático
 
-  // API Endpoints
+  // ✅ CORRECCIÓN CRÍTICA: API Endpoints (baseUrl ya incluye /api)
   static const String loginEndpoint = '/usuarios/login';
   static const String registerEndpoint = '/usuarios/registrar';
   static const String profileEndpoint = '/usuarios/perfil';
   static const String eventosEndpoint = '/eventos';
-  static const String asistenciaEndpoint = '/asistencia/registrar-new';
+  static const String asistenciaEndpoint = '/asistencia/registrar';
   static const String locationEndpoint = '/location/update';
-  static const String locationUpdateEndpoint = '/api/location/update'; // ✅ CRITICAL FIX: Specific endpoint
+  static const String locationUpdateEndpoint = '/location/update';
   static const String dashboardEndpoint = '/dashboard/metrics';
 
-  // ✅ NUEVOS ENDPOINTS DÍA 4 - BACKEND INTEGRATION
+  // ✅ CORRECCIÓN: NUEVOS ENDPOINTS DÍA 4 - BACKEND INTEGRATION (baseUrl ya incluye /api)
   static const String heartbeatEndpoint = '/asistencia/heartbeat';
-  static const String backgroundStatusEndpoint =
-      '/asistencia/background-status';
+  static const String backgroundStatusEndpoint = '/asistencia/background-status';
   static const String recoveryEndpoint = '/asistencia/recovery';
   static const String marcarAusenteEndpoint = '/asistencia/marcar-ausente';
+  
+  // ✅ NUEVO: Dashboard específico para estudiantes
+  static const String studentDashboardEndpoint = '/dashboard/student/metrics';
 
   // Location & Geofencing
   static const double defaultLocationAccuracy = 5.0; // meters
@@ -71,7 +74,7 @@ class AppConstants {
 
   // User Roles - COHERENTE CON BACKEND
   static const String adminRole = 'admin';
-  static const String docenteRole = 'docente';
+  static const String profesorRole = 'profesor';
   static const String estudianteRole = 'estudiante';
 
   // Navigation Routes - BÁSICAS
@@ -90,9 +93,12 @@ class AppConstants {
   static const String eventManagementRoute = '/event-management';
   static const String eventDetailsRoute = '/event-details';
 
-  // Rutas de verificación
+  // ✅ CORRECCIÓN: Rutas de verificación (baseUrl ya incluye /api)
   static const String verifyEmailEndpoint = '/usuarios/verificar-correo';
-  static const String resendCodeEndpoint = '/usuarios/reenviar-codigo';
+  static const String resendCodeEndpoint = '/usuarios/profesor/enviar-codigo';
+  
+  // Event statistics endpoint
+  static const String eventStatisticsEndpoint = '/eventos/[eventId]/stats';
 
   // Rutas para estudiantes
   static const String availableEventsRoute = '/available-events';
@@ -108,6 +114,9 @@ class AppConstants {
   
   // ⚙️ RUTAS DE CONFIGURACIÓN DE NOTIFICACIONES
   static const String notificationSettingsRoute = '/notification-settings';
+  
+  // 🔥 RUTA DE PRUEBAS FIREBASE
+  static const String firebaseTestRoute = '/firebase-test';
 
   // ✅ MANTENER COMPATIBILIDAD TEMPORAL
   static const String studentDashboardRoute =
@@ -221,8 +230,8 @@ class AppConstants {
   /// Radio de geofence por defecto
   static const double defaultGeofenceRadius = 100.0;
 
-  /// Precisión GPS requerida (PRECISA OBLIGATORIA)
-  static const double defaultGpsAccuracy = 5.0; // ✅ MEJORADO: 5 metros máximo
+  /// Precisión GPS requerida (RELAJADA PARA DESARROLLO)
+  static const double defaultGpsAccuracy = 150.0; // ✅ RELAJADO: 150 metros máximo para desarrollo
 
   /// Tiempo máximo de ausencia
   static const int defaultMaxAbsenceMinutes = 1; // ✅ NUEVO: 1 minuto máximo
@@ -278,14 +287,13 @@ class AppConstants {
     };
   }
 
-  // API Endpoints - Eventos expandidos
+  // ✅ CORRECCIÓN: API Endpoints - Eventos expandidos (baseUrl ya incluye /api)
   static const String eventosEditar = '/eventos'; // Para PUT /{id}
   static const String eventosEliminar = '/eventos'; // Para DELETE /{id}
   static const String eventosMis = '/eventos/mis';
 
-  // API Endpoints - Dashboard expandido
-  static const String dashboardEventMetrics =
-      '/dashboard/metrics/event'; // Para /{id}
+  // ✅ CORRECCIÓN: API Endpoints - Dashboard expandido (baseUrl ya incluye /api)
+  static const String dashboardEventMetrics = '/dashboard/metrics/event'; // Para /{id}
   static const String dashboardOverview = '/dashboard/overview';
 
   // ✅ CONFIGURACIÓN DÍA 4 - VALIDACIONES DE SEGURIDAD

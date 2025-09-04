@@ -469,7 +469,7 @@ class NotificationSettingsService {
     }
   }
 
-  /// Verificar notificaciones de docente
+  /// Verificar notificaciones de profesor
   bool _checkTeacherNotification(TeacherNotificationSettings settings, String type) {
     switch (type.toLowerCase()) {
       case 'student_joined': return settings.studentJoinedEvent;

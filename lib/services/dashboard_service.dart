@@ -18,14 +18,24 @@ class DashboardService {
       final token = await _storageService.getToken();
       if (token == null) return null;
 
+      // Obtener el rol del usuario para usar el endpoint correcto
+      final userRole = await _storageService.getUserRole();
+      
+      String endpoint;
+      if (userRole == AppConstants.estudianteRole) {
+        endpoint = AppConstants.studentDashboardEndpoint;
+      } else {
+        endpoint = AppConstants.dashboardEndpoint; // Para admin y profesor
+      }
+
       final response = await _apiService.get(
-        AppConstants.dashboardEndpoint,
+        endpoint,
         headers: AppConstants.getAuthHeaders(token),
       );
 
       if (response.success && response.data != null) {
         // El backend retorna un array de métricas
-        final metricsData = response.data!['data'] ?? response.data;
+        final metricsData = response.data!['metrics'] ?? response.data!['data'] ?? response.data;
 
         if (metricsData is List) {
           return metricsData
@@ -46,8 +56,18 @@ class DashboardService {
       final token = await _storageService.getToken();
       if (token == null) return null;
 
+      // Obtener el rol del usuario para usar el endpoint correcto
+      final userRole = await _storageService.getUserRole();
+      
+      String endpoint;
+      if (userRole == AppConstants.estudianteRole) {
+        endpoint = AppConstants.studentDashboardEndpoint;
+      } else {
+        endpoint = AppConstants.dashboardEndpoint; // Para admin y profesor
+      }
+
       final response = await _apiService.get(
-        AppConstants.dashboardEndpoint,
+        endpoint,
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -91,7 +111,7 @@ class DashboardService {
       if (token == null) return null;
 
       final response = await _apiService.get(
-        '/dashboard/metrics/event/$eventId',
+        '${AppConstants.dashboardEventMetrics}/$eventId',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -112,7 +132,7 @@ class DashboardService {
       if (token == null) return null;
 
       final response = await _apiService.get(
-        '/dashboard/overview',
+        AppConstants.dashboardOverview,
         headers: AppConstants.getAuthHeaders(token),
       );
 

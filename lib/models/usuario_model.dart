@@ -34,6 +34,6 @@ class Usuario {
   }
 
   bool get isAdmin => rol == 'admin';
-  bool get isDocente => rol == 'docente';
+  bool get isDocente => rol == 'profesor';
   bool get isEstudiante => rol == 'estudiante';
 }

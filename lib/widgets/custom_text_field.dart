@@ -12,6 +12,10 @@ class CustomTextField extends StatefulWidget {
   final String? Function(String?)? validator;
   final VoidCallback? onEditingComplete;
   final Function(String)? onChanged;
+  final bool obscureText;
+  final bool enabled;
+  final Widget? suffixIcon;
+  final bool isLoading;
 
   const CustomTextField({
     super.key,
@@ -24,6 +28,10 @@ class CustomTextField extends StatefulWidget {
     this.validator,
     this.onEditingComplete,
     this.onChanged,
+    this.obscureText = false,
+    this.enabled = true,
+    this.suffixIcon,
+    this.isLoading = false,
   });
 
   @override
@@ -64,7 +72,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
       child: TextField(
         controller: widget.controller,
         focusNode: _focusNode,
-        obscureText: widget.isPassword ? _obscureText : false,
+        obscureText: widget.isPassword ? _obscureText : widget.obscureText,
+        enabled: widget.enabled && !widget.isLoading,
         keyboardType: _getKeyboardType(),
         inputFormatters: widget.inputFormatters,
         textInputAction:
@@ -81,7 +90,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           prefixIcon: widget.prefixIcon != null
               ? Icon(widget.prefixIcon, color: AppColors.textGray)
               : null,
-          suffixIcon: widget.isPassword
+          suffixIcon: widget.suffixIcon ?? (widget.isPassword
               ? IconButton(
                   icon: Icon(
                     _obscureText ? Icons.visibility : Icons.visibility_off,
@@ -93,7 +102,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     });
                   },
                 )
-              : null,
+              : null),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(25),
             borderSide: BorderSide.none,

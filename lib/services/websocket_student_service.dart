@@ -9,6 +9,7 @@ import '../services/notifications/notification_manager.dart';
 import '../services/storage_service.dart';
 import '../models/student_notification_model.dart';
 import 'notifications/student_notification_types.dart';
+import '../utils/connectivity_manager.dart';
 
 /// Estado de conexión WebSocket
 enum WebSocketConnectionState {
@@ -47,6 +48,7 @@ class WebSocketStudentService {
   // 🎯 SERVICIOS
   late NotificationManager _notificationManager;
   final StorageService _storageService = StorageService();
+  final ConnectivityManager _connectivityManager = ConnectivityManager();
 
   // 🎯 TIMERS
   Timer? _reconnectTimer;
@@ -390,15 +392,26 @@ class WebSocketStudentService {
   }
 
   /// Manejar error de conexión
-  void _handleError(dynamic error) {
+  Future<void> _handleError(dynamic error) async {
     debugPrint('❌ Error en WebSocket: $error');
     _updateConnectionState(WebSocketConnectionState.error);
 
-    final notification = StudentNotificationFactory.connectivityLost(
-      eventTitle: 'Evento $_currentEventId',
-      eventId: _currentEventId,
-    );
-    _emitLocalNotification(notification);
+    // ✅ FIXED: Verificar internet real antes de mostrar error de conectividad
+    final hasInternet = await _connectivityManager.hasInternetAccess();
+    
+    if (hasInternet) {
+      // Internet OK - problema del servidor WebSocket
+      debugPrint('🌐 Internet OK - problema del servidor WebSocket, no mostrando error de conectividad');
+      // No mostrar notificación de conectividad cuando el problema es del servidor
+    } else {
+      // Sin internet real - mostrar notificación de conectividad
+      debugPrint('❌ Sin internet real - mostrando error de conectividad');
+      final notification = StudentNotificationFactory.connectivityLost(
+        eventTitle: 'Evento $_currentEventId',
+        eventId: _currentEventId,
+      );
+      _emitLocalNotification(notification);
+    }
 
     _scheduleReconnect();
   }
@@ -425,12 +438,20 @@ class WebSocketStudentService {
   Future<void> _handleConnectionError(dynamic error) async {
     debugPrint('❌ Error de conexión: $error');
 
-    final notification = StudentNotificationFactory.connectivityLost(
-      eventTitle: 'Evento $_currentEventId',
-      eventId: _currentEventId,
-      retryAttempts: _reconnectAttempts + 1,
-    );
-    _emitLocalNotification(notification);
+    // ✅ FIXED: Verificar internet real antes de mostrar error de conectividad
+    final hasInternet = await _connectivityManager.hasInternetAccess();
+    
+    if (!hasInternet) {
+      // Solo mostrar error de conectividad si realmente no hay internet
+      final notification = StudentNotificationFactory.connectivityLost(
+        eventTitle: 'Evento $_currentEventId',
+        eventId: _currentEventId,
+        retryAttempts: _reconnectAttempts + 1,
+      );
+      _emitLocalNotification(notification);
+    } else {
+      debugPrint('🌐 Internet OK - problema del servidor, no mostrando error de conectividad');
+    }
 
     _scheduleReconnect();
   }

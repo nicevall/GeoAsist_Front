@@ -40,6 +40,7 @@ class _MapAreaState extends State<MapArea> {
   @override
   void didUpdateWidget(MapArea oldWidget) {
     super.didUpdateWidget(oldWidget);
+    debugPrint('🗺️ MapArea recibió coordenadas: Lat: ${widget.userLat}, Lng: ${widget.userLng}');
     if (oldWidget.currentEvento != widget.currentEvento ||
         oldWidget.userLat != widget.userLat ||
         oldWidget.userLng != widget.userLng ||
@@ -56,7 +57,7 @@ class _MapAreaState extends State<MapArea> {
   void _updateMarkers() {
     Set<Marker> newMarkers = {};
 
-    // ✅ Marcador del usuario (estudiante/docente)
+    // ✅ Marcador del usuario (estudiante/profesor)
     if (widget.userLat != 0.0 && widget.userLng != 0.0) {
       newMarkers.add(
         Marker(

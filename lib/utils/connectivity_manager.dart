@@ -142,7 +142,13 @@ class ConnectivityManager {
     final wasConnected = _isConnected;
 
     _currentConnectivity = result;
-    _isConnected = result != ConnectivityResult.none;
+    
+    // ✅ FIXED: Verificar internet real antes de marcar como conectado
+    if (result != ConnectivityResult.none) {
+      _isConnected = await _hasRealInternetAccess();
+    } else {
+      _isConnected = false;
+    }
 
     // Agregar al historial
     _addConnectivityReading(result, _isConnected);
@@ -216,6 +222,47 @@ class ConnectivityManager {
     // Mantener historial limitado
     if (_connectivityHistory.length > _maxHistoryLength) {
       _connectivityHistory.removeAt(0);
+    }
+  }
+
+  /// 🌐 Verificar acceso real a internet
+  Future<bool> _hasRealInternetAccess() async {
+    try {
+      // Test rápido con múltiples endpoints para mayor confiabilidad
+      final futures = [
+        _testEndpoint('https://www.google.com'),
+        _testEndpoint('https://httpbin.org/ip'),
+        _testEndpoint('https://jsonplaceholder.typicode.com/posts/1'),
+      ];
+      
+      // Si cualquier endpoint responde, hay internet
+      final results = await Future.wait(futures, eagerError: false);
+      final hasInternet = results.any((result) => result);
+      
+      if (kDebugMode) {
+        _logger.d('🌐 Internet real: $hasInternet (${results.where((r) => r).length}/3 endpoints OK)');
+      }
+      
+      return hasInternet;
+    } catch (e) {
+      _logger.w('⚠️ Error verificando internet real: $e');
+      return false;
+    }
+  }
+
+  /// 🔗 Probar endpoint específico
+  Future<bool> _testEndpoint(String url) async {
+    try {
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 3);
+      
+      final request = await client.getUrl(Uri.parse(url));
+      final response = await request.close().timeout(const Duration(seconds: 5));
+      
+      client.close();
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -510,6 +557,11 @@ class ConnectivityManager {
 
   /// 📊 Estado y métricas
   bool isConnected() => _isConnected;
+
+  /// 🌐 Verificar internet real - método público
+  Future<bool> hasInternetAccess() async {
+    return await _hasRealInternetAccess();
+  }
   bool isOfflineModeEnabled() => _isOfflineModeEnabled;
   ConnectivityResult getCurrentConnectivity() => _currentConnectivity;
   ConnectionQuality getConnectionQuality() => _connectionQuality;

@@ -213,7 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '👨‍🏫 ¿Eres docente? Los docentes son registrados por el administrador del sistema.',
+                        '👨‍🏫 ¿Eres profesor? Los profesors son registrados por el administrador del sistema.',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textGray,

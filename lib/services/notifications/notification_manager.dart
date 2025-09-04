@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import '../../models/student_notification_model.dart';
 
 /// Sistema de notificaciones inteligente y sincronizado con WebSocket
@@ -992,6 +993,7 @@ class NotificationManager {
     );
   }
   
+
   Future<void> testAllNotifications() async {
     if (!kDebugMode) return; // Solo en debug mode
 
@@ -1176,21 +1178,6 @@ class NotificationManager {
 
   // 🎯 TESTING Y DEBUGGING
 
-  /// Mostrar notificación de prueba
-  Future<void> showTestNotification() async {
-    try {
-      debugPrint('🧪 Mostrando notificación de prueba');
-
-      await _showAlertNotification(
-        999,
-        'Prueba de Notificación',
-        'Esta es una notificación de prueba del sistema GeoAsist',
-        'info',
-      );
-    } catch (e) {
-      debugPrint('❌ Error en notificación de prueba: $e');
-    }
-  }
 
   Future<void> showStudentNotification(StudentNotification notification) async {
     try {
@@ -1313,6 +1300,415 @@ class NotificationManager {
 
     } catch (e) {
       debugPrint('❌ Error notificación entrada geofence: $e');
+    }
+  }
+
+  // Backward compatibility method for showLocal
+  Future<void> showLocal(String title, String body, {String? type, Map<String, dynamic>? data}) async {
+    try {
+      await _showNotification(
+        DateTime.now().millisecondsSinceEpoch % 100000, // Dynamic ID
+        title,
+        body,
+        type ?? 'general',
+        data,
+      );
+    } catch (e) {
+      debugPrint('❌ Error in showLocal: $e');
+    }
+  }
+
+  // Método requerido por battery_optimization_service y demo_verification_service
+  Future<void> showTestNotification() async {
+    try {
+      await _showNotification(
+        9999,
+        'Notificación de Prueba',
+        'Esta es una notificación de prueba del sistema',
+        'test',
+        {'type': 'test', 'timestamp': DateTime.now().millisecondsSinceEpoch},
+      );
+      debugPrint('✅ Notificación de prueba mostrada correctamente');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación de prueba: $e');
+    }
+  }
+
+  // Método requerido por local_geofencing_service
+  Future<void> showCriticalWarningNotification(String title, String body) async {
+    try {
+      await _showNotification(
+        _criticalWarningId,
+        title,
+        body,
+        'critical_warning',
+        {'priority': 'high', 'type': 'warning'},
+      );
+      debugPrint('✅ Notificación crítica mostrada: $title');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación crítica: $e');
+    }
+  }
+
+  // Métodos requeridos por local_notifications_only
+  Future<void> showAttendanceSuccessNotification(String message) async {
+    try {
+      await _showNotification(
+        _attendanceRegisteredId,
+        'Asistencia Registrada',
+        message,
+        'attendance_success',
+        {'type': 'success'},
+      );
+      debugPrint('✅ Notificación de éxito de asistencia mostrada');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación de asistencia: $e');
+    }
+  }
+
+  Future<void> showLocationErrorNotification(String error) async {
+    try {
+      await _showNotification(
+        _connectionErrorId,
+        'Error de Ubicación',
+        error,
+        'location_error',
+        {'type': 'error'},
+      );
+      debugPrint('✅ Notificación de error de ubicación mostrada');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación de error de ubicación: $e');
+    }
+  }
+
+  // ✅ NUEVO: Notificación para inicio de evento pre-registrado
+  Future<void> showEventStartNotification({
+    required int id,
+    required String title,
+    required String body,
+    required String payload,
+  }) async {
+    try {
+      debugPrint('📢 Mostrando notificación de inicio de evento: $title');
+
+      const androidDetails = AndroidNotificationDetails(
+        'event_start_channel',
+        'Inicio de Eventos',
+        channelDescription: 'Notificaciones cuando un evento pre-registrado está por comenzar',
+        importance: Importance.high,
+        priority: Priority.high,
+        ongoing: false,
+        autoCancel: true,
+        playSound: true,
+        enableVibration: true,
+        category: AndroidNotificationCategory.event,
+        ticker: 'Evento por comenzar',
+        color: Color(0xFFE67E22), // Naranja
+        icon: '@drawable/ic_event',
+        actions: [
+          AndroidNotificationAction(
+            'join_event',
+            'UNIRSE AL EVENTO',
+            icon: DrawableResourceAndroidBitmap('@drawable/ic_location'),
+            cancelNotification: true,
+          ),
+        ],
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        categoryIdentifier: 'event_start',
+      );
+
+      final details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notifications.show(
+        id,
+        title,
+        body,
+        details,
+        payload: payload,
+      );
+
+      // Vibración personalizada para evento
+      await HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 200));
+      await HapticFeedback.mediumImpact();
+
+      debugPrint('✅ Notificación de evento mostrada con ID: $id');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación de evento: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Notificación persistente para asistencia activa
+  /// Esta notificación se mantiene visible mientras el usuario tiene una sesión de asistencia activa
+  Future<void> showPersistentAttendanceNotification({
+    required int id,
+    required String title,
+    required String body,
+    required String payload,
+  }) async {
+    try {
+      debugPrint('🔔 Mostrando notificación persistente de asistencia con ID: $id');
+
+      const androidDetails = AndroidNotificationDetails(
+        'attendance_tracking',
+        'Tracking de Asistencia',
+        channelDescription: 'Notificación persistente para tracking activo de asistencia',
+        importance: Importance.low, // Baja importancia para no molestar
+        priority: Priority.low,
+        ongoing: true, // ✅ CLAVE: Hace que la notificación sea persistente
+        autoCancel: false, // No se cancela automáticamente
+        playSound: false, // No reproducir sonido
+        enableVibration: false, // No vibrar
+        showWhen: true,
+        usesChronometer: true, // Mostrar cronómetro
+        chronometerCountDown: false,
+        category: AndroidNotificationCategory.service,
+        visibility: NotificationVisibility.public,
+        ticker: 'Asistencia activa',
+        color: Color(0xFF1ABC9C), // Verde teal
+        icon: '@drawable/ic_tracking',
+        actions: [
+          AndroidNotificationAction(
+            'open_app',
+            'ABRIR APP',
+            icon: DrawableResourceAndroidBitmap('@drawable/ic_open'),
+            cancelNotification: false, // No cancelar al hacer click
+          ),
+          AndroidNotificationAction(
+            'pause_tracking',
+            'PAUSAR',
+            icon: DrawableResourceAndroidBitmap('@drawable/ic_pause'),
+            cancelNotification: false,
+          ),
+        ],
+      );
+
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: false, // No mostrar alert en iOS para persistente
+        presentBadge: true,
+        presentSound: false,
+        categoryIdentifier: 'attendance_tracking',
+      );
+
+      final details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _notifications.show(
+        id,
+        title,
+        body,
+        details,
+        payload: payload,
+      );
+
+      debugPrint('✅ Notificación persistente de asistencia mostrada con ID: $id');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación persistente: $e');
+    }
+  }
+
+
+  /// Cancelar todas las notificaciones
+  Future<void> cancelAllNotifications() async {
+    try {
+      await _notifications.cancelAll();
+      debugPrint('✅ Todas las notificaciones canceladas');
+    } catch (e) {
+      debugPrint('❌ Error cancelando todas las notificaciones: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Notificación de asistencia recuperada
+  /// Se muestra cuando la app detecta una sesión activa al iniciarse
+  Future<void> showAttendanceRecoveredNotification(
+    String eventTitle,
+    String duration,
+  ) async {
+    try {
+      debugPrint('🔄 Mostrando notificación de asistencia recuperada');
+
+      await _notifications.show(
+        2001, // ID específico para recuperación
+        '🔄 Asistencia Recuperada',
+        '✅ "$eventTitle"\n⏱️ Tiempo activo: $duration\n📱 Tu seguimiento continúa automáticamente',
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'alerts',
+            'Alertas de Asistencia',
+            channelDescription: 'Alertas importantes sobre eventos y asistencia',
+            importance: Importance.high,
+            priority: Priority.high,
+            showWhen: true,
+            enableVibration: true,
+            vibrationPattern: Int64List.fromList([0, 200, 100, 200]),
+            playSound: true,
+            color: Color(0xFF1ABC9C), // Verde teal para recuperación
+            icon: '@drawable/ic_recovery',
+            category: AndroidNotificationCategory.status,
+            actions: [
+              AndroidNotificationAction(
+                'view_status',
+                'VER ESTADO',
+                icon: DrawableResourceAndroidBitmap('@drawable/ic_info'),
+              ),
+            ],
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            categoryIdentifier: 'attendance_recovery',
+          ),
+        ),
+      );
+
+      // Vibración de confirmación
+      await HapticFeedback.mediumImpact();
+      
+      debugPrint('✅ Notificación de recuperación mostrada para: $eventTitle');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación de recuperación: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Notificación de inscripción exitosa al evento
+  Future<void> showEventEnrollmentSuccessNotification({
+    required String eventName,
+  }) async {
+    try {
+      debugPrint('📝 Mostrando notificación - Inscripción exitosa');
+
+      await _notifications.show(
+        2002, // ID específico para inscripción
+        '📝 ¡Inscripción Exitosa!',
+        '✅ Te has inscrito en "$eventName"\n🔔 Recibirás una notificación 5 minutos antes del inicio',
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'enrollment_alerts',
+            'Inscripciones de Eventos',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+            color: Color(0xFF27AE60), // Verde éxito
+            icon: '@drawable/ic_event_available',
+            category: AndroidNotificationCategory.status,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            interruptionLevel: InterruptionLevel.active,
+          ),
+        ),
+      );
+
+      await HapticFeedback.lightImpact();
+      debugPrint('✅ Notificación de inscripción mostrada');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación de inscripción: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Notificación 5 minutos antes del evento
+  Future<void> showEventStartingSoonNotification({
+    required String eventName,
+    required int minutesLeft,
+  }) async {
+    try {
+      debugPrint('⏰ Mostrando notificación - Evento inicia pronto');
+
+      await _notifications.show(
+        2003, // ID específico para evento próximo
+        '⏰ ¡Evento Inicia Pronto!',
+        '🎓 "$eventName" comenzará en $minutesLeft minutos\n📍 Asegúrate de estar en el área del evento',
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'event_reminders',
+            'Recordatorios de Eventos',
+            importance: Importance.max,
+            priority: Priority.max,
+            playSound: true,
+            enableVibration: true,
+            color: Color(0xFFF39C12), // Naranja alerta
+            icon: '@drawable/ic_alarm',
+            category: AndroidNotificationCategory.alarm,
+            actions: [
+              AndroidNotificationAction(
+                'open_event',
+                'IR AL EVENTO',
+                icon: DrawableResourceAndroidBitmap('@drawable/ic_location'),
+                cancelNotification: true,
+              ),
+            ],
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            interruptionLevel: InterruptionLevel.critical,
+            categoryIdentifier: 'event_reminder',
+          ),
+        ),
+      );
+
+      // Vibración de alerta
+      await HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 300));
+      await HapticFeedback.mediumImpact();
+      
+      debugPrint('✅ Notificación de evento próximo mostrada');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación de evento próximo: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Notificación de evento abandonado
+  Future<void> showEventAbandonedNotification({
+    required String eventName,
+  }) async {
+    try {
+      debugPrint('🚪 Mostrando notificación - Evento abandonado');
+
+      await _notifications.show(
+        2004, // ID específico para abandono
+        '🚪 Evento Abandonado',
+        '❌ Has abandonado "$eventName"\n📝 Tu asistencia se registró como falta',
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'event_actions',
+            'Acciones de Eventos',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+            enableVibration: true,
+            color: Color(0xFFE67E22), // Naranja advertencia
+            icon: '@drawable/ic_exit',
+            category: AndroidNotificationCategory.status,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            interruptionLevel: InterruptionLevel.active,
+          ),
+        ),
+      );
+
+      await HapticFeedback.mediumImpact();
+      debugPrint('✅ Notificación de abandono mostrada');
+    } catch (e) {
+      debugPrint('❌ Error mostrando notificación de abandono: $e');
     }
   }
 

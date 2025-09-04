@@ -1,5 +1,6 @@
 // lib/services/storage_service.dart
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/usuario_model.dart';
 import '../core/app_constants.dart';
@@ -53,6 +54,12 @@ class StorageService {
     return prefs.getString(AppConstants.userIdKey);
   }
 
+  // Alias method for backward compatibility
+  Future<Map<String, dynamic>?> getUserData() async {
+    final user = await getUser();
+    return user?.toJson();
+  }
+
   Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(AppConstants.tokenKey);
@@ -100,6 +107,59 @@ class StorageService {
       return prefs.getBool(key);
     } catch (e) {
       throw Exception('Error obteniendo boolean: $e');
+    }
+  }
+
+  // 🎯 MÉTODOS PARA LOCAL PRESENCE MANAGER
+
+  /// Guardar cambio de estado de presencia
+  Future<void> savePresenceStatusChange({
+    required String eventId,
+    required String status,
+    required DateTime timestamp,
+  }) async {
+    try {
+      final key = 'presence_status_${eventId}_${timestamp.millisecondsSinceEpoch}';
+      final data = {
+        'eventId': eventId,
+        'status': status,
+        'timestamp': timestamp.toIso8601String(),
+      };
+      await saveData(key, json.encode(data));
+    } catch (e) {
+      throw Exception('Error guardando cambio de estado: $e');
+    }
+  }
+
+  /// Guardar resumen de sesión de presencia
+  Future<void> savePresenceSession(Map<String, dynamic> summary) async {
+    try {
+      final eventId = summary['eventId'];
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final key = 'presence_session_${eventId}_$timestamp';
+      await saveData(key, json.encode(summary));
+    } catch (e) {
+      throw Exception('Error guardando sesión de presencia: $e');
+    }
+  }
+
+  /// Obtener todas las sesiones de presencia
+  Future<List<Map<String, dynamic>>> getAllPresenceSessions() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs.getKeys().where((key) => key.startsWith('presence_session_'));
+      
+      final sessions = <Map<String, dynamic>>[];
+      for (final key in keys) {
+        final data = prefs.getString(key);
+        if (data != null) {
+          sessions.add(json.decode(data));
+        }
+      }
+      
+      return sessions;
+    } catch (e) {
+      throw Exception('Error obteniendo sesiones de presencia: $e');
     }
   }
 
@@ -397,6 +457,150 @@ class StorageService {
       }
     } catch (e) {
       throw Exception('Error limpiando datos de testing: $e');
+    }
+  }
+
+  // 🎯 MÉTODOS ADICIONALES PARA CONNECTIVITY SERVICE
+  
+  /// Generic get method for string values
+  Future<String?> get(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(key);
+  }
+  
+  /// Generic save method for string values
+  Future<void> save(String key, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, value);
+  }
+  
+  /// Get list of maps from storage
+  Future<List<dynamic>?> getList(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    final listJson = prefs.getString(key);
+    if (listJson != null) {
+      try {
+        return json.decode(listJson) as List<dynamic>;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+  
+  /// Save list of maps to storage
+  Future<void> saveList(String key, List<dynamic> list) async {
+    final prefs = await SharedPreferences.getInstance();
+    final listJson = json.encode(list);
+    await prefs.setString(key, listJson);
+  }
+  
+  /// Get object from storage
+  Future<Map<String, dynamic>?> getObject(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    final objectJson = prefs.getString(key);
+    if (objectJson != null) {
+      try {
+        return json.decode(objectJson) as Map<String, dynamic>;
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+  
+  /// Save object to storage
+  Future<void> saveObject(String key, dynamic object) async {
+    final prefs = await SharedPreferences.getInstance();
+    final objectJson = json.encode(object);
+    await prefs.setString(key, objectJson);
+  }
+
+  // ✅ MÉTODOS ESPECÍFICOS PARA PRE-REGISTRO DE EVENTOS
+  static const String _preRegisteredEventsKey = 'pre_registered_events';
+
+  /// Obtener lista de eventos pre-registrados
+  Future<List<String>?> getPreRegisteredEvents() async {
+    try {
+      return await getStringList(_preRegisteredEventsKey);
+    } catch (e) {
+      debugPrint('❌ Error obteniendo pre-registros: $e');
+      return null;
+    }
+  }
+
+  /// Guardar lista de eventos pre-registrados
+  Future<void> savePreRegisteredEvents(List<String> eventIds) async {
+    try {
+      await saveStringList(_preRegisteredEventsKey, eventIds);
+      debugPrint('✅ Pre-registros guardados: ${eventIds.length} eventos');
+    } catch (e) {
+      debugPrint('❌ Error guardando pre-registros: $e');
+      throw Exception('Error guardando pre-registros: $e');
+    }
+  }
+
+  /// Verificar si un evento está pre-registrado
+  Future<bool> isEventPreRegistered(String eventId) async {
+    try {
+      final preRegistros = await getPreRegisteredEvents() ?? <String>[];
+      return preRegistros.contains(eventId);
+    } catch (e) {
+      debugPrint('❌ Error verificando pre-registro: $e');
+      return false;
+    }
+  }
+
+  /// Remover un evento de pre-registros
+  Future<void> removePreRegisteredEvent(String eventId) async {
+    try {
+      final preRegistros = await getPreRegisteredEvents() ?? <String>[];
+      preRegistros.remove(eventId);
+      await savePreRegisteredEvents(preRegistros);
+      debugPrint('✅ Evento removido de pre-registros: $eventId');
+    } catch (e) {
+      debugPrint('❌ Error removiendo pre-registro: $e');
+      throw Exception('Error removiendo pre-registro: $e');
+    }
+  }
+
+  /// Limpiar todos los pre-registros
+  Future<void> clearPreRegisteredEvents() async {
+    try {
+      await removeData(_preRegisteredEventsKey);
+      debugPrint('✅ Pre-registros limpiados');
+    } catch (e) {
+      debugPrint('❌ Error limpiando pre-registros: $e');
+      throw Exception('Error limpiando pre-registros: $e');
+    }
+  }
+
+  // ✅ MÉTODO PARA CREAR USUARIO DE PRUEBA
+  /// Crear y guardar usuario de prueba si no existe
+  Future<Usuario> createTestUserIfNeeded() async {
+    try {
+      // Verificar si ya hay un usuario
+      Usuario? existingUser = await getUser();
+      if (existingUser != null && existingUser.id.isNotEmpty) {
+        debugPrint('✅ Usuario existente encontrado: ${existingUser.nombre}');
+        return existingUser;
+      }
+
+      // Crear usuario de prueba
+      final testUser = Usuario(
+        id: 'TEST_USER_${DateTime.now().millisecondsSinceEpoch}',
+        nombre: 'Usuario de Prueba',
+        correo: 'test@example.com',
+        rol: 'estudiante',
+      );
+
+      await saveUser(testUser);
+      debugPrint('✅ Usuario de prueba creado: ${testUser.nombre} (ID: ${testUser.id})');
+      
+      return testUser;
+    } catch (e) {
+      debugPrint('❌ Error creando usuario de prueba: $e');
+      throw Exception('Error creando usuario de prueba: $e');
     }
   }
 }

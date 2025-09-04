@@ -1,5 +1,5 @@
 // lib/screens/dashboard/widgets/event_control_panel_widget.dart
-// 🎯 PANEL DE CONTROL DE EVENTOS FASE A1.2 - Dashboard del docente
+// 🎯 PANEL DE CONTROL DE EVENTOS FASE A1.2 - Dashboard del profesor
 import 'package:flutter/material.dart';
 import '../../../utils/colors.dart';
 import '../../../models/evento_model.dart';

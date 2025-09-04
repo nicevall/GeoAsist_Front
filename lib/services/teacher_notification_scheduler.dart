@@ -9,7 +9,7 @@ import '../services/storage_service.dart';
 import '../services/teacher_notification_service.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 
-/// Programador inteligente de notificaciones para docentes
+/// Programador inteligente de notificaciones para profesors
 /// Maneja todas las notificaciones programadas basadas en tiempo
 class TeacherNotificationScheduler {
   static final TeacherNotificationScheduler _instance = TeacherNotificationScheduler._internal();

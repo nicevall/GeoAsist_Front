@@ -8,7 +8,7 @@ import '../../models/evento_model.dart';
 import '../../models/asistencia_model.dart'; // ✅ NUEVO para datos reales
 import '../../services/websocket_service.dart';
 import '../../services/notifications/notification_manager.dart';
-import '../../services/teacher_notification_service.dart'; // ✅ NUEVO para notificaciones docente
+import '../../services/teacher_notification_service.dart'; // ✅ NUEVO para notificaciones profesor
 import '../../services/teacher_notification_scheduler.dart'; // ✅ NUEVO para programaciones
 
 class EventMonitorScreen extends StatefulWidget {
@@ -95,17 +95,17 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     // ✅ NUEVO: Limpiar WebSocket robusto
     _cleanupWebSocketConnection();
     
-    // ✅ NUEVO: Limpiar servicios de notificaciones docentes
+    // ✅ NUEVO: Limpiar servicios de notificaciones profesors
     _disposeTeacherNotificationServices();
 
     super.dispose();
     debugPrint('✅ EventMonitorScreen disposed successfully');
   }
   
-  /// ✅ NUEVO: Limpiar servicios de notificaciones docentes
+  /// ✅ NUEVO: Limpiar servicios de notificaciones profesors
   Future<void> _disposeTeacherNotificationServices() async {
     try {
-      debugPrint('🔔 Limpiando servicios de notificaciones docentes');
+      debugPrint('🔔 Limpiando servicios de notificaciones profesors');
       
       // Cancelar programaciones del evento actual
       await _teacherScheduler.cancelEventSchedules(widget.eventId);
@@ -116,7 +116,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       // Limpiar servicio de notificaciones (sin dispose completo para no afectar otros usos)
       // El TeacherNotificationService se mantiene activo para otros eventos
       
-      debugPrint('✅ Servicios de notificaciones docentes limpiados');
+      debugPrint('✅ Servicios de notificaciones profesors limpiados');
     } catch (e) {
       debugPrint('❌ Error limpiando servicios de notificaciones: $e');
     }
@@ -141,17 +141,17 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       await _notificationManager.initialize();
       debugPrint('✅ NotificationManager inicializado para EventMonitor');
       
-      // ✅ NUEVO: Inicializar sistema de notificaciones para docentes
+      // ✅ NUEVO: Inicializar sistema de notificaciones para profesors
       await _initializeTeacherNotificationSystem();
     } catch (e) {
       debugPrint('❌ Error inicializando NotificationManager: $e');
     }
   }
   
-  /// ✅ NUEVO: Inicializar sistema completo de notificaciones para docentes
+  /// ✅ NUEVO: Inicializar sistema completo de notificaciones para profesors
   Future<void> _initializeTeacherNotificationSystem() async {
     try {
-      debugPrint('🔔 Inicializando sistema de notificaciones para docentes');
+      debugPrint('🔔 Inicializando sistema de notificaciones para profesors');
       
       // Inicializar TeacherNotificationService
       await _teacherNotificationService.initialize();
@@ -164,9 +164,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         await _scheduleEventTeacherNotifications(_monitoredEvent!);
       }
       
-      debugPrint('✅ Sistema de notificaciones para docentes inicializado');
+      debugPrint('✅ Sistema de notificaciones para profesors inicializado');
     } catch (e) {
-      debugPrint('❌ Error inicializando notificaciones docentes: $e');
+      debugPrint('❌ Error inicializando notificaciones profesors: $e');
     }
   }
 
@@ -236,6 +236,19 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     try {
       debugPrint('👥 Cargando asistencias del evento: ${widget.eventId}');
 
+      // ✅ VALIDAR que el eventId no sea nulo o vacío
+      if (widget.eventId.isEmpty) {
+        debugPrint('❌ EventId is empty, cannot load attendances');
+        if (mounted) {
+          setState(() {
+            _studentActivities = [];
+            _isLoading = false;
+            _errorMessage = 'ID del evento no válido';
+          });
+        }
+        return;
+      }
+
       // ✅ CORREGIDO: AsistenciaService retorna List<Asistencia> directamente
       final asistencias =
           await _asistenciaService.obtenerAsistenciasEvento(widget.eventId);
@@ -285,7 +298,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   /// ✅ NUEVO: Programar notificaciones para el evento
   Future<void> _scheduleEventTeacherNotifications(Evento event) async {
     try {
-      debugPrint('📅 Programando notificaciones para docente: ${event.titulo}');
+      debugPrint('📅 Programando notificaciones para profesor: ${event.titulo}');
       
       // Programar notificaciones temporales
       await _teacherScheduler.scheduleEventNotifications(event);
@@ -394,7 +407,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   
   /// ✅ NUEVO: Iniciar notificaciones de actualización de asistencia cada 15 minutos
   void _startAttendanceUpdateNotifications() {
-    // Timer para enviar actualizaciones periódicas de asistencia al docente
+    // Timer para enviar actualizaciones periódicas de asistencia al profesor
     Timer.periodic(Duration(minutes: 15), (timer) async {
       if (!mounted || _monitoredEvent == null) {
         timer.cancel();
@@ -1354,44 +1367,54 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              title: const Text('Todos'),
-              leading: Radio<String>(
-                value: 'all',
-                groupValue: _selectedFilter,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedFilter = value!;
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
-            ListTile(
-              title: const Text('Presentes'),
-              leading: Radio<String>(
-                value: 'present',
-                groupValue: _selectedFilter,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedFilter = value!;
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
-            ListTile(
-              title: const Text('Ausentes'),
-              leading: Radio<String>(
-                value: 'absent',
-                groupValue: _selectedFilter,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedFilter = value!;
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
+            Column(
+              children: [
+                ListTile(
+                  title: const Text('Todos'),
+                  leading: Icon(
+                    _selectedFilter == 'all' 
+                        ? Icons.radio_button_checked 
+                        : Icons.radio_button_unchecked,
+                    color: _selectedFilter == 'all' ? Colors.blue : Colors.grey,
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _selectedFilter = 'all';
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+                ListTile(
+                  title: const Text('Presentes'),
+                  leading: Icon(
+                    _selectedFilter == 'present' 
+                        ? Icons.radio_button_checked 
+                        : Icons.radio_button_unchecked,
+                    color: _selectedFilter == 'present' ? Colors.blue : Colors.grey,
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _selectedFilter = 'present';
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+                ListTile(
+                  title: const Text('Ausentes'),
+                  leading: Icon(
+                    _selectedFilter == 'absent' 
+                        ? Icons.radio_button_checked 
+                        : Icons.radio_button_unchecked,
+                    color: _selectedFilter == 'absent' ? Colors.blue : Colors.grey,
+                  ),
+                  onTap: () {
+                    setState(() {
+                      _selectedFilter = 'absent';
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
             ),
           ],
         ),

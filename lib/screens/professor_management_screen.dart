@@ -26,7 +26,7 @@ class _ProfessorManagementScreenState extends State<ProfessorManagementScreen> {
   Future<void> _loadProfessors() async {
     setState(() => _isLoading = true);
 
-    // TODO: Implementar llamada al backend para obtener docentes
+    // TODO: Implementar llamada al backend para obtener profesors
     await Future.delayed(const Duration(seconds: 1)); // Simular carga
 
     setState(() => _isLoading = false);
@@ -87,7 +87,7 @@ class _ProfessorManagementScreenState extends State<ProfessorManagementScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Comienza agregando el primer docente al sistema',
+              'Comienza agregando el primer profesor al sistema',
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.textGray,
@@ -129,7 +129,7 @@ class _ProfessorManagementScreenState extends State<ProfessorManagementScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '${_professors.length} docentes',
+                  '${_professors.length} profesors',
                   style: const TextStyle(
                     color: AppColors.secondaryTeal,
                     fontWeight: FontWeight.w600,
@@ -140,10 +140,10 @@ class _ProfessorManagementScreenState extends State<ProfessorManagementScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Lista de docentes (aquí irían las tarjetas de docentes cuando implementes el backend)
+          // Lista de profesors (aquí irían las tarjetas de profesors cuando implementes el backend)
           ..._professors.map((professor) => _buildProfessorCard(professor)),
 
-          // Botón flotante para agregar docente
+          // Botón flotante para agregar profesor
           const SizedBox(height: 80),
         ],
       ),
@@ -240,7 +240,7 @@ class _ProfessorManagementScreenState extends State<ProfessorManagementScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Eliminar Docente'),
         content: Text(
-          '¿Estás seguro de que quieres eliminar al docente ${professor['nombre']}?',
+          '¿Estás seguro de que quieres eliminar al profesor ${professor['nombre']}?',
         ),
         actions: [
           TextButton(

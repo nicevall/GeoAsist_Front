@@ -10,4 +10,7 @@ class AppColors {
   static const Color successGreen = Color(0xFF4CAF50);
   static const Color warningOrange = Color(0xFFFF9800);
   static const Color errorRed = Color(0xFFF44336);
+  
+  // Alias for backward compatibility with Firebase screens
+  static const Color primaryColor = primaryOrange;
 }

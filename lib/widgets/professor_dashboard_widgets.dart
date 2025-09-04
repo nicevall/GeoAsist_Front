@@ -9,7 +9,7 @@ import 'dashboard_metric_card.dart' as metric_card;
 import 'event_card.dart' as event_card;
 
 class ProfessorDashboardWidgets {
-  /// Widget de bienvenida para docente
+  /// Widget de bienvenida para profesor
   static Widget buildWelcomeHeader(String userName) {
     return Container(
       width: double.infinity,
@@ -83,7 +83,7 @@ class ProfessorDashboardWidgets {
     );
   }
 
-  /// Métricas contextuales para docente (métricas generales + sus eventos)
+  /// Métricas contextuales para profesor (métricas generales + sus eventos)
   static Widget buildProfessorMetrics(
       List<DashboardMetric> systemMetrics, List<Evento> professorEvents) {
     return Column(
@@ -124,7 +124,7 @@ class ProfessorDashboardWidgets {
     );
   }
 
-  /// Acciones rápidas para docente
+  /// Acciones rápidas para profesor
   static Widget buildQuickActions() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,7 +176,7 @@ class ProfessorDashboardWidgets {
     );
   }
 
-  /// Eventos del docente (solo los que él creó)
+  /// Eventos del profesor (solo los que él creó)
   static Widget buildMyEvents(List<Evento> eventos) {
     if (eventos.isEmpty) {
       return _buildEmptyEvents();
@@ -310,7 +310,7 @@ class ProfessorDashboardWidgets {
     );
   }
 
-  /// Widget de estadísticas rápidas del docente
+  /// Widget de estadísticas rápidas del profesor
   static Widget buildQuickStats(List<Evento> eventos) {
     final now = DateTime.now();
     final activeEvents = eventos.where((e) => e.isActive).length;
@@ -487,7 +487,7 @@ class ProfessorDashboardWidgets {
   }
 
   static bool _isRelevantForProfessor(String metric) {
-    // Solo mostrar métricas relevantes para docentes
+    // Solo mostrar métricas relevantes para profesors
     const relevantMetrics = ['usuarios', 'asistencias'];
     return relevantMetrics.contains(metric.toLowerCase());
   }

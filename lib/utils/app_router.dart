@@ -19,6 +19,7 @@ import '../screens/justifications/create_justification_screen.dart';
 import '../screens/settings/notification_settings_screen.dart';
 import '../screens/my_events_management_screen.dart';
 import '../screens/admin/system_events_management_screen.dart';
+import '../screens/firebase/simple_firebase_test_screen.dart';
 
 class AppRouter {
   // Private constructor to prevent instantiation
@@ -219,6 +220,12 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const NotificationSettingsScreen(),
         );
+      
+      // 🔥 FIREBASE TEST ROUTE
+      case AppConstants.firebaseTestRoute:
+        return MaterialPageRoute(
+          builder: (_) => SimpleFirebaseTestScreen(),
+        );
 
       // ✅ NUEVAS RUTAS PARA ADMINISTRACIÓN Y PROFESORES
       case AppConstants.reportsRoute:
@@ -258,28 +265,42 @@ class AppRouter {
 
       default:
         return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            appBar: AppBar(title: const Text('Error')),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Página no encontrada: ${settings.name}',
-                    style: const TextStyle(fontSize: 18),
-                    textAlign: TextAlign.center,
+          builder: (_) => FutureBuilder<bool>(
+            future: isAuthenticated,
+            builder: (context, snapshot) {
+              final isAuth = snapshot.data ?? false;
+              
+              return Scaffold(
+                appBar: AppBar(title: const Text('Error')),
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Página no encontrada: ${settings.name}',
+                        style: const TextStyle(fontSize: 18),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (isAuth) {
+                            // Si está autenticado, volver al dashboard
+                            goToDashboard();
+                          } else {
+                            // Solo ir al login si NO está autenticado
+                            Navigator.of(context).pushReplacementNamed(AppConstants.loginRoute);
+                          }
+                        },
+                        child: Text(isAuth ? 'Volver al Dashboard' : 'Ir al Login'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(navigatorKey.currentContext!)
-                        .pushReplacementNamed(AppConstants.loginRoute),
-                    child: const Text('Ir al Login'),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         );
     }
@@ -326,7 +347,7 @@ class AppRouter {
     );
   }
 
-  /// ✅ NUEVO: Navegar a monitor de eventos (para docentes)
+  /// ✅ NUEVO: Navegar a monitor de eventos (para profesors)
   static void goToEventMonitor({
     required String eventId,
     required String teacherName,
@@ -450,6 +471,12 @@ class AppRouter {
     Navigator.of(navigatorKey.currentContext!)
         .pushNamed(AppConstants.notificationSettingsRoute);
   }
+  
+  /// 🔥 NAVEGACIÓN FIREBASE
+  static void goToFirebaseTest() {
+    Navigator.of(navigatorKey.currentContext!)
+        .pushNamed(AppConstants.firebaseTestRoute);
+  }
 
   /// ✅ ENHANCED: Helper para navegación de asistencia con validación
   static void goToAttendanceTrackingEnhanced({
@@ -529,7 +556,7 @@ class AppRouter {
   static void navigateByRole(String userRole, String userName) {
     switch (userRole) {
       case AppConstants.adminRole:
-      case AppConstants.docenteRole:
+      case AppConstants.profesorRole:
       case AppConstants.estudianteRole:
         // ✅ TODOS VAN AL MISMO DASHBOARD UNIFICADO
         goToDashboard(userName: userName);

@@ -339,7 +339,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               });
               _markAsChanged();
             },
-            activeColor: Colors.white,
+            activeThumbColor: Colors.white,
             activeTrackColor: Colors.white24,
           ),
         ],
@@ -806,8 +806,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             icon: Icons.school,
             children: [
               _buildSwitchTile(
-                'Habilitar notificaciones docente',
-                'Recibir notificaciones específicas para docentes',
+                'Habilitar notificaciones profesor',
+                'Recibir notificaciones específicas para profesors',
                 Icons.school,
                 _settings!.teacherSettings.enabled,
                 (value) {
@@ -1223,7 +1223,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       ),
       value: value,
       onChanged: _settings!.enabled ? onChanged : null,
-      activeColor: AppColors.primaryOrange,
+      activeThumbColor: AppColors.primaryOrange,
     );
   }
 

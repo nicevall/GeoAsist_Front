@@ -71,6 +71,20 @@ class WebSocketService {
   }
   
   /// ✅ CONEXIÓN CON VALIDACIÓN Y FILTRADO
+  // Simple connect method for compatibility
+  Future<bool> connect() async {
+    // Default connection attempt - requires currentEventId and currentUserId to be set
+    if (_currentEventId != null && _currentUserId != null) {
+      return await connectToEvent(
+        eventId: _currentEventId!,
+        userId: _currentUserId!,
+        userRole: _currentUserRole,
+      );
+    }
+    debugPrint('❌ Cannot connect: eventId or userId not set');
+    return false;
+  }
+
   Future<bool> connectToEvent({
     required String eventId,
     required String userId,
@@ -181,7 +195,8 @@ class WebSocketService {
     _processedMessages.add(messageId);
     
     // Mensajes globales (siempre procesar)
-    if (['connection_established', 'heartbeat_response', 'error'].contains(messageType)) {
+    // ⚠️ Solo procesar mensajes que el backend soporta
+    if (['event-status', 'error'].contains(messageType)) {
       return true;
     }
     
@@ -203,47 +218,14 @@ class WebSocketService {
     return true;
   }
   
-  /// ✅ HEARTBEAT ROBUSTO
+  /// ⚠️ HEARTBEAT COMPLETAMENTE DESHABILITADO
   void _startHeartbeat() {
-    _heartbeatTimer?.cancel();
-    
-    _heartbeatTimer = Timer.periodic(heartbeatInterval, (timer) {
-      if (_wsChannel != null && _isConnected) {
-        try {
-          final heartbeatMessage = {
-            'type': 'heartbeat',
-            'timestamp': DateTime.now().toIso8601String(),
-            'eventId': _currentEventId,
-            'userId': _currentUserId,
-            'id': 'heartbeat_${DateTime.now().millisecondsSinceEpoch}',
-          };
-          
-          _wsChannel!.sink.add(jsonEncode(heartbeatMessage));
-          debugPrint('💓 Heartbeat enviado');
-          
-          // ✅ VERIFICAR RESPUESTA DE HEARTBEAT
-          _checkHeartbeatResponse();
-          
-        } catch (e) {
-          debugPrint('❌ Error enviando heartbeat: $e');
-          _handleConnectionError();
-        }
-      }
-    });
+    // ⚠️ Backend solo maneja 'change-event-status', no heartbeat
+    debugPrint('⚠️ WebSocket Heartbeat DISABLED - Backend no compatible');
+    // No iniciar timer - backend no soporta heartbeats
   }
   
-  void _checkHeartbeatResponse() {
-    _heartbeatResponseTimer?.cancel();
-    
-    // Verificar si la última respuesta fue hace más del timeout
-    _heartbeatResponseTimer = Timer(heartbeatTimeout, () {
-      if (_lastHeartbeat == null || 
-          DateTime.now().difference(_lastHeartbeat!).inSeconds > heartbeatTimeout.inSeconds) {
-        debugPrint('⚠️ Sin respuesta de heartbeat, reconectando...');
-        _handleConnectionError();
-      }
-    });
-  }
+  // Unused method _checkHeartbeatResponse removed
   
   void _processIncomingMessage(Map<String, dynamic> data) {
     final messageType = data['type'] as String?;
@@ -258,7 +240,7 @@ class WebSocketService {
         _handleAttendanceUpdate(data);
         break;
         
-      case 'event_status_changed':
+      case 'event-status':
         _handleEventStatusChanged(data);
         break;
         
@@ -318,13 +300,29 @@ class WebSocketService {
   }
   
   void _handleEventStatusChanged(Map<String, dynamic> data) {
-    final newStatus = data['newStatus'] as String? ?? 'unknown';
-    final eventName = data['eventName'] as String? ?? 'Evento';
+    // ✅ CORREGIDO: Usar los campos que el backend realmente envía
+    final newStatus = data['estado'] as String? ?? 'unknown';
+    final eventId = data['evento'] as String?;
     
-    debugPrint('📢 Estado de evento cambiado: $eventName -> $newStatus');
+    debugPrint('📢 Estado de evento cambiado: ID $eventId -> $newStatus');
+    
+    // ✅ LÓGICA AUTOMÁTICA DE ASISTENCIA SEGÚN ESTADO
+    switch (newStatus) {
+      case 'En proceso':
+        debugPrint('🟢 Evento iniciado automáticamente - Estudiantes pueden registrar asistencia');
+        _notificationManager.showEventStartedNotification('El evento ha iniciado');
+        break;
+      case 'finalizado':
+        debugPrint('🔴 Evento finalizado automáticamente - No más asistencias');
+        _notificationManager.showEventEndedNotification('El evento ha finalizado');
+        break;
+      case 'En espera':
+        debugPrint('⏸️ Evento pausado - Continuará mañana');
+        break;
+    }
     
     _notificationManager.showEventStatusChangedNotification(
-      eventName: eventName,
+      eventName: 'Evento ID: $eventId',
       newStatus: newStatus,
     );
   }

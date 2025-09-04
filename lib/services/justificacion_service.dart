@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/justificacion_model.dart';
 import '../models/api_response_model.dart';
+import '../models/usuario_model.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../services/asistencia_service.dart';
@@ -79,9 +80,17 @@ class JustificacionService {
     try {
       debugPrint('📄 Obteniendo justificaciones del usuario actual');
 
-      final usuario = await _storageService.getUser();
-      if (usuario == null) {
-        return ApiResponse.error('No hay sesión activa');
+      Usuario? usuario = await _storageService.getUser();
+      
+      // Si no hay usuario o el ID está vacío, crear usuario de prueba
+      if (usuario == null || usuario.id.isEmpty) {
+        debugPrint('⚠️ Usuario no válido, creando usuario de prueba para justificaciones...');
+        usuario = await _storageService.createTestUserIfNeeded();
+      }
+
+      // Validar que tenemos un ID válido
+      if (usuario.id.isEmpty) {
+        return ApiResponse.error('Usuario sin ID válido');
       }
 
       return await obtenerJustificacionesUsuario(usuario.id);

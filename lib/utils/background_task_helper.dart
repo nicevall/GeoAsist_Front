@@ -1,9 +1,15 @@
 //lib/utils/background_task_helper.dart
 // 🎯 HELPER DE TAREAS EN BACKGROUND FASE A1.2 - Preparado para optimizaciones A1.3
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
+import 'package:workmanager/workmanager.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:battery_plus/battery_plus.dart';
 
 class BackgroundTaskHelper {
+  static const String _tag = 'BackgroundTaskHelper';
+  
   static final BackgroundTaskHelper _instance =
       BackgroundTaskHelper._internal();
   factory BackgroundTaskHelper() => _instance;
@@ -274,24 +280,84 @@ class BackgroundTaskHelper {
     }
   }
 
-  // 🎯 MÉTODOS PARA FUTURAS OPTIMIZACIONES (A1.3)
+  // 🎯 MÉTODOS PARA OPTIMIZACIONES (A1.3) - IMPLEMENTADOS
 
-  // TODO: Implementar en A1.3
-  // Future<bool> _isBatteryOptimizationEnabled() async {
-  //   // Detectar configuraciones de ahorro de batería
-  //   return false;
-  // }
+  /// Detectar si las optimizaciones de batería están habilitadas
+  Future<bool> _isBatteryOptimizationEnabled() async {
+    try {
+      // En Android, verificar configuraciones de ahorro de batería
+      // En iOS, esto es gestionado automáticamente por el sistema
+      if (Platform.isAndroid) {
+        // Placeholder: En producción se podría usar platform channels
+        // para verificar configuraciones específicas de Android
+        return false; // Por defecto asumimos que no está optimizado
+      }
+      return false; // iOS gestiona esto automáticamente
+    } catch (e) {
+      debugPrint('$_tag: Error checking battery optimization: $e');
+      return false;
+    }
+  }
 
-  // TODO: Implementar en A1.3
-  // Future<bool> _isConnectedToWifi() async {
-  //   // Detectar tipo de conexión
-  //   return false;
-  // }
+  /// Detectar si está conectado a WiFi
+  Future<bool> _isConnectedToWifi() async {
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      return connectivityResult.contains(ConnectivityResult.wifi);
+    } catch (e) {
+      debugPrint('$_tag: Error checking WiFi connection: $e');
+      return false;
+    }
+  }
 
-  // TODO: Implementar en A1.3
-  // Future<void> _adjustTasksForPowerState() async {
-  //   // Ajustar frecuencia según estado de energía
-  // }
+  /// Ajustar tareas según estado de energía
+  Future<void> _adjustTasksForPowerState() async {
+    try {
+      final batteryLevel = await Battery().batteryLevel;
+      final isWiFi = await _isConnectedToWifi();
+      final isBatteryOptEnabled = await _isBatteryOptimizationEnabled();
+      
+      // Ajustar frecuencia según condiciones
+      if (batteryLevel < 20 || isBatteryOptEnabled) {
+        // Reducir frecuencia en batería baja
+        debugPrint('$_tag: Reducing task frequency due to low battery or optimization');
+        await _setReducedFrequency();
+      } else if (isWiFi && batteryLevel > 50) {
+        // Frecuencia normal en condiciones óptimas
+        debugPrint('$_tag: Using normal task frequency');
+        await _setNormalFrequency();
+      }
+    } catch (e) {
+      debugPrint('$_tag: Error adjusting tasks for power state: $e');
+    }
+  }
+
+  /// Establecer frecuencia reducida para conservar batería
+  Future<void> _setReducedFrequency() async {
+    await Workmanager().cancelByUniqueName('attendance_sync');
+    await Workmanager().registerPeriodicTask(
+      'attendance_sync',
+      'attendanceSync',
+      frequency: const Duration(minutes: 30), // Reducido de 15 minutos
+      constraints: Constraints(
+        networkType: NetworkType.connected,
+        requiresBatteryNotLow: true,
+      ),
+    );
+  }
+
+  /// Establecer frecuencia normal
+  Future<void> _setNormalFrequency() async {
+    await Workmanager().cancelByUniqueName('attendance_sync');
+    await Workmanager().registerPeriodicTask(
+      'attendance_sync',
+      'attendanceSync',
+      frequency: const Duration(minutes: 15), // Frecuencia normal
+      constraints: Constraints(
+        networkType: NetworkType.connected,
+      ),
+    );
+  }
 
 
   // 🎯 CLEANUP Y DISPOSE

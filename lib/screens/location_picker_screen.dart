@@ -154,8 +154,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             zoomControlsEnabled: false,
           ),
         ),
-        Expanded(
-          flex: 1,
+        SizedBox(
+          height: 180, // Fixed height to prevent overflow
           child: _buildControlPanel(),
         ),
       ],
@@ -218,73 +218,132 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           topRight: Radius.circular(20),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Ubicación seleccionada
-          Row(
-            children: [
-              const Icon(Icons.location_on, color: AppColors.primaryOrange),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _selectedLocationName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Ubicación seleccionada - RESPONSIVE
+            Row(
+              children: [
+                const Icon(Icons.location_on, color: AppColors.primaryOrange),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _selectedLocationName,
+                        style: const TextStyle(
+                          fontSize: 14, // Reducido de 16
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    Text(
-                      'Lat: ${_selectedLatitude.toStringAsFixed(6)}, Lng: ${_selectedLongitude.toStringAsFixed(6)}',
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textGray),
-                    ),
-                  ],
+                      Text(
+                        'Lat: ${_selectedLatitude.toStringAsFixed(4)}, Lng: ${_selectedLongitude.toStringAsFixed(4)}', // Reducido precision
+                        style: const TextStyle(
+                            fontSize: 11, color: AppColors.textGray), // Reducido de 12
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Slider de rango
-          const Text('Rango de asistencia'),
-          Slider(
-            value: _selectedRange,
-            min: 10.0,
-            max: 500.0,
-            divisions: 49,
-            activeColor: AppColors.primaryOrange,
-            label: '${_selectedRange.toInt()}m',
-            onChanged: (value) {
-              setState(() {
-                _selectedRange = value;
-              });
-              _updateMapElements();
-            },
-          ),
-          // Botones
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _goToUideLocation,
-                  icon: const Icon(Icons.school, size: 16),
-                  label: const Text('UIDE'),
+              ],
+            ),
+            const SizedBox(height: 12), // Reducido de 16
+            // Slider de rango - COMPACTO
+            Row(
+              children: [
+                const Text('Rango:', style: TextStyle(fontSize: 13)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Slider(
+                    value: _selectedRange,
+                    min: 10.0,
+                    max: 500.0,
+                    divisions: 49,
+                    activeColor: AppColors.primaryOrange,
+                    label: '${_selectedRange.toInt()}m',
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedRange = value;
+                      });
+                      _updateMapElements();
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _goToCurrentLocation,
-                  icon: const Icon(Icons.my_location, size: 16),
-                  label: const Text('Mi ubicación'),
-                ),
-              ),
-            ],
-          ),
-        ],
+                Text('${_selectedRange.toInt()}m', 
+                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+              ],
+            ),
+            const SizedBox(height: 8), // Reducido spacing
+            // Botones - RESPONSIVO
+            LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth > 300) {
+                  // Layout horizontal para pantallas más grandes
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _goToUideLocation,
+                          icon: const Icon(Icons.school, size: 16),
+                          label: const Text('UIDE', style: TextStyle(fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _goToCurrentLocation,
+                          icon: const Icon(Icons.my_location, size: 16),
+                          label: const Text('Mi ubicación', style: TextStyle(fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  // Layout vertical para pantallas pequeñas
+                  return Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _goToUideLocation,
+                          icon: const Icon(Icons.school, size: 16),
+                          label: const Text('UIDE Campus', style: TextStyle(fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _goToCurrentLocation,
+                          icon: const Icon(Icons.my_location, size: 16),
+                          label: const Text('Mi ubicación', style: TextStyle(fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import '../utils/colors.dart';
 import '../utils/app_router.dart';
 import '../services/auth_service.dart';
 import '../core/app_constants.dart';
+// import 'auth/teacher_verification_screen.dart'; // TEMPORALMENTE DESHABILITADO
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,10 +26,16 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightGray,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 48, // Compensar padding
+                ),
+                child: Column(
+                  children: [
               const SizedBox(height: 60),
 
               // Logo y título
@@ -147,6 +154,49 @@ class _LoginScreenState extends State<LoginScreen> {
                 isPrimary: false,
               ),
 
+              // ⚠️ TEACHER VERIFICATION TEMPORALMENTE DESHABILITADO
+              // TODO: Rehabilitar cuando tengamos más tiempo para testing completo
+              /*
+              const SizedBox(height: 16),
+              
+              // ✅ PHASE 3: Teacher Verification Access
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.school, color: AppColors.primaryOrange, size: 20),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '¿Eres profesor?',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkGray,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: () => _showTeacherEmailDialog(),
+                      child: const Text(
+                        'Verifica tu cuenta profesor aquí',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.primaryOrange,
+                          fontWeight: FontWeight.w500,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              */
+
               const SizedBox(height: 20),
 
               // Indicador de estado del servidor
@@ -170,19 +220,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // ignore: prefer_const_constructors
-                    Text(
-                      'Conectado al servidor: ${AppConstants.baseUrl}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textGray,
+                    Flexible(
+                      child: Text(
+                        'Conectado al servidor: ${AppConstants.baseUrl}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textGray,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
               ),
             ],
-          ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -256,6 +312,110 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isValidEmail(String email) {
     return RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email);
   }
+
+  // ⚠️ TEMPORALMENTE DESHABILITADO - Teacher Email Input Dialog
+  /*
+  void _showTeacherEmailDialog() {
+    final TextEditingController emailController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.school, color: AppColors.primaryOrange, size: 24),
+              const SizedBox(width: 8),
+              const Text(
+                'Verificación Docente',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Ingresa tu correo institucional para verificar tu cuenta profesor:',
+                style: TextStyle(fontSize: 14, color: AppColors.textGray),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Correo institucional',
+                  hintText: 'profesor@universidad.edu',
+                  prefixIcon: const Icon(Icons.email),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                autofocus: true,
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, color: AppColors.primaryOrange, size: 16),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Solo correos institucionales autorizados pueden completar este proceso.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textGray,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final email = emailController.text.trim();
+                if (email.isEmpty) {
+                  AppRouter.showSnackBar('Ingresa tu correo institucional', isError: true);
+                  return;
+                }
+                if (!_isValidEmail(email)) {
+                  AppRouter.showSnackBar('Ingresa un correo válido', isError: true);
+                  return;
+                }
+                
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => TeacherVerificationScreen(teacherEmail: email),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryOrange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Continuar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  */
 
   @override
   void dispose() {

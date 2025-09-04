@@ -260,6 +260,10 @@ class ApiResponse<T> {
     }
   }
 
+  // Compatibility getters for legacy code
+  String? get errorMessage => error;
+  bool get isSuccess => success;
+
   /// Convert to JSON for debugging/logging
   Map<String, dynamic> toJson() {
     return {

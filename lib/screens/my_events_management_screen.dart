@@ -39,7 +39,7 @@ class _MyEventsManagementScreenState extends State<MyEventsManagementScreen> {
       // Cargar usuario actual
       _currentUser = await _storageService.getUser();
       
-      if (_currentUser?.rol == AppConstants.docenteRole) {
+      if (_currentUser?.rol == AppConstants.profesorRole) {
         // ✅ PROFESOR: Solo sus eventos
         debugPrint('📚 Cargando eventos del profesor: ${_currentUser!.id}');
         final eventos = await _eventoService.getEventosByCreador(_currentUser!.id);

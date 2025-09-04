@@ -303,4 +303,69 @@ class AttendanceState {
       'error': lastError,
     };
   }
+
+  /// ✅ NUEVO: Serializar a JSON para persistencia
+  Map<String, dynamic> toJson() => toDebugMap();
+
+  /// ✅ NUEVO: Deserializar desde JSON para persistencia
+  factory AttendanceState.fromJson(Map<String, dynamic> json) {
+    return AttendanceState(
+      currentUser: json['currentUser'] != null 
+          ? Usuario.fromJson(json['currentUser'] as Map<String, dynamic>)
+          : null,
+      currentEvent: json['currentEvent'] != null
+          ? Evento.fromJson(json['currentEvent'] as Map<String, dynamic>)
+          : null,
+      policies: json['policies'] != null
+          ? AttendancePolicies.fromJson(json['policies'] as Map<String, dynamic>)
+          : null,
+      trackingStatus: _parseTrackingStatus(json['trackingStatus'] as String? ?? 'initial'),
+      attendanceStatus: _parseAttendanceStatus(json['attendanceStatus'] as String? ?? 'notStarted'),
+      isInsideGeofence: json['location']?['insideGeofence'] as bool? ?? false,
+      userLatitude: json['location']?['latitude']?.toDouble() ?? 0.0,
+      userLongitude: json['location']?['longitude']?.toDouble() ?? 0.0,
+      distanceToEvent: json['location']?['distance']?.toDouble() ?? 999999.0,
+      isInGracePeriod: json['gracePeriod']?['active'] as bool? ?? false,
+      gracePeriodRemaining: json['gracePeriod']?['remaining'] as int? ?? 0,
+      canRegisterAttendance: json['attendance']?['canRegister'] as bool? ?? false,
+      hasRegisteredAttendance: json['attendance']?['hasRegistered'] as bool? ?? false,
+      hasViolatedBoundary: json['attendance']?['hasViolated'] as bool? ?? false,
+      lastLocationUpdate: json['timestamps']?['lastUpdate'] != null
+          ? DateTime.parse(json['timestamps']['lastUpdate'] as String)
+          : null,
+      trackingStartTime: json['timestamps']?['trackingStart'] != null
+          ? DateTime.parse(json['timestamps']['trackingStart'] as String)
+          : null,
+      attendanceRegisteredTime: json['timestamps']?['attendanceRegistered'] != null
+          ? DateTime.parse(json['timestamps']['attendanceRegistered'] as String)
+          : null,
+      lastError: json['error'] as String?,
+    );
+  }
+
+  /// Helper para parsear TrackingStatus desde string
+  static TrackingStatus _parseTrackingStatus(String status) {
+    switch (status) {
+      case 'initial': return TrackingStatus.initial;
+      case 'active': return TrackingStatus.active;
+      case 'paused': return TrackingStatus.paused;
+      case 'stopped': return TrackingStatus.stopped;
+      case 'completed': return TrackingStatus.completed;
+      case 'error': return TrackingStatus.error;
+      default: return TrackingStatus.initial;
+    }
+  }
+
+  /// Helper para parsear AttendanceStatus desde string
+  static AttendanceStatus _parseAttendanceStatus(String status) {
+    switch (status) {
+      case 'notStarted': return AttendanceStatus.notStarted;
+      case 'canRegister': return AttendanceStatus.canRegister;
+      case 'registered': return AttendanceStatus.registered;
+      case 'outsideGeofence': return AttendanceStatus.outsideGeofence;
+      case 'gracePeriod': return AttendanceStatus.gracePeriod;
+      case 'violation': return AttendanceStatus.violation;
+      default: return AttendanceStatus.notStarted;
+    }
+  }
 }

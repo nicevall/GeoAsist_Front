@@ -1,6 +1,7 @@
 // lib/services/evento_service.dart
 import '../models/evento_model.dart';
 import '../models/api_response_model.dart';
+import '../models/event_statistics_model.dart';
 import '../core/app_constants.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
@@ -161,19 +162,47 @@ class EventoService {
           return <Evento>[];
         }
 
-        // Process event list
+        // Process event list with soft delete filter FOR STUDENTS
         final eventos = <Evento>[];
+        final excludedStates = ['eliminado', 'deleted', 'cancelado', 'inactivo', 'finalizado', 'en espera'];
+        final problemEventIds = ['68a730152f90b7d2b0a8ffb6']; // IDs de eventos con problemas del servidor
+        int filteredOutCount = 0;
+        
         for (int i = 0; i < eventosList.length; i++) {
           final eventoData = eventosList[i];
           debugPrint('🔍 Processing event $i: ${eventoData.runtimeType}');
 
           if (eventoData is Map<String, dynamic> &&
               _isValidBackendEventData(eventoData)) {
+            
+            // 🚨 FILTRO SOFT DELETE: Verificar estado del evento
+            final estado = eventoData['estado']?.toString().toLowerCase() ?? '';
+            final nombre = eventoData['nombre'] ?? eventoData['titulo'] ?? 'Unknown';
+            final eventId = eventoData['id']?.toString() ?? eventoData['_id']?.toString() ?? '';
+            
+            debugPrint('🔍 CHECKING EVENT: "$nombre" (ID: $eventId) - estado: "$estado"');
+            debugPrint('🔍 EXCLUDED STATES: $excludedStates');
+            debugPrint('🔍 CONTAINS CHECK: ${excludedStates.contains(estado)}');
+            
+            // Filtrar por estado
+            if (excludedStates.contains(estado)) {
+              filteredOutCount++;
+              debugPrint('🚫 FILTERING OUT deleted event: "$nombre" (estado: $estado)');
+              continue; // Saltar este evento
+            }
+            
+            // Filtrar eventos problemáticos conocidos del servidor
+            if (problemEventIds.contains(eventId)) {
+              filteredOutCount++;
+              debugPrint('🚫 FILTERING OUT problematic server event: "$nombre" (ID: $eventId)');
+              continue; // Saltar este evento problemático
+            }
+            
             try {
               final eventoMapeado = _mapBackendToFlutter(eventoData);
               final evento = Evento.fromJson(eventoMapeado);
               eventos.add(evento);
-              debugPrint('✅ Event mapped successfully: ${evento.titulo}');
+              debugPrint('✅ Event added: "$nombre" (estado: $estado)');
             } catch (e) {
               debugPrint('❌ Error mapping event $i: $e');
               debugPrint('🔍 Event data: $eventoData');
@@ -183,7 +212,10 @@ class EventoService {
           }
         }
 
-        debugPrint('✅ Total events loaded: ${eventos.length}');
+        if (filteredOutCount > 0) {
+          debugPrint('🗑️ Filtered out $filteredOutCount deleted/inactive events');
+        }
+        debugPrint('✅ Total events loaded: ${eventos.length} (${eventosList.length} total, $filteredOutCount filtered out)');
         _updateLoadingState(operation, EventoLoadingState.success);
         return eventos;
       }
@@ -286,12 +318,8 @@ class EventoService {
           'longitud': longitud,
           'radio': rangoPermitido,
         },
-        'fechaInicio': fecha.toIso8601String().split('T')[0],
-        'fechaFin': fecha.toIso8601String().split('T')[0],
-        'horaInicio':
-            '${horaInicio.hour.toString().padLeft(2, '0')}:${horaInicio.minute.toString().padLeft(2, '0')}',
-        'horaFin':
-            '${horaFinal.hour.toString().padLeft(2, '0')}:${horaFinal.minute.toString().padLeft(2, '0')}',
+        'fechaInicio': horaInicio.toIso8601String(),
+        'fechaFin': horaFinal.toIso8601String(),
         'politicasAsistencia': {
           'tiempoGracia': tiempoGracia,
           'maximoSalidas': maximoSalidas,
@@ -301,11 +329,18 @@ class EventoService {
         },
       };
 
+      // ✅ NUEVO: Debug de fechas específicas
+      debugPrint('🔍 DEBUG FECHAS:');
+      debugPrint('   📅 horaInicio completa: ${horaInicio.toIso8601String()}');
+      debugPrint('   📅 horaFinal completa: ${horaFinal.toIso8601String()}');
+      debugPrint('   📅 fechaInicio enviada: ${horaInicio.toIso8601String()}');
+      debugPrint('   📅 fechaFin enviada: ${horaFinal.toIso8601String()}');
+      
       debugPrint('📦 Event creation payload: ${jsonEncode(body)}');
       debugPrint('🌐 Endpoint: ${AppConstants.eventosEndpoint}/crear');
 
       final response = await _apiService.post(
-        '${AppConstants.eventosEndpoint}/crear',
+        '/eventos/crear',  // ✅ CORRECTO: baseUrl ya incluye /api
         body: body,
         headers: AppConstants.getAuthHeaders(token),
       );
@@ -352,7 +387,7 @@ class EventoService {
       debugPrint('🎫 Token found, proceeding with event update');
 
       final response = await _apiService.put(
-        '${AppConstants.eventosEndpoint}/$eventoId',
+        '/eventos/$eventoId',
         body: datosActualizados,
         headers: AppConstants.getAuthHeaders(token),
       );
@@ -380,7 +415,7 @@ class EventoService {
     }
   }
 
-  // 🎯 MÉTODO 1: Editar evento (funcionalidad esencial para docentes) - FASE B
+  // 🎯 MÉTODO 1: Editar evento (funcionalidad esencial para profesors) - FASE B
   Future<ApiResponse<Evento>> editarEvento({
     required String eventoId,
     required String titulo,
@@ -424,12 +459,8 @@ class EventoService {
           'longitud': longitud,
           'radio': rangoPermitido,
         },
-        'fechaInicio': fecha.toIso8601String().split('T')[0],
-        'fechaFin': fecha.toIso8601String().split('T')[0],
-        'horaInicio':
-            '${horaInicio.hour.toString().padLeft(2, '0')}:${horaInicio.minute.toString().padLeft(2, '0')}',
-        'horaFin':
-            '${horaFinal.hour.toString().padLeft(2, '0')}:${horaFinal.minute.toString().padLeft(2, '0')}',
+        'fechaInicio': horaInicio.toIso8601String(),
+        'fechaFin': horaFinal.toIso8601String(),
         'politicasAsistencia': {
           'tiempoGracia': tiempoGracia,
           'maximoSalidas': maximoSalidas,
@@ -440,10 +471,10 @@ class EventoService {
       };
 
       debugPrint('📦 Edit event payload: ${jsonEncode(body)}');
-      debugPrint('🌐 Edit endpoint: ${AppConstants.eventosEndpoint}/$eventoId');
+      debugPrint('🌐 Edit endpoint: /eventos/$eventoId');
 
       final response = await _apiService.put(
-        '${AppConstants.eventosEndpoint}/$eventoId',
+        '/eventos/$eventoId',
         body: body,
         headers: AppConstants.getAuthHeaders(token),
       );
@@ -473,7 +504,9 @@ class EventoService {
   // 🎯 MÉTODO 2: Eliminar evento - FASE B
   Future<ApiResponse<bool>> eliminarEvento(String eventoId) async {
     try {
-      debugPrint('🗑️ Deleting event: $eventoId');
+      debugPrint('🗑️ [FRONTEND] Intentando eliminar evento: $eventoId');
+      debugPrint('🔍 [FRONTEND] Longitud del ID: ${eventoId.length}');
+      debugPrint('🔍 [FRONTEND] ID válido format: ${eventoId.isNotEmpty && eventoId.length == 24}');
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -484,7 +517,7 @@ class EventoService {
       debugPrint('🎫 Token found, proceeding with deletion');
 
       final response = await _apiService.delete(
-        '${AppConstants.eventosEndpoint}/$eventoId',
+        '/eventos/$eventoId',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -504,10 +537,10 @@ class EventoService {
     }
   }
 
-  // 🎯 MÉTODO 3: Obtener eventos específicos del docente - FASE B
-  Future<List<Evento>> obtenerEventosDocente(String docenteId) async {
+  // 🎯 MÉTODO 3: Obtener eventos específicos del profesor - FASE B
+  Future<List<Evento>> obtenerEventosDocente(String profesorId) async {
     try {
-      debugPrint('👨‍🏫 Loading events for teacher: $docenteId');
+      debugPrint('👨‍🏫 Loading events for teacher: $profesorId');
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -518,7 +551,7 @@ class EventoService {
       debugPrint('🎫 Token found, loading teacher events');
 
       final response = await _apiService.get(
-        '${AppConstants.eventosEndpoint}/mis',
+        '/eventos/mis',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -527,7 +560,7 @@ class EventoService {
       if (response.success && response.data != null) {
         final eventos = await _procesarEventosResponse(response.data!);
         final eventosDocente =
-            eventos.where((e) => e.creadoPor == docenteId).toList();
+            eventos.where((e) => e.creadoPor == profesorId).toList();
         debugPrint('✅ Teacher events loaded: ${eventosDocente.length} events');
         return eventosDocente;
       }
@@ -554,7 +587,7 @@ class EventoService {
       debugPrint('🎫 Token found, proceeding with finalization');
 
       final response = await _apiService.post(
-        '${AppConstants.eventosEndpoint}/$eventoId/finalizar',
+        '/eventos/$eventoId/finalizar',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -577,43 +610,84 @@ class EventoService {
 
   // Método auxiliar reutilizable para procesar respuestas de eventos
   Future<List<Evento>> _procesarEventosResponse(
-      Map<String, dynamic> data) async {
+      dynamic data) async {
     try {
       debugPrint('🔄 Processing events response data');
 
       List<dynamic> eventosList = <dynamic>[];
 
-      if (data.containsKey('data')) {
-        final dataField = data['data'];
-        if (dataField is List<dynamic>) {
-          eventosList = dataField;
-        } else {
-          debugPrint('❌ Field "data" is not a List');
-        }
-      } else if (data.containsKey('eventos')) {
-        final eventosField = data['eventos'];
-        if (eventosField is List<dynamic>) {
-          eventosList = eventosField;
-        } else {
-          debugPrint('❌ Field "eventos" is not a List');
-        }
-      }
-
-      final eventos = <Evento>[];
-      for (final eventoData in eventosList) {
-        if (eventoData is Map<String, dynamic> &&
-            _isValidBackendEventData(eventoData)) {
-          try {
-            final eventoMapeado = _mapBackendToFlutter(eventoData);
-            final evento = Evento.fromJson(eventoMapeado);
-            eventos.add(evento);
-          } catch (e) {
-            debugPrint('❌ Error processing event: $e');
+      // 🚨 NUEVO: Manejar cuando la respuesta es directamente un array
+      if (data is List<dynamic>) {
+        eventosList = data;
+        debugPrint('✅ Response is direct array: ${eventosList.length} events');
+      } else if (data is Map<String, dynamic>) {
+        if (data.containsKey('data')) {
+          final dataField = data['data'];
+          if (dataField is List<dynamic>) {
+            eventosList = dataField;
+          } else {
+            debugPrint('❌ Field "data" is not a List');
+          }
+        } else if (data.containsKey('eventos')) {
+          final eventosField = data['eventos'];
+          if (eventosField is List<dynamic>) {
+            eventosList = eventosField;
+          } else {
+            debugPrint('❌ Field "eventos" is not a List');
           }
         }
       }
 
-      debugPrint('✅ Processed ${eventos.length} events successfully');
+      final eventos = <Evento>[];
+      // FOR TEACHERS: Allow 'finalizado' and 'en espera' events for management
+      final excludedStates = ['eliminado', 'deleted', 'cancelado', 'inactivo'];
+      int filteredOutCount = 0;
+      
+      for (final eventoData in eventosList) {
+        debugPrint('🔍 TEACHER - Processing event data type: ${eventoData.runtimeType}');
+        debugPrint('🔍 TEACHER - Is Map check: ${eventoData is Map<String, dynamic>}');
+        
+        if (eventoData is Map<String, dynamic>) {
+          debugPrint('🔍 TEACHER - Event is Map, checking validity...');
+          final isValid = _isValidBackendEventData(eventoData);
+          debugPrint('🔍 TEACHER - Event validity: $isValid');
+          
+          if (isValid) {
+          
+          // 🚨 FILTRO SOFT DELETE: Verificar estado del evento
+          final estado = eventoData['estado']?.toString().toLowerCase() ?? '';
+          final nombre = eventoData['nombre'] ?? eventoData['titulo'] ?? 'Unknown';
+          
+          debugPrint('🔍 MIS EVENTOS - CHECKING EVENT: "$nombre" - estado: "$estado"');
+          debugPrint('🔍 MIS EVENTOS - EXCLUDED STATES: $excludedStates');
+          debugPrint('🔍 MIS EVENTOS - CONTAINS CHECK: ${excludedStates.contains(estado)}');
+          
+          if (excludedStates.contains(estado)) {
+            filteredOutCount++;
+            debugPrint('🚫 FILTERING OUT deleted event: "$nombre" (estado: $estado)');
+            continue; // Saltar este evento
+          }
+          
+          try {
+            final eventoMapeado = _mapBackendToFlutter(eventoData);
+            final evento = Evento.fromJson(eventoMapeado);
+            eventos.add(evento);
+            debugPrint('✅ Event added: "$nombre" (estado: $estado)');
+          } catch (e) {
+            debugPrint('❌ Error processing event: $e');
+          }
+          } else {
+            debugPrint('⚠️ TEACHER - Event failed validation, skipping');
+          }
+        } else {
+          debugPrint('⚠️ TEACHER - Event is not a Map, skipping');
+        }
+      }
+
+      if (filteredOutCount > 0) {
+        debugPrint('🗑️ Filtered out $filteredOutCount deleted/inactive events');
+      }
+      debugPrint('✅ Processed ${eventos.length} events successfully (${eventosList.length} total, $filteredOutCount filtered out)');
       return eventos;
     } catch (e) {
       debugPrint('❌ Exception processing events response: $e');
@@ -623,62 +697,20 @@ class EventoService {
 
   // 🎯 MÉTODOS PARA CONTROL DE EVENTOS EN TIEMPO REAL (FASE C)
 
-  /// ✅ Activar evento (permite que estudiantes se unan)
+  /// ✅ NOTA: La activación de eventos es AUTOMÁTICA via cron job
+  /// El backend automáticamente cambia eventos de 'activo' a 'En proceso' según fecha/hora
+  /// No es necesario activar/desactivar manualmente
   Future<bool> activarEvento(String eventoId) async {
-    try {
-      debugPrint('▶️ Activando evento: $eventoId');
-
-      final token = await _storageService.getToken();
-      if (token == null) {
-        debugPrint('❌ No hay sesión activa para activar evento');
-        return false;
-      }
-
-      final response = await _apiService.put(
-        '${AppConstants.eventosEndpoint}/$eventoId/activar',
-        headers: AppConstants.getAuthHeaders(token),
-      );
-
-      if (response.success) {
-        debugPrint('✅ Evento activado exitosamente');
-        return true;
-      }
-
-      debugPrint('❌ Error activando evento: ${response.error}');
-      return false;
-    } catch (e) {
-      debugPrint('❌ Excepción activando evento: $e');
-      return false;
-    }
+    debugPrint('⚠️ Activación de eventos es automática via cron job');
+    debugPrint('💡 Los eventos cambian automáticamente de "activo" a "En proceso" según fecha/hora');
+    return false; // No implementado porque es automático
   }
 
-  /// Desactivar evento
+  /// NOTA: La desactivación también es automática
   Future<bool> desactivarEvento(String eventoId) async {
-    try {
-      debugPrint('⏹️ Desactivando evento: $eventoId');
-
-      final token = await _storageService.getToken();
-      if (token == null) {
-        debugPrint('❌ No hay sesión activa para desactivar evento');
-        return false;
-      }
-
-      final response = await _apiService.put(
-        '${AppConstants.eventosEndpoint}/$eventoId/desactivar',
-        headers: AppConstants.getAuthHeaders(token),
-      );
-
-      if (response.success) {
-        debugPrint('✅ Evento desactivado exitosamente');
-        return true;
-      }
-
-      debugPrint('❌ Error desactivando evento: ${response.error}');
-      return false;
-    } catch (e) {
-      debugPrint('❌ Excepción desactivando evento: $e');
-      return false;
-    }
+    debugPrint('⚠️ Desactivación de eventos es automática via cron job');
+    debugPrint('💡 Los eventos cambian automáticamente a "finalizado" según fecha/hora');
+    return false; // No implementado porque es automático
   }
 
   /// Iniciar receso durante el evento
@@ -699,7 +731,7 @@ class EventoService {
       };
 
       final response = await _apiService.post(
-        '${AppConstants.eventosEndpoint}/$eventoId/receso/iniciar',
+        '/eventos/$eventoId/receso/iniciar',
         body: requestData,
         headers: AppConstants.getAuthHeaders(token),
       );
@@ -734,7 +766,7 @@ class EventoService {
       };
 
       final response = await _apiService.post(
-        '${AppConstants.eventosEndpoint}/$eventoId/receso/terminar',
+        '/eventos/$eventoId/receso/terminar',
         body: requestData,
         headers: AppConstants.getAuthHeaders(token),
       );
@@ -752,21 +784,6 @@ class EventoService {
     }
   }
 
-  Future<bool> toggleEventoActive(String eventoId, bool isActive) async {
-    try {
-      debugPrint(
-          '🔄 Alternando estado del evento $eventoId a: ${isActive ? "ACTIVO" : "INACTIVO"}');
-
-      if (isActive) {
-        return await activarEvento(eventoId);
-      } else {
-        return await desactivarEvento(eventoId);
-      }
-    } catch (e) {
-      debugPrint('❌ Error alternando estado del evento: $e');
-      return false;
-    }
-  }
 
   /// Obtener métricas en tiempo real de un evento específico
   Future<Map<String, dynamic>> obtenerMetricasEvento(String eventoId) async {
@@ -780,7 +797,7 @@ class EventoService {
       }
 
       final response = await _apiService.get(
-        '${AppConstants.eventosEndpoint}/$eventoId/metricas',
+        '/dashboard/metrics/event/$eventoId',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -862,7 +879,7 @@ class EventoService {
         'horaFinal':
             backendData['horaFin'] ?? backendData['horaFinal'] ?? '10:00',
         'estado': backendData['estado'] ?? 'programado',
-        'creadoPor': backendData['creadoPor'] ?? backendData['docente'] ?? '',
+        'creadoPor': backendData['creadoPor'] ?? backendData['profesor'] ?? '',
         'creadoEn': backendData['creadoEn'] ?? DateTime.now().toIso8601String(),
         'politicasAsistencia': backendData['politicasAsistencia'] ??
             {
@@ -943,6 +960,60 @@ class EventoService {
   /// 🎯 ALIAS: Obtener eventos por creador (para dashboard del profesor)
   Future<List<Evento>> getEventosByCreador(String creadorId) async {
     return await obtenerEventosDocente(creadorId);
+  }
+
+  // 📊 EVENT STATISTICS: Get detailed event analytics
+  Future<ApiResponse<EventStatistics>> getEventStatistics(String eventoId) async {
+    try {
+      debugPrint('📊 [FRONTEND] Fetching statistics for event: $eventoId');
+      
+      final endpoint = AppConstants.eventStatisticsEndpoint.replaceAll('[eventId]', eventoId);
+      
+      final response = await _apiService.get(endpoint);
+      
+      debugPrint('📡 Statistics response success: ${response.success}');
+      
+      if (response.success && response.data != null) {
+        final estadisticas = EventStatistics.fromJson(response.data!);
+        debugPrint('✅ Event statistics loaded: ${estadisticas.totalStudents} students');
+        return ApiResponse.success(estadisticas, message: response.message);
+      }
+      
+      debugPrint('❌ Event statistics failed: ${response.error}');
+      return ApiResponse.error(response.error ?? 'Error obteniendo estadísticas');
+    } catch (e) {
+      debugPrint('❌ Event statistics exception: $e');
+      return ApiResponse.error('Error de conexión: $e');
+    }
+  }
+
+  // 👥 EVENT STUDENTS: Get list of students enrolled in event
+  Future<ApiResponse<List<StudentAttendanceStat>>> getEventStudents(String eventoId) async {
+    try {
+      debugPrint('👥 [FRONTEND] Fetching students for event: $eventoId');
+      
+      final endpoint = '/eventos/$eventoId/students';
+      
+      final response = await _apiService.get(endpoint);
+      
+      debugPrint('📡 Students response success: ${response.success}');
+      
+      if (response.success && response.data != null) {
+        final studentsData = response.data!['students'] as List? ?? [];
+        final students = studentsData
+            .map((data) => StudentAttendanceStat.fromJson(data))
+            .toList();
+        
+        debugPrint('✅ Event students loaded: ${students.length} students');
+        return ApiResponse.success(students, message: response.message);
+      }
+      
+      debugPrint('❌ Event students failed: ${response.error}');
+      return ApiResponse.error(response.error ?? 'Error obteniendo estudiantes');
+    } catch (e) {
+      debugPrint('❌ Event students exception: $e');
+      return ApiResponse.error('Error de conexión: $e');
+    }
   }
 
   /// Dispose resources and cleanup

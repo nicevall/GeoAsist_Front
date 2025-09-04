@@ -175,15 +175,15 @@ class AsistenciaService {
         final locationData = {
           'usuarioId': usuarioId,
           'eventoId': eventoId,
-          'latitud': latitud,
-          'longitud': longitud,
+          'latitude': latitud,   // ✅ CRÍTICO: Backend espera 'latitude' (inglés)
+          'longitude': longitud, // ✅ CRÍTICO: Backend espera 'longitude' (inglés)  
           'timestamp': DateTime.now().toIso8601String(),
           if (precision != null) 'precision': precision,
           if (speed != null) 'speed': speed,
         };
 
         final response = await _apiService.post(
-          '/location/update',
+          AppConstants.locationEndpoint, // '/location/update'
           body: locationData,
           headers: AppConstants.getAuthHeaders(token),
         );
@@ -203,6 +203,12 @@ class AsistenciaService {
   Future<List<Asistencia>> obtenerAsistenciasEvento(String eventoId) async {
     try {
       debugPrint('👥 Obteniendo asistencias del evento: $eventoId');
+      
+      // ✅ CRÍTICO: Validar eventoId antes de hacer request al backend
+      if (eventoId.isEmpty || eventoId == 'null' || eventoId == 'undefined') {
+        debugPrint('❌ eventoId inválido: "$eventoId" - retornando lista vacía');
+        return [];
+      }
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -211,7 +217,7 @@ class AsistenciaService {
       }
 
       final response = await _apiService.get(
-        '/asistencia/evento/$eventoId',
+        '${AppConstants.asistenciaEndpoint.replaceAll('/registrar', '/event')}/$eventoId',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -238,6 +244,12 @@ class AsistenciaService {
   // 🎯 MÉTODO 4: Obtener historial de asistencias de un usuario
   Future<List<Asistencia>> obtenerHistorialUsuario(String usuarioId) async {
     try {
+      // Validar que el usuarioId no esté vacío
+      if (usuarioId.isEmpty) {
+        debugPrint('❌ UsuarioId vacío, no se puede obtener historial');
+        return [];
+      }
+
       debugPrint(
           '📚 Obteniendo historial de asistencias del usuario: $usuarioId');
 
@@ -248,7 +260,7 @@ class AsistenciaService {
       }
 
       final response = await _apiService.get(
-        '/asistencia/usuario/$usuarioId',
+        '${AppConstants.asistenciaEndpoint.replaceAll('/registrar', '/mis-asistencias')}',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -279,6 +291,12 @@ class AsistenciaService {
     try {
       debugPrint(
           '📊 Obteniendo estadísticas personales del usuario: $usuarioId');
+          
+      // ✅ CRÍTICO: Validar usuarioId antes de hacer request al backend
+      if (usuarioId.isEmpty || usuarioId == 'null' || usuarioId == 'undefined') {
+        debugPrint('❌ usuarioId inválido: "$usuarioId" - retornando mapa vacío');
+        return {};
+      }
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -287,7 +305,7 @@ class AsistenciaService {
       }
 
       final response = await _apiService.get(
-        '/dashboard/student/$usuarioId',
+        '/dashboard/student/metrics',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -346,9 +364,9 @@ class AsistenciaService {
         'longitud': 0.0,
       };
 
-      // ✅ CORREGIDO: Usar body en lugar de data
+      // ✅ CORREGIDO: Usar endpoint correcto con /api
       final response = await _apiService.post(
-        '/asistencia/registrar',
+        AppConstants.asistenciaEndpoint, // '/asistencia/registrar'
         body: justificacionData,
         headers: AppConstants.getAuthHeaders(token),
       );
@@ -739,10 +757,10 @@ class AsistenciaService {
         'urgente': true,
       };
 
-      // ✅ Timeout más corto para emergencias
+      // ✅ Timeout más corto para emergencias con endpoint correcto
       final response = await _apiService
           .post(
-            '/heartbeat/emergency', // Endpoint especializado si está disponible
+            AppConstants.heartbeatEndpoint, // '/asistencia/heartbeat'
             body: emergencyData,
             headers: AppConstants.getAuthHeaders(token),
           )
@@ -805,7 +823,7 @@ class AsistenciaService {
       }
 
       final response = await _apiService.get(
-        '/eventos/$eventoId/metricas',
+        '/dashboard/metrics/event/$eventoId',
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -830,10 +848,10 @@ class AsistenciaService {
         return ApiResponse.error('No hay token para test');
       }
 
-      // ✅ Usar un endpoint ligero existente o crear uno específico
+      // ✅ Usar endpoint público de health que no requiere autenticación
       final response = await _apiService.get(
-        '/dashboard/metrics', // Usar tu endpoint existente más ligero
-        headers: AppConstants.getAuthHeaders(token),
+        '/firestore/health', // Endpoint público de health check
+        headers: AppConstants.defaultHeaders, // Sin token de autenticación
       );
 
       final isConnected = response.success;
@@ -1022,20 +1040,12 @@ class AsistenciaService {
           return ApiResponse.error('No hay sesión activa');
         }
 
-        // ✅ NUEVO: Información adicional para el registro
+        // ✅ CORREGIDO: Solo enviar lo que el backend espera
         final registroCompleto = {
           'eventoId': eventoId,
-          'usuarioId': usuarioId,
           'latitud': latitud,
           'longitud': longitud,
-          'estado': estado,
-          'observaciones': observaciones,
-          'timestamp': DateTime.now().toIso8601String(),
-          'platform': Platform.operatingSystem,
-          'appVersion': AppConstants.appVersion,
-          'registroTipo': 'manual',
-          'gpsAccuracy': 5.0,
-          'validatedAppState': validateAppState,
+          // Backend solo usa estos 3 campos - resto lo ignora
         };
 
         final response = await _apiService.post(

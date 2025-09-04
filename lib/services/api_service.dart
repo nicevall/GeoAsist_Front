@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../core/app_constants.dart';
+import '../core/api_endpoints.dart';
+import '../core/error_handler.dart';
 import '../models/api_response_model.dart';
 import 'package:flutter/foundation.dart';
 
@@ -12,6 +14,7 @@ class ApiService {
   ApiService._internal();
 
   final http.Client _client = http.Client();
+  final ErrorHandler _errorHandler = ErrorHandler();
 
   Future<ApiResponse<Map<String, dynamic>>> get(
     String endpoint, {
@@ -24,13 +27,16 @@ class ApiService {
     debugPrint('📋 Headers: ${headers ?? 'Default headers'}');
 
     try {
-      final uri = Uri.parse('${AppConstants.baseUrl}$endpoint');
+      // Usar endpoints centralizados cuando sea posible
+      final baseUrl = ApiEndpoints.baseUrl;
+      final uri = Uri.parse('$baseUrl$endpoint');
+      
       final response = await _client
           .get(
             uri,
-            headers: headers ?? AppConstants.defaultHeaders,
+            headers: headers ?? ApiEndpoints.defaultHeaders,
           )
-          .timeout(AppConstants.apiTimeout);
+          .timeout(ApiEndpoints.defaultTimeout);
 
       stopwatch.stop();
 
@@ -40,11 +46,12 @@ class ApiService {
       debugPrint(
           '✅ Response Body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...[TRUNCATED]' : response.body}');
 
-      return _handleResponse(response);
+      return _handleResponseEnhanced(response, stopwatch.elapsed);
     } catch (e) {
       stopwatch.stop();
-      debugPrint('❌ GET Error after ${stopwatch.elapsedMilliseconds}ms: $e');
-      return ApiResponse.error(_handleError(e));
+      final appError = _errorHandler.handleError(e, context: 'GET $endpoint');
+      debugPrint('❌ GET Error after ${stopwatch.elapsedMilliseconds}ms: ${appError.message}');
+      return ApiResponse.error(appError.userFriendlyMessage);
     }
   }
 
@@ -61,14 +68,17 @@ class ApiService {
     debugPrint('📋 Headers: ${headers ?? 'Default headers'}');
 
     try {
-      final uri = Uri.parse('${AppConstants.baseUrl}$endpoint');
+      // Usar endpoints centralizados cuando sea posible
+      final baseUrl = ApiEndpoints.baseUrl;
+      final uri = Uri.parse('$baseUrl$endpoint');
+      
       final response = await _client
           .post(
             uri,
-            headers: headers ?? AppConstants.defaultHeaders,
+            headers: headers ?? ApiEndpoints.defaultHeaders,
             body: body != null ? json.encode(body) : null,
           )
-          .timeout(AppConstants.apiTimeout);
+          .timeout(ApiEndpoints.defaultTimeout);
 
       stopwatch.stop();
 
@@ -159,7 +169,8 @@ class ApiService {
     }
   }
 
-  ApiResponse<Map<String, dynamic>> _handleResponse(http.Response response) {
+  /// Método mejorado para manejar respuestas con ErrorHandler
+  ApiResponse<Map<String, dynamic>> _handleResponseEnhanced(http.Response response, Duration responseTime) {
     try {
       final dynamic rawData = json.decode(response.body);
 
@@ -183,24 +194,26 @@ class ApiService {
           message: data['mensaje'] ?? data['message'] ?? 'Success',
         );
       } else {
-        // Para errores, intentamos extraer el mensaje
-        String errorMessage = 'Error desconocido';
-
-        if (rawData is Map<String, dynamic>) {
-          errorMessage = rawData['error'] ?? rawData['mensaje'] ?? errorMessage;
-        }
-
+        // Usar ErrorHandler para clasificar errores HTTP
+        final appError = _errorHandler.handleHttpError(response, context: 'api_response');
+        
         return ApiResponse.error(
-          errorMessage,
+          appError.userFriendlyMessage,
           message: 'Error ${response.statusCode}',
         );
       }
     } catch (e) {
+      final appError = _errorHandler.handleError(e, context: 'response_parsing');
       return ApiResponse.error(
-        'Error al procesar respuesta: ${response.body}',
+        appError.userFriendlyMessage,
         message: 'Parse Error',
       );
     }
+  }
+  
+  /// Método legacy para compatibilidad
+  ApiResponse<Map<String, dynamic>> _handleResponse(http.Response response) {
+    return _handleResponseEnhanced(response, Duration.zero);
   }
 
   String _handleError(dynamic error) {

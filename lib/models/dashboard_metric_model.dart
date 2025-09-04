@@ -19,8 +19,12 @@ class DashboardMetric {
       id: json['_id'] ?? '',
       metric: json['metric'] ?? '',
       value: (json['value'] ?? 0).toDouble(),
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: json['createdAt'] != null 
+        ? DateTime.parse(json['createdAt']) 
+        : DateTime.now(),
+      updatedAt: json['updatedAt'] != null 
+        ? DateTime.parse(json['updatedAt']) 
+        : DateTime.now(),
     );
   }
 

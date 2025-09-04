@@ -5,15 +5,17 @@ import '../models/attendance_state_model.dart';
 import '../models/location_response_model.dart';
 import '../models/attendance_policies_model.dart';
 import '../models/evento_model.dart';
+import '../models/usuario_model.dart'; // ✅ AGREGADO: Import faltante para Usuario
 import 'location_service.dart';
 import 'background_location_service.dart'; // ✅ NUEVO: Para tracking continuo
 import 'asistencia_service.dart'; // Para integración backend
 import 'permission_service.dart'; // Para validaciones
 import 'notifications/notification_manager.dart'; // ✅ UNIFIED: Solo NotificationManager
-import 'teacher_notification_service.dart'; // ✅ NUEVO para notificaciones docente
+import 'teacher_notification_service.dart'; // ✅ NUEVO para notificaciones profesor
 import 'storage_service.dart';
 import 'evento_service.dart'; // ✅ AGREGADO para eventos
 import 'websocket_service.dart'; // ✅ NUEVO para WebSocket robusto
+import 'session_persistence_service.dart'; // ✅ NUEVO para persistencia de sesiones
 import '../core/app_constants.dart';
 
 class StudentAttendanceManager {
@@ -50,6 +52,8 @@ class StudentAttendanceManager {
   final StorageService _storageService = StorageService();
   final AsistenciaService _asistenciaService = AsistenciaService();
   final PermissionService _permissionService = PermissionService();
+  // ✅ NUEVO: Servicio de persistencia de sesiones
+  final SessionPersistenceService _sessionPersistence = SessionPersistenceService();
   bool _isServicesInitialized = false;
 
   // 🎯 STREAMS Y CONTROLADORES - Una sola fuente de verdad
@@ -148,6 +152,9 @@ class StudentAttendanceManager {
       
       // 1. Inicializar servicios críticos con error handling
       await _notificationManager.initialize();
+      
+      // ✅ NUEVO: Inicializar servicio de persistencia de sesiones
+      await _sessionPersistence.initialize();
 
       // 2. ✅ INICIALIZACIÓN SEGURA DE BACKGROUND SERVICE
       try {
@@ -172,7 +179,10 @@ class StudentAttendanceManager {
         _updateState(_currentState.copyWith(currentUser: user));
       }
 
-      // 5. ✅ NUEVO: Si autoStart=true y hay evento, activar tracking inmediatamente
+      // 5. ✅ NUEVO: Verificar si hay una sesión activa para recuperar
+      await _checkAndRecoverActiveSession();
+
+      // 6. ✅ NUEVO: Si autoStart=true y hay evento, activar tracking inmediatamente
       if (autoStart && eventId != null) {
         await _startTrackingForEvent(eventId, userId);
       }
@@ -218,14 +228,25 @@ class StudentAttendanceManager {
       // 1. Cargar políticas del evento
       _currentPolicies = AttendancePolicies.fromEvento(evento);
 
-      // 2. Actualizar estado inicial
+      // 2. ✅ CRÍTICO: Cargar usuario actual desde storage
+      final currentUser = await _storageService.getUser();
+      if (currentUser == null) {
+        throw Exception('No hay usuario logueado para iniciar tracking');
+      }
+      debugPrint('✅ Usuario cargado para tracking: ${currentUser.correo}');
+
+      // 3. Actualizar estado inicial con evento Y usuario
       _updateState(_currentState.copyWith(
         currentEvent: evento,
+        currentUser: currentUser, // ✅ CRÍTICO: Asignar usuario al estado
         policies: _currentPolicies,
         trackingStatus: TrackingStatus.active,
         gracePeriodRemaining: _currentPolicies!.gracePeriodMinutes * 60,
         trackingStartTime: DateTime.now(),
       ));
+
+      // ✅ NUEVO: Guardar sesión activa para persistencia
+      await _saveActiveSession(evento, currentUser);
 
       // 3. Mostrar notificación persistente del evento - CON VALIDACIÓN
       if (evento.id != null && evento.id!.isNotEmpty) {
@@ -338,6 +359,9 @@ class StudentAttendanceManager {
 
         // 3. Procesar respuesta del backend y actualizar estados
         await _processLocationResponse(locationResponse);
+        
+        // 4. ✅ NUEVO: Actualizar estado de sesión persistente
+        await _updateSessionState();
       }
     } catch (e) {
       debugPrint('❌ Error en actualización de ubicación: $e');
@@ -375,10 +399,19 @@ class StudentAttendanceManager {
     }
 
     // 4. Actualizar estado principal
+    debugPrint('🗺️ ACTUALIZANDO COORDENADAS DEL USUARIO:');
+    debugPrint('   - Lat: ${response.latitude}');
+    debugPrint('   - Lng: ${response.longitude}');
+    debugPrint('   - Inside geofence: ${response.insideGeofence}');
+    debugPrint('   - Distance: ${response.distance}m');
+    
     _updateState(_currentState.copyWith(
       isInsideGeofence: response.insideGeofence,
       distanceToEvent: response.distance,
-      canRegisterAttendance: response.eventStarted && response.insideGeofence,
+      // ✅ PERMITIR REGISTRO COMO "REGISTRADO" EN EVENTOS NO INICIADOS
+      // Los estudiantes pueden registrarse si están dentro del geofence,
+      // independientemente del estado del evento (iniciado o no iniciado)
+      canRegisterAttendance: response.eventActive && response.insideGeofence,
       lastLocationUpdate: DateTime.now(),
       userLatitude: response.latitude,
       userLongitude: response.longitude,
@@ -418,7 +451,7 @@ class StudentAttendanceManager {
     await _notificationManager.showGeofenceExitedNotification(
         _currentState.currentEvent?.titulo ?? 'Evento');
 
-    // 2. ✅ NUEVO: Notificar al docente que el estudiante salió del área
+    // 2. ✅ NUEVO: Notificar al profesor que el estudiante salió del área
     await _notifyTeacherStudentLeftArea();
 
     // 3. ✅ NUEVO: Registrar evento en backend
@@ -432,11 +465,11 @@ class StudentAttendanceManager {
     _startGracePeriod();
   }
 
-  /// ✅ NUEVO: Notificar al docente que el estudiante salió del área
+  /// ✅ NUEVO: Notificar al profesor que el estudiante salió del área
   Future<void> _notifyTeacherStudentLeftArea() async {
     try {
       if (_currentState.currentEvent == null || _currentState.currentUser == null) {
-        debugPrint('⚠️ No hay evento o usuario para notificar al docente');
+        debugPrint('⚠️ No hay evento o usuario para notificar al profesor');
         return;
       }
 
@@ -449,15 +482,15 @@ class StudentAttendanceManager {
 
       debugPrint('📨 Docente notificado: estudiante ${_currentState.currentUser!.nombre} salió del área');
     } catch (e) {
-      debugPrint('❌ Error notificando docente sobre estudiante que salió: $e');
+      debugPrint('❌ Error notificando profesor sobre estudiante que salió: $e');
     }
   }
 
-  /// ✅ NUEVO: Notificar al docente que el estudiante se registró
+  /// ✅ NUEVO: Notificar al profesor que el estudiante se registró
   Future<void> _notifyTeacherStudentJoined() async {
     try {
       if (_currentState.currentEvent == null || _currentState.currentUser == null) {
-        debugPrint('⚠️ No hay evento o usuario para notificar al docente');
+        debugPrint('⚠️ No hay evento o usuario para notificar al profesor');
         return;
       }
 
@@ -475,7 +508,7 @@ class StudentAttendanceManager {
 
       debugPrint('📨 Docente notificado: estudiante ${_currentState.currentUser!.nombre} se registró');
     } catch (e) {
-      debugPrint('❌ Error notificando docente sobre estudiante registrado: $e');
+      debugPrint('❌ Error notificando profesor sobre estudiante registrado: $e');
     }
   }
 
@@ -576,7 +609,10 @@ class StudentAttendanceManager {
     // 2. ✅ NUEVO: Limpiar conexión WebSocket
     _cleanupWebSocketConnection();
 
-    // 3. Limpiar notificaciones
+    // 3. ✅ NUEVO: Limpiar sesión activa
+    await _clearActiveSession();
+
+    // 4. Limpiar notificaciones
     await _notificationManager.clearAllNotifications();
 
     // 3. Actualizar estado
@@ -764,7 +800,7 @@ class StudentAttendanceManager {
       if (response.success) {
         await _notificationManager.showAttendanceRegisteredNotification();
         
-        // ✅ NUEVO: Notificar al docente que el estudiante se registró
+        // ✅ NUEVO: Notificar al profesor que el estudiante se registró
         await _notifyTeacherStudentJoined();
 
         _updateState(_currentState.copyWith(
@@ -1189,5 +1225,120 @@ class StudentAttendanceManager {
     } catch (e) {
       debugPrint('❌ Error limpiando WebSocket: $e');
     }
+  }
+
+  /// ✅ NUEVO: Verificar y recuperar sesión activa al inicializar la app
+  Future<void> _checkAndRecoverActiveSession() async {
+    try {
+      debugPrint('🔍 Verificando si hay sesión activa para recuperar...');
+      
+      final activeSession = await _sessionPersistence.getActiveSession();
+      if (activeSession == null) {
+        debugPrint('💡 No hay sesión activa para recuperar');
+        return;
+      }
+      
+      debugPrint('🔄 Sesión activa encontrada: ${activeSession.eventTitle}');
+      
+      // Verificar si el evento aún es válido (no ha terminado hace más de 1 hora)
+      final now = DateTime.now();
+      if (now.isAfter(activeSession.eventEndTime.add(Duration(hours: 1)))) {
+        debugPrint('⚠️ Sesión expirada, limpiando...');
+        await _sessionPersistence.clearActiveSession();
+        return;
+      }
+      
+      // Obtener estado guardado
+      final savedState = await _sessionPersistence.getSavedAttendanceState();
+      if (savedState == null) {
+        debugPrint('❌ No se pudo recuperar el estado de asistencia');
+        await _sessionPersistence.clearActiveSession();
+        return;
+      }
+      
+      // Recuperar el estado
+      _currentState = savedState;
+      _stateController.add(_currentState);
+      
+      // Reiniciar el tracking si estaba activo
+      if (_currentState.trackingStatus == TrackingStatus.active) {
+        debugPrint('🎯 Recuperando tracking activo para: ${activeSession.eventTitle}');
+        
+        // Reiniciar timers y tracking
+        await _resumeTracking(activeSession);
+        
+        // Mostrar notificación de recuperación
+        await _notificationManager.showAttendanceRecoveredNotification(
+          activeSession.eventTitle,
+          _formatDuration(now.difference(activeSession.startedAt)),
+        );
+        
+        debugPrint('✅ Sesión recuperada exitosamente');
+      }
+    } catch (e) {
+      debugPrint('❌ Error recuperando sesión activa: $e');
+      // En caso de error, limpiar la sesión para evitar estados inconsistentes
+      await _sessionPersistence.clearActiveSession();
+    }
+  }
+
+  /// ✅ NUEVO: Reanudar tracking después de recuperación
+  Future<void> _resumeTracking(ActiveSessionData session) async {
+    try {
+      // Reiniciar tracking timer
+      _startTrackingTimer();
+      
+      // Reiniciar heartbeat timer 
+      _startHeartbeatTimer();
+      
+      // Actualizar WebSocket si es necesario
+      await _initializeWebSocketForEvent(session.eventId);
+      
+      debugPrint('✅ Tracking reanudado para: ${session.eventTitle}');
+    } catch (e) {
+      debugPrint('❌ Error reanudando tracking: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Guardar sesión activa cuando se inicia tracking
+  Future<void> _saveActiveSession(Evento evento, Usuario usuario) async {
+    try {
+      await _sessionPersistence.saveActiveSession(
+        evento: evento,
+        usuario: usuario,
+        state: _currentState,
+      );
+      debugPrint('💾 Sesión activa guardada para: ${evento.titulo}');
+    } catch (e) {
+      debugPrint('❌ Error guardando sesión activa: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Actualizar estado de sesión periódicamente
+  Future<void> _updateSessionState() async {
+    try {
+      if (await _sessionPersistence.hasActiveSession()) {
+        await _sessionPersistence.updateSessionState(_currentState);
+      }
+    } catch (e) {
+      debugPrint('❌ Error actualizando estado de sesión: $e');
+    }
+  }
+
+  /// ✅ NUEVO: Finalizar sesión activa
+  Future<void> _clearActiveSession() async {
+    try {
+      await _sessionPersistence.clearActiveSession();
+      debugPrint('✅ Sesión activa finalizada');
+    } catch (e) {
+      debugPrint('❌ Error finalizando sesión activa: $e');
+    }
+  }
+
+  /// Helper para formatear duración
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    return '${hours}h ${minutes}m';
   }
 }

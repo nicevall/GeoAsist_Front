@@ -38,8 +38,8 @@ dependencies:
   # Maps (for future integration) - Mantenido
   google_maps_flutter: ^2.12.3
 
-  # Utils - Mantenido
-  intl: ^0.20.2
+  # Utils - Compatible with local_auth
+  intl: ^0.18.1
   
   # 📋 NUEVO: URL launcher para justificaciones
   url_launcher: ^6.3.1
@@ -61,7 +61,34 @@ dependencies:
   
   # Acceso a directorios del sistema - Mantenido
   path_provider: ^2.1.4
+  
+  # 🔥 FIREBASE DEPENDENCIES - NEW
+  firebase_core: ^3.6.0
+  cloud_firestore: ^5.4.3
+  firebase_auth: ^5.3.1
+  firebase_messaging: ^15.1.3
+  firebase_analytics: ^11.3.3
 
+  # 🔐 SECURITY DEPENDENCIES - Phase 5 Security Services
+  crypto: ^3.0.3                      # For request signing and hashing
+  encrypt: ^5.0.1                     # For data encryption
+  flutter_secure_storage: ^9.0.0     # Secure token storage
+  local_auth: ^2.1.6                  # Biometric authentication
+  local_auth_android: ^1.0.38        # Android biometric implementation
+  local_auth_ios: ^1.1.6             # iOS biometric implementation
+  
+  # 🌐 NETWORK DEPENDENCIES - Phase 5 Secure API Client
+  dio: ^5.3.2                         # Advanced HTTP client
+  # Certificate pinning implemented manually in SecureApiClient
+  
+  # 📊 ANALYTICS & PERFORMANCE - Phase 5 Monitoring
+  # device_info_plus: ^10.1.2        # Already included above
+  # package_info_plus: ^8.0.2        # Already included above
+  
+  # 🎨 ANIMATION & UX - Phase 5 Enhanced UX
+  # No additional dependencies needed - using built-in Flutter animations
+
+  get_it: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

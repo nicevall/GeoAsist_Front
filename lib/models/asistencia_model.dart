@@ -198,6 +198,10 @@ class Asistencia {
     );
   }
 
+  // Getters for compatibility
+  String get eventoTitulo => evento;
+  DateTime get timestamp => fechaRegistro ?? creadoEn ?? hora;
+
   @override
   String toString() {
     return 'Asistencia(id: $id, usuario: $usuario, evento: $evento, estado: $estado)';

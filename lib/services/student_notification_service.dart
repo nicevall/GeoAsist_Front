@@ -8,6 +8,7 @@ import '../services/websocket_student_service.dart';
 import '../services/notifications/notification_manager.dart';
 import '../services/notifications/student_notification_types.dart';
 import '../services/storage_service.dart';
+import '../utils/connectivity_manager.dart';
 
 /// Servicio centralizado para manejar todas las notificaciones de estudiantes
 class StudentNotificationService {
@@ -20,6 +21,7 @@ class StudentNotificationService {
   final WebSocketStudentService _webSocketService = WebSocketStudentService();
   final NotificationManager _notificationManager = NotificationManager();
   final StorageService _storageService = StorageService(); // ✅ AHORA SE USA
+  final ConnectivityManager _connectivityManager = ConnectivityManager();
 
   // 🎯 ESTADO DEL SERVICIO
   bool _isInitialized = false;
@@ -260,13 +262,19 @@ class StudentNotificationService {
   }
 
   /// Manejar error del WebSocket
-  void _handleWebSocketError(dynamic error) {
-    final errorNotification = StudentNotificationFactory.connectivityLost(
-      eventTitle: _currentEventId != null ? 'Evento $_currentEventId' : null,
-      eventId: _currentEventId,
-    );
-
-    _handleWebSocketNotification(errorNotification);
+  Future<void> _handleWebSocketError(dynamic error) async {
+    // ✅ FIXED: Verificar internet real antes de mostrar error de conectividad
+    final hasInternet = await _connectivityManager.hasInternetAccess();
+    
+    if (!hasInternet) {
+      final errorNotification = StudentNotificationFactory.connectivityLost(
+        eventTitle: _currentEventId != null ? 'Evento $_currentEventId' : null,
+        eventId: _currentEventId,
+      );
+      _handleWebSocketNotification(errorNotification);
+    } else {
+      debugPrint('🌐 Internet OK - problema del servidor WebSocket, no mostrando error de conectividad');
+    }
   }
 
   /// Manejar cambio de estado de conexión
@@ -280,18 +288,29 @@ class StudentNotificationService {
       case WebSocketConnectionState.error:
       case WebSocketConnectionState.disconnected:
         if (_isListening) {
-          final errorNotification = StudentNotificationFactory.connectivityLost(
-            eventTitle:
-                _currentEventId != null ? 'Evento $_currentEventId' : null,
-            eventId: _currentEventId,
-          );
-          _handleWebSocketNotification(errorNotification);
+          // ✅ FIXED: Verificar internet real de forma asíncrona
+          _checkConnectivityAndNotify();
         }
         break;
       case WebSocketConnectionState.reconnecting:
       case WebSocketConnectionState.connecting:
         // No hacer nada especial durante conexión/reconexión
         break;
+    }
+  }
+
+  /// Verificar conectividad y notificar solo si no hay internet real
+  Future<void> _checkConnectivityAndNotify() async {
+    final hasInternet = await _connectivityManager.hasInternetAccess();
+    
+    if (!hasInternet) {
+      final errorNotification = StudentNotificationFactory.connectivityLost(
+        eventTitle: _currentEventId != null ? 'Evento $_currentEventId' : null,
+        eventId: _currentEventId,
+      );
+      _handleWebSocketNotification(errorNotification);
+    } else {
+      debugPrint('🌐 Internet OK - problema del servidor, no mostrando error de conectividad');
     }
   }
 

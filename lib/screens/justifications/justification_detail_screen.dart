@@ -751,7 +751,7 @@ class _JustificationDetailScreenState extends State<JustificationDetailScreen>
   String _getEstadoDescripcion() {
     switch (_justificacion.estado) {
       case JustificacionEstado.pendiente:
-        return 'Esperando revisión del docente';
+        return 'Esperando revisión del profesor';
       case JustificacionEstado.aprobada:
         return 'Justificación aceptada';
       case JustificacionEstado.rechazada:

@@ -76,7 +76,7 @@ class _CreateProfessorScreenState extends State<CreateProfessorScreen> {
               const SizedBox(height: 8),
 
               const Text(
-                'Completa la información del docente',
+                'Completa la información del profesor',
                 style: TextStyle(
                   fontSize: 14,
                   color: AppColors.textGray,
@@ -88,7 +88,7 @@ class _CreateProfessorScreenState extends State<CreateProfessorScreen> {
 
               // Campos de texto
               CustomTextField(
-                hintText: 'Nombre completo del docente',
+                hintText: 'Nombre completo del profesor',
                 controller: _nombreController,
                 prefixIcon: Icons.person_outline,
                 keyboardType: TextInputType.name,
@@ -125,7 +125,7 @@ class _CreateProfessorScreenState extends State<CreateProfessorScreen> {
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'El docente recibirá sus credenciales y podrá cambiar su contraseña en el primer inicio de sesión.',
+                        'El profesor recibirá sus credenciales y podrá cambiar su contraseña en el primer inicio de sesión.',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textGray,
@@ -214,7 +214,7 @@ class _CreateProfessorScreenState extends State<CreateProfessorScreen> {
         nombre,
         correo,
         password,
-        AppConstants.docenteRole, // Backend usa 'docente'
+        AppConstants.profesorRole, // Backend usa 'profesor'
       );
 
       if (response.ok) {
@@ -344,7 +344,7 @@ class _ProfessorVerificationDialogState extends State<_ProfessorVerificationDial
             if (!_codeSent) ...[
               // Fase 1: Enviar código
               const Text(
-                'Haz clic en el botón para enviar el código de verificación al correo del docente.',
+                'Haz clic en el botón para enviar el código de verificación al correo del profesor.',
                 style: TextStyle(
                   fontSize: 14,
                   color: AppColors.textGray,
@@ -485,7 +485,7 @@ class _ProfessorVerificationDialogState extends State<_ProfessorVerificationDial
     );
   }
 
-  /// Enviar código de verificación al docente
+  /// Enviar código de verificación al profesor
   Future<void> _sendVerificationCode() async {
     setState(() {
       _isSendingCode = true;
@@ -493,7 +493,7 @@ class _ProfessorVerificationDialogState extends State<_ProfessorVerificationDial
     });
 
     try {
-      // Usar el endpoint específico para enviar código a docentes
+      // Usar el endpoint específico para enviar código a profesors
       final response = await _verificationService.sendTeacherVerificationCode(widget.email);
       
       if (response.success) {
@@ -502,7 +502,7 @@ class _ProfessorVerificationDialogState extends State<_ProfessorVerificationDial
           _isSendingCode = false;
         });
         _startResendCountdown();
-        AppRouter.showSnackBar('✅ Código enviado al correo del docente');
+        AppRouter.showSnackBar('✅ Código enviado al correo del profesor');
       } else {
         setState(() {
           _errorMessage = response.error ?? 'Error al enviar código';

@@ -181,7 +181,7 @@ class RecentEventsWidget extends StatelessWidget {
             ),
           ],
         ),
-        trailing: showStatusToggle ? _buildEventToggle(evento) : null,
+        trailing: null,
         onTap: () => onEventTap?.call(evento),
       ),
     );
@@ -206,25 +206,6 @@ class RecentEventsWidget extends StatelessWidget {
     );
   }
   
-  /// Toggle visual para mostrar el estado del evento
-  Widget _buildEventToggle(Evento evento) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // TOGGLE: Indicador visual del estado (solo visual, no editable)
-        Transform.scale(
-          scale: 0.8,
-          child: Switch(
-            value: _isEventActive(evento),
-            onChanged: null, // Solo visual, no editable desde aquí
-            activeColor: Colors.green,
-            inactiveThumbColor: Colors.grey,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
-      ],
-    );
-  }
   
   /// Chip de estado del evento
   Widget _buildStatusChip(Evento evento) {
@@ -290,10 +271,7 @@ class RecentEventsWidget extends StatelessWidget {
   
   // ===== MÉTODOS AUXILIARES =====
   
-  /// Verificar si un evento está activo
-  bool _isEventActive(Evento evento) {
-    return evento.isActive;
-  }
+  // Unused method _isEventActive removed
   
   /// Verificar si un evento está cancelado
   bool _isEventCancelled(Evento evento) {

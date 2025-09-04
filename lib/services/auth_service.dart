@@ -4,6 +4,7 @@ import '../models/auth_response_model.dart';
 import '../core/app_constants.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
+import 'firebase/firebase_messaging_service.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
@@ -13,6 +14,7 @@ class AuthService {
 
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
+  final FirebaseMessagingService _messagingService = FirebaseMessagingService();
 
   Future<AuthResponse> login(String correo, String contrasena) async {
     try {
@@ -49,6 +51,9 @@ class AuthService {
             await _storageService.saveUser(authResponse.usuario!);
             debugPrint(
                 '👤 User data saved: ${authResponse.usuario!.nombre} (${authResponse.usuario!.rol})');
+            
+            // ✅ PHASE 3: Initialize FCM with backend API registration
+            await _initializeFirebaseMessaging(authResponse.usuario!.id);
           }
 
           debugPrint('✅ Login completed successfully');
@@ -209,5 +214,28 @@ class AuthService {
     final user = await _storageService.getUser();
     debugPrint('👤 Current user: ${user?.nombre ?? 'No user found'}');
     return user;
+  }
+
+  Future<String?> getToken() async {
+    debugPrint('🎫 Getting token from storage');
+    final token = await _storageService.getToken();
+    debugPrint('🎫 Token available: ${token != null}');
+    return token;
+  }
+
+  // ✅ PHASE 3: Initialize FCM with backend registration after login
+  Future<void> _initializeFirebaseMessaging(String userId) async {
+    try {
+      debugPrint('🔔 Initializing Firebase Messaging for user: $userId');
+      
+      // Initialize FCM service with user ID
+      // This will register the token with both Firestore and Backend API
+      await _messagingService.initialize(userId);
+      
+      debugPrint('✅ Firebase Messaging initialized successfully');
+    } catch (e) {
+      debugPrint('⚠️ Firebase Messaging initialization failed: $e');
+      // Don't throw - FCM failure shouldn't prevent login
+    }
   }
 }

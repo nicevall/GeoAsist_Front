@@ -1,8 +1,15 @@
-// lib/main.dart - CORREGIDO SIN ERRORES
+// lib/main.dart - FIREBASE MIGRATION
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:provider/provider.dart';
+
+// Firebase imports
+import 'services/firebase/firebase_config.dart';
+import 'services/firebase/firebase_auth_service.dart';
+import 'services/firebase/firebase_evento_service.dart';
+import 'services/firebase/firebase_asistencia_service.dart';
+import 'services/firebase/firebase_messaging_service.dart';
 
 // Importaciones principales del proyecto
 import 'core/geo_assist_app.dart';
@@ -13,8 +20,8 @@ import 'utils/connectivity_manager.dart';
 import 'services/student_attendance_manager.dart';
 import 'services/location_service.dart';
 import 'services/storage_service.dart';
-import 'services/asistencia_service.dart';
-import 'services/evento_service.dart';
+import 'services/pre_registration_notification_service.dart';
+import 'services/session_persistence_service.dart';
 
 /// 🎯 CALLBACK DISPATCHER PARA WORKMANAGER
 @pragma('vm:entry-point')
@@ -125,14 +132,24 @@ void main() async {
             lazy: false,
           ),
           
-          // 🔌 API SERVICES (PROVIDER SIMPLE)
-          Provider<AsistenciaService>(
-            create: (_) => AsistenciaService(),
+          // 🔥 FIREBASE SERVICES (PROVIDER SIMPLE)
+          Provider<FirebaseAuthService>(
+            create: (_) => FirebaseAuthService(),
             lazy: true,
           ),
           
-          Provider<EventoService>(
-            create: (_) => EventoService(),
+          Provider<FirebaseEventoService>(
+            create: (_) => FirebaseEventoService(),
+            lazy: true,
+          ),
+          
+          Provider<FirebaseAsistenciaService>(
+            create: (_) => FirebaseAsistenciaService(),
+            lazy: true,
+          ),
+          
+          Provider<FirebaseMessagingService>(
+            create: (_) => FirebaseMessagingService(),
             lazy: true,
           ),
           
@@ -174,22 +191,34 @@ Future<void> _initializeCriticalServices() async {
   debugPrint('🔧 Inicializando servicios críticos...');
 
   try {
-    // 1. 📱 NOTIFICATION MANAGER (PRIMER SERVICIO)
+    // 1. 🔥 FIREBASE CORE (PRIMER SERVICIO)
+    debugPrint('🔥 Inicializando Firebase...');
+    await FirebaseConfig.initialize();
+    debugPrint('✅ Firebase inicializado');
+
+    // 2. 📱 NOTIFICATION MANAGER (SEGUNDO SERVICIO)
     debugPrint('📱 Inicializando NotificationManager...');
     final notificationManager = NotificationManager();
     await notificationManager.initialize();
     debugPrint('✅ NotificationManager inicializado');
 
-    // 2. 🔋 BACKGROUND SERVICE (INCLUYE WORKMANAGER)
+    // 3. 🔋 BACKGROUND SERVICE (INCLUYE WORKMANAGER)
     debugPrint('🔋 Inicializando BackgroundService...');
     final backgroundService = BackgroundService();
     await backgroundService.initialize();
     debugPrint('✅ BackgroundService inicializado');
 
+    // 4. 🎯 STUDENT ATTENDANCE MANAGER (INICIALIZACIÓN TEMPRANA)
+    debugPrint('🎯 Inicializando StudentAttendanceManager...');
+    final attendanceManager = StudentAttendanceManager();
+    await attendanceManager.initialize(autoStart: false); // No auto start en main
+    debugPrint('✅ StudentAttendanceManager inicializado');
+
     debugPrint('✅ Servicios críticos inicializados correctamente');
   } catch (e) {
     debugPrint('❌ Error en servicios críticos: $e');
-    rethrow;
+    debugPrint('⚠️ Iniciando en modo de recuperación con providers básicos...');
+    // No relanzar - permitir que la app funcione en modo de recuperación
   }
 }
 
@@ -204,7 +233,19 @@ Future<void> _initializeSecondaryServices() async {
     await connectivityManager.initialize();
     debugPrint('✅ ConnectivityManager inicializado');
 
-    // 2. 🔐 PERMISSION SERVICE (VALIDACIÓN INICIAL)
+    // 2. 📝 PRE-REGISTRATION NOTIFICATION SERVICE
+    debugPrint('📝 Inicializando PreRegistrationNotificationService...');
+    final preRegService = PreRegistrationNotificationService();
+    await preRegService.initialize();
+    debugPrint('✅ PreRegistrationNotificationService inicializado');
+
+    // 3. 💾 SESSION PERSISTENCE SERVICE
+    debugPrint('💾 Inicializando SessionPersistenceService...');
+    final sessionPersistenceService = SessionPersistenceService();
+    await sessionPersistenceService.initialize();
+    debugPrint('✅ SessionPersistenceService inicializado');
+
+    // 4. 🔐 PERMISSION SERVICE (VALIDACIÓN INICIAL)
     debugPrint('🔐 Validando permisos básicos...');
     final permissionService = PermissionService();
 

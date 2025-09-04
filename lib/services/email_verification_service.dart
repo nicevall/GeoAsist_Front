@@ -49,11 +49,11 @@ class EmailVerificationService {
     }
   }
 
-  /// 🚨 NUEVO: Enviar código de verificación específico para docentes
+  /// 🚨 NUEVO: Enviar código de verificación específico para profesors
   Future<ApiResponse<bool>> sendTeacherVerificationCode(String email) async {
     try {
       final response = await _apiService.post(
-        '/api/usuarios/enviar-codigo-docente', // Endpoint específico para docentes
+        '/usuarios/enviar-codigo-profesor', // baseUrl ya incluye /api
         body: {
           'correo': email,
         },

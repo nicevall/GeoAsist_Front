@@ -3,7 +3,7 @@
 // VERSIÓN CORREGIDA - Sin JSON serialization automática
 
 class LocationResponseModel {
-  // 🎯 RESPUESTA PRINCIPAL DEL BACKEND POST /api/location/update
+  // 🎯 RESPUESTA PRINCIPAL DEL BACKEND POST /location/update
 
   /// Indica si el usuario está dentro del geofence del evento
   final bool insideGeofence;
@@ -140,8 +140,11 @@ class LocationResponseModel {
   bool get isValid => userId.isNotEmpty && latitude != 0.0 && longitude != 0.0;
 
   /// Indica si el usuario puede registrar asistencia
+  /// ✅ PERMITIR REGISTRO EN EVENTOS NO INICIADOS
+  /// Los estudiantes pueden registrarse como "registrado" si están dentro del geofence
+  /// independientemente de si el evento ha iniciado o no
   bool get canRegisterAttendance =>
-      eventActive && eventStarted && insideGeofence;
+      eventActive && insideGeofence;
 
   /// Obtiene el estado de proximidad legible
   String get proximityStatus {

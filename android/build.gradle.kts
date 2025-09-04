@@ -1,3 +1,11 @@
+// 🔥 FIREBASE: Agregar plugin de Google Services
+// ⚡ OPTIMIZED: Android Gradle Plugin para 2025 según BUENAS_PRACTICAS_FLUTTER.md
+plugins {
+    id("com.android.application") version "8.7.0" apply false
+    id("org.jetbrains.kotlin.android") version "2.1.0" apply false
+    id("com.google.gms.google-services") version "4.4.3" apply false
+}
+
 allprojects {
     repositories {
         google()

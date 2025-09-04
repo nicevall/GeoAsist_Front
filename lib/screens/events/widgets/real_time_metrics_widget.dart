@@ -1,5 +1,5 @@
 // lib/screens/dashboard/widgets/real_time_metrics_widget.dart
-// 🎯 WIDGET DE MÉTRICAS EN TIEMPO REAL FASE A1.2 - Dashboard del docente
+// 🎯 WIDGET DE MÉTRICAS EN TIEMPO REAL FASE A1.2 - Dashboard del profesor
 import 'package:flutter/material.dart';
 import '../../../utils/colors.dart';
 

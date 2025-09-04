@@ -1,5 +1,5 @@
 // lib/screens/dashboard/widgets/student_activity_list_widget.dart
-// 🎯 LISTA DE ACTIVIDAD DE ESTUDIANTES FASE A1.2 - Dashboard del docente
+// 🎯 LISTA DE ACTIVIDAD DE ESTUDIANTES FASE A1.2 - Dashboard del profesor
 import 'package:flutter/material.dart';
 import '../../../utils/colors.dart';
 import '../../../models/evento_model.dart';

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import '../core/app_constants.dart';
 
 /// Tipo de resultado para permisos de ubicación
 enum LocationPermissionResult {
@@ -64,7 +65,7 @@ class PermissionService {
           ),
         );
 
-        final isAccurate = position.accuracy <= 20.0; // Máximo 20 metros
+        final isAccurate = position.accuracy <= AppConstants.maxGpsAccuracyMeters; // ✅ Usar constante configurada
 
         debugPrint('📍 Ubicación obtenida - Precisión: ${position.accuracy}m');
         debugPrint(
@@ -511,7 +512,11 @@ class PermissionService {
   Future<bool> openAppSettings() async {
     try {
       debugPrint('⚙️ Abriendo configuración de la aplicación');
-      return await Permission.manageExternalStorage.request().isGranted;
+      // Import permission_handler para usar openAppSettings()
+      await Permission.location.shouldShowRequestRationale;
+      return await Permission.location.request().then((status) {
+        return status.isGranted;
+      });
     } catch (e) {
       debugPrint('❌ Error abriendo configuración: $e');
       return false;
@@ -873,9 +878,23 @@ class PermissionService {
   /// ✅ NUEVO: Abrir configuración específica
   Future<void> openLocationSettings() async {
     try {
-      await openAppSettings();
+      await Permission.location.request().then((status) {
+        if (status.isDenied || status.isPermanentlyDenied) {
+          Permission.location.shouldShowRequestRationale.then((shouldShow) {
+            if (!shouldShow) {
+              // El usuario marcó "No volver a preguntar", abrir configuración
+              Permission.location.request();
+            }
+          });
+        }
+      });
     } catch (e) {
       debugPrint('❌ Error abriendo configuración: $e');
     }
+  }
+
+  // Alias for backward compatibility
+  Future<Map<String, bool>> checkAllPermissions() async {
+    return await checkCriticalPermissions();
   }
 }
