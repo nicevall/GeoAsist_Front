@@ -336,6 +336,30 @@ flutter_test_config.dart
 *_test.dart
 **/*_test.dart
 **/*.test.dart
+lib/utils/test_helpers.dart
+test_credentials.txt
+
+# =====================================================
+# 📝 Development & Analysis Files
+# =====================================================
+analysis_results.txt
+devtools_options.yaml
+nul
+
+# =====================================================
+# 📚 Temporary Documentation
+# =====================================================
+API_ENDPOINTS.md
+"DETALLES BACK.md"
+TESTING_CHECKLIST.md
+docs/
+
+# =====================================================
+# 🎯 Demo & Debug Files
+# =====================================================
+lib/screens/material3_demo_screen.dart
+lib/screens/simple_material3_demo.dart
+lib/widgets/demo_debug_panel.dart
 
 # =====================================================
 # End of .gitignore
