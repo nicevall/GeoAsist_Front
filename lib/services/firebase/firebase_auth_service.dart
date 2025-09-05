@@ -1,6 +1,7 @@
 // lib/services/firebase/firebase_auth_service.dart
 // Servicio de autenticación Firebase compatible con híbrido
 
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -20,7 +21,7 @@ class FirebaseAuthService {
     try {
       return await _auth.signInWithEmailAndPassword(email: email, password: password);
     } catch (e) {
-      debugPrint('❌ Error en signIn: $e');
+      logger.d('❌ Error en signIn: $e');
       rethrow;
     }
   }
@@ -29,7 +30,7 @@ class FirebaseAuthService {
     try {
       return await _auth.createUserWithEmailAndPassword(email: email, password: password);
     } catch (e) {
-      debugPrint('❌ Error en createUser: $e');
+      logger.d('❌ Error en createUser: $e');
       rethrow;
     }
   }
@@ -38,7 +39,7 @@ class FirebaseAuthService {
     try {
       await _auth.signOut();
     } catch (e) {
-      debugPrint('❌ Error en signOut: $e');
+      logger.d('❌ Error en signOut: $e');
       rethrow;
     }
   }
@@ -61,7 +62,7 @@ class FirebaseAuthService {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      debugPrint('❌ Error en resetPassword: $e');
+      logger.d('❌ Error en resetPassword: $e');
       rethrow;
     }
   }

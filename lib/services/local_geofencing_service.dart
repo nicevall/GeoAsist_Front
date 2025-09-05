@@ -1,7 +1,7 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/local_geofencing_service.dart
 // 🎯 SERVICIO DE GEOFENCING LOCAL (SIN BACKEND)
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/evento_model.dart';
 import '../services/location_service.dart';
@@ -66,7 +66,7 @@ class LocalGeofencingService {
 
   /// ✅ INICIAR MONITOREO DE GEOFENCE
   Future<void> startGeofencing(Evento event) async {
-    debugPrint('🎯 Iniciando geofencing local para: ${event.titulo}');
+    logger.d('🎯 Iniciando geofencing local para: ${event.titulo}');
     
     _currentEvent = event;
     _currentStatus = GeofenceStatus.unknown;
@@ -88,7 +88,7 @@ class LocalGeofencingService {
     try {
       final position = await _locationService.getCurrentPosition();
       if (position == null) {
-        debugPrint('⚠️ No se pudo obtener ubicación para geofence');
+        logger.d('⚠️ No se pudo obtener ubicación para geofence');
         return;
       }
 
@@ -150,7 +150,7 @@ class LocalGeofencingService {
       _geofenceController.add(result);
 
     } catch (e) {
-      debugPrint('❌ Error verificando geofence: $e');
+      logger.d('❌ Error verificando geofence: $e');
     }
   }
 
@@ -160,7 +160,7 @@ class LocalGeofencingService {
     GeofenceStatus current, 
     bool isInside
   ) async {
-    debugPrint('🎯 Cambio geofence: $previous → $current (dentro: $isInside)');
+    logger.d('🎯 Cambio geofence: $previous → $current (dentro: $isInside)');
 
     // Notificaciones basadas en cambios de estado
     switch (current) {
@@ -183,7 +183,7 @@ class LocalGeofencingService {
       case GeofenceStatus.approaching:
         if (previous == GeofenceStatus.outside) {
           // Notificación opcional de acercamiento
-          debugPrint('📍 Acercándose al evento');
+          logger.d('📍 Acercándose al evento');
         }
         break;
         
@@ -234,7 +234,7 @@ class LocalGeofencingService {
       );
 
     } catch (e) {
-      debugPrint('❌ Error verificando geofence instantáneo: $e');
+      logger.d('❌ Error verificando geofence instantáneo: $e');
       return null;
     }
   }
@@ -246,7 +246,7 @@ class LocalGeofencingService {
 
   /// 🛑 DETENER GEOFENCING
   void stopGeofencing() {
-    debugPrint('🛑 Deteniendo geofencing local');
+    logger.d('🛑 Deteniendo geofencing local');
     
     _geofenceTimer?.cancel();
     _geofenceTimer = null;

@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/connectivity_service.dart
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -33,7 +34,7 @@ class ConnectivityService extends ChangeNotifier {
 
   /// Initialize connectivity monitoring
   Future<void> initialize() async {
-    debugPrint('🌐 Initializing ConnectivityService...');
+    logger.d('🌐 Initializing ConnectivityService...');
     
     try {
       // Check initial connectivity status
@@ -41,28 +42,28 @@ class ConnectivityService extends ChangeNotifier {
       _connectionStatus = results.first;
       _isOnline = results.any((result) => result != ConnectivityResult.none);
       
-      debugPrint('📡 Initial connectivity: ${_connectionStatus.name} (Online: $_isOnline)');
+      logger.d('📡 Initial connectivity: ${_connectionStatus.name} (Online: $_isOnline)');
       
       // Start monitoring connectivity changes
       _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
         (List<ConnectivityResult> results) => _handleConnectivityChange(results.first),
         onError: (error) {
-          debugPrint('❌ Connectivity monitoring error: $error');
+          logger.d('❌ Connectivity monitoring error: $error');
         },
       );
       
       // Load any pending operations from storage
       await _loadPendingOperations();
       
-      debugPrint('✅ ConnectivityService initialized successfully');
+      logger.d('✅ ConnectivityService initialized successfully');
     } catch (e) {
-      debugPrint('❌ Failed to initialize ConnectivityService: $e');
+      logger.d('❌ Failed to initialize ConnectivityService: $e');
     }
   }
 
   /// Handle connectivity state changes
   void _handleConnectivityChange(ConnectivityResult result) {
-    debugPrint('📡 Connectivity changed: ${result.name}');
+    logger.d('📡 Connectivity changed: ${result.name}');
     
     final wasOnline = _isOnline;
     _connectionStatus = result;
@@ -83,7 +84,7 @@ class ConnectivityService extends ChangeNotifier {
 
   /// Handle transition to online state
   void _handleOnlineState() {
-    debugPrint('🌐 Device back online - initiating sync...');
+    logger.d('🌐 Device back online - initiating sync...');
     
     // Show connection restored notification
     _showConnectivityNotification(
@@ -101,7 +102,7 @@ class ConnectivityService extends ChangeNotifier {
 
   /// Handle transition to offline state
   void _handleOfflineState() {
-    debugPrint('📵 Device offline - enabling offline mode...');
+    logger.d('📵 Device offline - enabling offline mode...');
     
     // Show offline notification
     _showConnectivityNotification(
@@ -120,15 +121,15 @@ class ConnectivityService extends ChangeNotifier {
       case ConnectivityResult.mobile:
         // Assume slower connection for mobile data
         _isSlowConnection = true;
-        debugPrint('📱 Mobile connection detected - optimizing for slower speeds');
+        logger.d('📱 Mobile connection detected - optimizing for slower speeds');
         break;
       case ConnectivityResult.wifi:
         _isSlowConnection = false;
-        debugPrint('📶 WiFi connection detected - full speed operations enabled');
+        logger.d('📶 WiFi connection detected - full speed operations enabled');
         break;
       case ConnectivityResult.ethernet:
         _isSlowConnection = false;
-        debugPrint('🔌 Ethernet connection detected - optimal performance');
+        logger.d('🔌 Ethernet connection detected - optimal performance');
         break;
       default:
         _isSlowConnection = true;
@@ -171,11 +172,11 @@ class ConnectivityService extends ChangeNotifier {
       _isSlowConnection = latency > 2000; // Consider slow if > 2s response
       
       if (wasSlowConnection != _isSlowConnection) {
-        debugPrint('📊 Network quality changed: ${_isSlowConnection ? "Slow" : "Fast"} (${latency}ms)');
+        logger.d('📊 Network quality changed: ${_isSlowConnection ? "Slow" : "Fast"} (${latency}ms)');
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('⚠️ Network quality test failed: $e');
+      logger.d('⚠️ Network quality test failed: $e');
       _isSlowConnection = true;
     }
   }
@@ -189,7 +190,7 @@ class ConnectivityService extends ChangeNotifier {
 
   /// Enable offline mode optimizations
   void _enableOfflineMode() {
-    debugPrint('📵 Enabling offline mode optimizations...');
+    logger.d('📵 Enabling offline mode optimizations...');
     
     // Disable non-essential background tasks
     _disableBackgroundSync();
@@ -198,14 +199,14 @@ class ConnectivityService extends ChangeNotifier {
     _enableLocalCaching();
     
     // Queue any new operations for later sync
-    debugPrint('💾 Offline mode enabled - operations will be queued for sync');
+    logger.d('💾 Offline mode enabled - operations will be queued for sync');
   }
 
   /// Sync pending operations when back online
   Future<void> _syncPendingData() async {
     if (!_isOnline || _pendingOperations.isEmpty) return;
     
-    debugPrint('🔄 Syncing ${_pendingOperations.length} pending operations...');
+    logger.d('🔄 Syncing ${_pendingOperations.length} pending operations...');
     
     final List<Map<String, dynamic>> successfulOperations = [];
     int failedCount = 0;
@@ -215,14 +216,14 @@ class ConnectivityService extends ChangeNotifier {
         final success = await _executePendingOperation(operation);
         if (success) {
           successfulOperations.add(operation);
-          debugPrint('✅ Synced operation: ${operation['type']}');
+          logger.d('✅ Synced operation: ${operation['type']}');
         } else {
           failedCount++;
-          debugPrint('❌ Failed to sync operation: ${operation['type']}');
+          logger.d('❌ Failed to sync operation: ${operation['type']}');
         }
       } catch (e) {
         failedCount++;
-        debugPrint('❌ Exception syncing operation: $e');
+        logger.d('❌ Exception syncing operation: $e');
       }
       
       // Add small delay to prevent overwhelming the server
@@ -256,7 +257,7 @@ class ConnectivityService extends ChangeNotifier {
       );
     }
     
-    debugPrint('🔄 Sync completed: ${successfulOperations.length} success, $failedCount failed');
+    logger.d('🔄 Sync completed: ${successfulOperations.length} success, $failedCount failed');
   }
 
   /// Execute a pending operation
@@ -272,7 +273,7 @@ class ConnectivityService extends ChangeNotifier {
       case 'heartbeat':
         return await _syncHeartbeat(data);
       default:
-        debugPrint('⚠️ Unknown operation type for sync: $type');
+        logger.d('⚠️ Unknown operation type for sync: $type');
         return false;
     }
   }
@@ -280,7 +281,7 @@ class ConnectivityService extends ChangeNotifier {
   /// Queue operation for later sync when offline
   Future<void> queueOperation(String type, Map<String, dynamic> data) async {
     if (_isOnline) {
-      debugPrint('🌐 Device online - executing operation immediately: $type');
+      logger.d('🌐 Device online - executing operation immediately: $type');
       return;
     }
     
@@ -294,7 +295,7 @@ class ConnectivityService extends ChangeNotifier {
     _pendingOperations.add(operation);
     await _savePendingOperations();
     
-    debugPrint('📥 Queued operation for sync: $type (${_pendingOperations.length} pending)');
+    logger.d('📥 Queued operation for sync: $type (${_pendingOperations.length} pending)');
   }
 
   /// Load pending operations from storage
@@ -310,10 +311,10 @@ class ConnectivityService extends ChangeNotifier {
           operations.map((op) => Map<String, dynamic>.from(op))
         );
         
-        debugPrint('📥 Loaded ${_pendingOperations.length} pending operations from storage');
+        logger.d('📥 Loaded ${_pendingOperations.length} pending operations from storage');
       }
     } catch (e) {
-      debugPrint('⚠️ Failed to load pending operations: $e');
+      logger.d('⚠️ Failed to load pending operations: $e');
     }
   }
 
@@ -321,9 +322,9 @@ class ConnectivityService extends ChangeNotifier {
   Future<void> _savePendingOperations() async {
     try {
       await _storageService.saveList('pending_operations', _pendingOperations);
-      debugPrint('💾 Saved ${_pendingOperations.length} pending operations to storage');
+      logger.d('💾 Saved ${_pendingOperations.length} pending operations to storage');
     } catch (e) {
-      debugPrint('⚠️ Failed to save pending operations: $e');
+      logger.d('⚠️ Failed to save pending operations: $e');
     }
   }
 
@@ -335,18 +336,18 @@ class ConnectivityService extends ChangeNotifier {
     Color color,
   ) {
     // This would integrate with the app's notification system
-    debugPrint('📢 Connectivity Notification: $title - $message');
+    logger.d('📢 Connectivity Notification: $title - $message');
   }
 
   /// Disable background sync operations
   void _disableBackgroundSync() {
-    debugPrint('⏸️ Disabling background sync operations for offline mode');
+    logger.d('⏸️ Disabling background sync operations for offline mode');
     // Implementation would disable WorkManager tasks
   }
 
   /// Enable local data caching
   void _enableLocalCaching() {
-    debugPrint('💾 Enabling enhanced local caching for offline mode');
+    logger.d('💾 Enabling enhanced local caching for offline mode');
     // Implementation would configure local database caching
   }
 
@@ -415,12 +416,12 @@ class ConnectivityService extends ChangeNotifier {
   /// Cleanup resources
   @override
   void dispose() {
-    debugPrint('🧹 Disposing ConnectivityService...');
+    logger.d('🧹 Disposing ConnectivityService...');
     
     _connectivitySubscription.cancel();
     _networkQualityTimer?.cancel();
     super.dispose();
     
-    debugPrint('✅ ConnectivityService disposed');
+    logger.d('✅ ConnectivityService disposed');
   }
 }

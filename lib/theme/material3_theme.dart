@@ -108,7 +108,7 @@ class Material3Theme {
     // Input Decoration Theme
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Material3Colors.surfaceVariant.withOpacity(0.4),
+      fillColor: Material3Colors.surfaceVariant.withValues(alpha: 0.4),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Material3Colors.outline),
@@ -374,7 +374,7 @@ class Material3Theme {
     // Scaffold Background
     scaffoldBackgroundColor: Material3Colors.background,
     canvasColor: Material3Colors.surface,
-    disabledColor: Material3Colors.onSurface.withOpacity(0.38),
+    disabledColor: Material3Colors.onSurface.withValues(alpha: 0.38),
   );
 
   /// Tema oscuro Material 3
@@ -405,7 +405,7 @@ class Material3Theme {
     ),
 
     inputDecorationTheme: lightTheme.inputDecorationTheme.copyWith(
-      fillColor: Material3Colors.darkColorScheme.surfaceContainerHighest.withOpacity(0.4),
+      fillColor: Material3Colors.darkColorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
       labelStyle: TextStyle(
         color: Material3Colors.darkColorScheme.onSurfaceVariant,
         fontFamily: _fontFamily,

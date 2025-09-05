@@ -3,10 +3,10 @@
 // Detección de memory leaks, garbage collection inteligente
 // Cache automático, limpieza proactiva, monitoreo de uso
 
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// 📊 Modelo de lectura de memoria
@@ -52,16 +52,6 @@ class MemoryManager {
   factory MemoryManager() => _instance;
   MemoryManager._internal();
 
-  final Logger _logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 2,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
-    ),
-  );
 
   // 📊 Estado de memoria
   int _currentMemoryUsageMB = 0;
@@ -103,7 +93,7 @@ class MemoryManager {
     if (_isInitialized) return;
 
     try {
-      _logger.i('🧠 Inicializando Memory Manager...');
+      logger.i('🧠 Inicializando Memory Manager...');
 
       // Obtener información del dispositivo
       await _getDeviceMemoryInfo();
@@ -121,11 +111,11 @@ class MemoryManager {
       _startAutomaticCleanup();
 
       _isInitialized = true;
-      _logger.i(
+      logger.i(
           '✅ Memory Manager inicializado - Uso actual: ${_currentMemoryUsageMB}MB '
           '(${_memoryUsagePercentage.toStringAsFixed(1)}%)');
     } catch (e, stackTrace) {
-      _logger.e('❌ Error inicializando Memory Manager',
+      logger.e('❌ Error inicializando Memory Manager',
           error: e, stackTrace: stackTrace);
       rethrow;
     }
@@ -144,10 +134,10 @@ class MemoryManager {
         _deviceTotalMemoryMB = 8192; // Desktop/otros
       }
 
-      _logger.d(
+      logger.d(
           '📱 Memoria total estimada del dispositivo: ${_deviceTotalMemoryMB}MB');
     } catch (e) {
-      _logger
+      logger
           .w('⚠️ Error obteniendo información de memoria del dispositivo: $e');
       _deviceTotalMemoryMB = 2048; // Fallback conservador
     }
@@ -157,9 +147,9 @@ class MemoryManager {
   Future<void> _setupTempDirectories() async {
     try {
       _tempDirectory = await getTemporaryDirectory();
-      _logger.d('📁 Directorio temporal configurado: ${_tempDirectory?.path}');
+      logger.d('📁 Directorio temporal configurado: ${_tempDirectory?.path}');
     } catch (e) {
-      _logger.w('⚠️ Error configurando directorio temporal: $e');
+      logger.w('⚠️ Error configurando directorio temporal: $e');
     }
   }
 
@@ -172,7 +162,7 @@ class MemoryManager {
       await _updateMemoryStatus();
     });
 
-    _logger.d('⏱️ Monitoreo de memoria iniciado');
+    logger.d('⏱️ Monitoreo de memoria iniciado');
   }
 
   /// 🗑️ Iniciar cleanup automático
@@ -185,7 +175,7 @@ class MemoryManager {
       await performCleanup();
     });
 
-    _logger
+    logger
         .d('🗑️ Cleanup automático iniciado - Frecuencia: $_cleanupFrequency');
   }
 
@@ -219,11 +209,11 @@ class MemoryManager {
       }
 
       if (kDebugMode && _currentMemoryUsageMB > 0) {
-        _logger.d('🧠 Memoria: ${_currentMemoryUsageMB}MB '
+        logger.d('🧠 Memoria: ${_currentMemoryUsageMB}MB '
             '(${_memoryUsagePercentage.toStringAsFixed(1)}%)');
       }
     } catch (e) {
-      _logger.w('⚠️ Error actualizando estado de memoria: $e');
+      logger.w('⚠️ Error actualizando estado de memoria: $e');
     }
   }
 
@@ -242,7 +232,7 @@ class MemoryManager {
 
       return {'rss': 0, 'heap': 0, 'external': 0};
     } catch (e) {
-      _logger.w('⚠️ Error obteniendo uso de memoria: $e');
+      logger.w('⚠️ Error obteniendo uso de memoria: $e');
       return {'rss': 0, 'heap': 0, 'external': 0};
     }
   }
@@ -274,7 +264,7 @@ class MemoryManager {
 
   /// 🚨 Manejar uso crítico de memoria
   void _handleCriticalMemoryUsage() {
-    _logger.w(
+    logger.w(
         '🚨 Uso crítico de memoria: ${_memoryUsagePercentage.toStringAsFixed(1)}%');
 
     // Habilitar cleanup agresivo temporalmente
@@ -289,7 +279,7 @@ class MemoryManager {
 
   /// ⚠️ Manejar advertencia de memoria
   void _handleWarningMemoryUsage() {
-    _logger.w(
+    logger.w(
         '⚠️ Advertencia de memoria: ${_memoryUsagePercentage.toStringAsFixed(1)}%');
 
     // Limpiar caché automáticamente
@@ -299,7 +289,7 @@ class MemoryManager {
   /// 🗑️ Realizar cleanup de memoria
   Future<void> performCleanup() async {
     try {
-      _logger.d('🗑️ Iniciando cleanup de memoria...');
+      logger.d('🗑️ Iniciando cleanup de memoria...');
 
       int freedMemory = 0;
 
@@ -323,10 +313,10 @@ class MemoryManager {
       _requestGarbageCollection();
 
       if (freedMemory > 0) {
-        _logger.i('✅ Cleanup completado - Memoria liberada: ${freedMemory}MB');
+        logger.i('✅ Cleanup completado - Memoria liberada: ${freedMemory}MB');
       }
     } catch (e) {
-      _logger.w('⚠️ Error en cleanup de memoria: $e');
+      logger.w('⚠️ Error en cleanup de memoria: $e');
     }
   }
 
@@ -348,7 +338,7 @@ class MemoryManager {
     }
 
     if (expiredKeys.isNotEmpty) {
-      _logger.d(
+      logger.d(
           '🗂️ Cache expirado limpiado: ${expiredKeys.length} entradas, ${freedMemory}MB');
     }
 
@@ -373,7 +363,7 @@ class MemoryManager {
     }
 
     if (unusedKeys.isNotEmpty) {
-      _logger.d(
+      logger.d(
           '🗑️ Objetos no utilizados limpiados: ${unusedKeys.length} objetos');
     }
 
@@ -382,7 +372,7 @@ class MemoryManager {
 
   /// ⚡ Cleanup agresivo
   Future<int> _performAggressiveCleanup() async {
-    _logger.d('⚡ Ejecutando cleanup agresivo...');
+    logger.d('⚡ Ejecutando cleanup agresivo...');
 
     int freedMemory = 0;
 
@@ -403,7 +393,7 @@ class MemoryManager {
       await Future.delayed(const Duration(milliseconds: 100));
     }
 
-    _logger.d('⚡ Cleanup agresivo completado');
+    logger.d('⚡ Cleanup agresivo completado');
     return freedMemory;
   }
 
@@ -429,12 +419,12 @@ class MemoryManager {
       }
 
       if (freedMemory > 0) {
-        _logger.d('📁 Archivos temporales limpiados: ${freedMemory}MB');
+        logger.d('📁 Archivos temporales limpiados: ${freedMemory}MB');
       }
 
       return freedMemory;
     } catch (e) {
-      _logger.w('⚠️ Error limpiando archivos temporales: $e');
+      logger.w('⚠️ Error limpiando archivos temporales: $e');
       return 0;
     }
   }
@@ -444,10 +434,10 @@ class MemoryManager {
     try {
       // Forzar garbage collection usando dart:developer
       if (kDebugMode) {
-        _logger.d('🗑️ Garbage collection solicitado');
+        logger.d('🗑️ Garbage collection solicitado');
       }
     } catch (e) {
-      _logger.w('⚠️ Error solicitando garbage collection: $e');
+      logger.w('⚠️ Error solicitando garbage collection: $e');
     }
   }
 
@@ -466,7 +456,7 @@ class MemoryManager {
       estimatedSizeMB: estimatedSizeMB,
     );
 
-    _logger.d('🗂️ Datos cacheados: $key ($estimatedSizeMB MB)');
+    logger.d('🗂️ Datos cacheados: $key ($estimatedSizeMB MB)');
   }
 
   dynamic getCachedData(String key) {
@@ -509,7 +499,7 @@ class MemoryManager {
     _memoryCache.clear();
 
     if (freedMemory > 0) {
-      _logger.d('🗂️ Caché completo limpiado: ${freedMemory}MB');
+      logger.d('🗂️ Caché completo limpiado: ${freedMemory}MB');
     }
   }
 
@@ -526,12 +516,12 @@ class MemoryManager {
   void setCleanupFrequency(Duration frequency) {
     _cleanupFrequency = frequency;
     _startAutomaticCleanup(); // Reiniciar con nueva frecuencia
-    _logger.d('⚙️ Frecuencia de cleanup cambiada: $frequency');
+    logger.d('⚙️ Frecuencia de cleanup cambiada: $frequency');
   }
 
   void enableAggressiveCleanup(bool enabled) {
     _isAggressiveCleanupEnabled = enabled;
-    _logger.i('⚡ Cleanup agresivo ${enabled ? 'habilitado' : 'deshabilitado'}');
+    logger.i('⚡ Cleanup agresivo ${enabled ? 'habilitado' : 'deshabilitado'}');
   }
 
   void enableDataCaching(bool enabled) {
@@ -539,7 +529,7 @@ class MemoryManager {
     if (!enabled) {
       _cleanupCache();
     }
-    _logger.i('🗂️ Cache de datos ${enabled ? 'habilitado' : 'deshabilitado'}');
+    logger.i('🗂️ Cache de datos ${enabled ? 'habilitado' : 'deshabilitado'}');
   }
 
   void configureMemoryThresholds({
@@ -549,7 +539,7 @@ class MemoryManager {
     if (warningThreshold != null) _warningThreshold = warningThreshold;
     if (criticalThreshold != null) _criticalThreshold = criticalThreshold;
 
-    _logger.i('🎯 Thresholds de memoria configurados: '
+    logger.i('🎯 Thresholds de memoria configurados: '
         'Warning=$_warningThreshold%, Critical=$_criticalThreshold%');
   }
 
@@ -629,7 +619,7 @@ class MemoryManager {
       try {
         callback(usagePercentage);
       } catch (e) {
-        _logger.w('⚠️ Error en callback de uso de memoria: $e');
+        logger.w('⚠️ Error en callback de uso de memoria: $e');
       }
     }
   }
@@ -639,14 +629,14 @@ class MemoryManager {
       try {
         callback(isLowMemory);
       } catch (e) {
-        _logger.w('⚠️ Error en callback de memoria baja: $e');
+        logger.w('⚠️ Error en callback de memoria baja: $e');
       }
     }
   }
 
   /// 🎯 Optimización forzada
   Future<void> forceOptimization() async {
-    _logger.i('🎯 Forzando optimización de memoria...');
+    logger.i('🎯 Forzando optimización de memoria...');
 
     final previousUsage = _currentMemoryUsageMB;
 
@@ -664,7 +654,7 @@ class MemoryManager {
     await _updateMemoryStatus();
     final improvement = previousUsage - _currentMemoryUsageMB;
 
-    _logger.i(
+    logger.i(
         '✅ Optimización forzada completada - Memoria liberada: ${improvement}MB');
   }
 
@@ -679,6 +669,6 @@ class MemoryManager {
     _lowMemoryCallbacks.clear();
     _isInitialized = false;
 
-    _logger.i('🛑 Memory Manager disposed');
+    logger.i('🛑 Memory Manager disposed');
   }
 }

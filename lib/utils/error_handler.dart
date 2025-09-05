@@ -1,4 +1,5 @@
 // lib/utils/error_handler.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class ErrorHandler {
     VoidCallback? onRetry,
     bool showDialog = true,
   }) {
-    debugPrint('$_tag: Handling API error: $error');
+    logger.d('$_tag: Handling API error: $error');
 
     ErrorInfo errorInfo = _categorizeError(error);
     
@@ -38,7 +39,7 @@ class ErrorHandler {
 
   /// Handle location service errors
   static void handleLocationError(dynamic error, BuildContext context) {
-    debugPrint('$_tag: Handling location error: $error');
+    logger.d('$_tag: Handling location error: $error');
 
     String title = 'Location Error';
     String message = 'Unable to access location services';
@@ -66,14 +67,14 @@ class ErrorHandler {
 
   /// Handle network connectivity errors
   static void handleNetworkError(BuildContext context, {VoidCallback? onRetry}) {
-    debugPrint('$_tag: Handling network error');
+    logger.d('$_tag: Handling network error');
 
     _showNetworkErrorDialog(context, onRetry);
   }
 
   /// Handle authentication errors
   static void handleAuthError(BuildContext context, String errorMessage) {
-    debugPrint('$_tag: Handling auth error: $errorMessage');
+    logger.d('$_tag: Handling auth error: $errorMessage');
 
     if (errorMessage.toLowerCase().contains('token') || 
         errorMessage.toLowerCase().contains('unauthorized')) {
@@ -88,15 +89,15 @@ class ErrorHandler {
     String? context,
     Map<String, dynamic>? additionalInfo,
   }) {
-    debugPrint('$_tag: Critical error in $context: $error');
-    debugPrint('$_tag: Stack trace: $stackTrace');
+    logger.d('$_tag: Critical error in $context: $error');
+    logger.d('$_tag: Stack trace: $stackTrace');
 
     // Log critical error for crash reporting
     _logCriticalError(error, stackTrace, context, additionalInfo);
 
     // In debug mode, you might want to show more detailed error info
     if (kDebugMode) {
-      debugPrint('$_tag: Additional info: $additionalInfo');
+      logger.d('$_tag: Additional info: $additionalInfo');
     }
   }
 
@@ -491,19 +492,19 @@ class ErrorHandler {
   /// Open device location settings
   static void _openLocationSettings() {
     // Implementation would use app_settings plugin or similar
-    debugPrint('$_tag: Opening location settings...');
+    logger.d('$_tag: Opening location settings...');
   }
 
   /// Open app settings
   static void _openAppSettings() {
     // Implementation would use app_settings plugin or similar
-    debugPrint('$_tag: Opening app settings...');
+    logger.d('$_tag: Opening app settings...');
   }
 
   /// Log error for analytics and monitoring
   static void _logError(String type, dynamic error, ErrorInfo errorInfo) {
     // Implementation would integrate with crash reporting service
-    debugPrint('$_tag: Logging error - Type: $type, Info: ${errorInfo.title}');
+    logger.d('$_tag: Logging error - Type: $type, Info: ${errorInfo.title}');
   }
 
   /// Log critical error for crash reporting
@@ -514,7 +515,7 @@ class ErrorHandler {
     Map<String, dynamic>? additionalInfo,
   ) {
     // Implementation would integrate with crash reporting service like Firebase Crashlytics
-    debugPrint('$_tag: Logging critical error in $context: $error');
+    logger.d('$_tag: Logging critical error in $context: $error');
   }
 }
 

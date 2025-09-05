@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/teacher_notification_service.dart
 // 🔔 SERVICIO COMPLETO DE NOTIFICACIONES PARA DOCENTES
 import 'dart:async';
@@ -48,7 +49,7 @@ class TeacherNotificationService {
   /// Inicializar servicio de notificaciones para profesors
   Future<void> initialize() async {
     try {
-      debugPrint('🔔 Inicializando TeacherNotificationService');
+      logger.d('🔔 Inicializando TeacherNotificationService');
       
       // Inicializar notificaciones base
       await _notificationManager.initialize();
@@ -62,9 +63,9 @@ class TeacherNotificationService {
       // Configurar canales específicos para profesors
       await _setupTeacherNotificationChannels();
       
-      debugPrint('✅ TeacherNotificationService inicializado');
+      logger.d('✅ TeacherNotificationService inicializado');
     } catch (e) {
-      debugPrint('❌ Error inicializando TeacherNotificationService: $e');
+      logger.d('❌ Error inicializando TeacherNotificationService: $e');
       rethrow;
     }
   }
@@ -125,7 +126,7 @@ class TeacherNotificationService {
     if (!_settings.enableEventReminders) return;
     
     try {
-      debugPrint('📅 Programando notificaciones para evento: ${evento.titulo}');
+      logger.d('📅 Programando notificaciones para evento: ${evento.titulo}');
       
       final now = DateTime.now();
       final eventStart = evento.horaInicio;
@@ -191,9 +192,9 @@ class TeacherNotificationService {
         );
       }
       
-      debugPrint('✅ Notificaciones programadas para: ${evento.titulo}');
+      logger.d('✅ Notificaciones programadas para: ${evento.titulo}');
     } catch (e) {
-      debugPrint('❌ Error programando notificaciones: $e');
+      logger.d('❌ Error programando notificaciones: $e');
     }
   }
 
@@ -208,7 +209,7 @@ class TeacherNotificationService {
     });
     
     _scheduledTimers[notification.id] = timer;
-    debugPrint('⏰ Notificación programada para: ${_formatDateTime(scheduledTime)}');
+    logger.d('⏰ Notificación programada para: ${_formatDateTime(scheduledTime)}');
   }
 
   // ===========================================
@@ -226,7 +227,7 @@ class TeacherNotificationService {
     if (!_settings.enableAttendanceUpdates) return;
     
     try {
-      debugPrint('👥 Notificando estudiante registrado: $studentName');
+      logger.d('👥 Notificando estudiante registrado: $studentName');
       
       final notification = TeacherNotification.studentJoined(
         studentName: studentName,
@@ -242,7 +243,7 @@ class TeacherNotificationService {
       await _checkAttendanceMilestones(eventId, currentAttendance, totalStudents);
       
     } catch (e) {
-      debugPrint('❌ Error notificando estudiante registrado: $e');
+      logger.d('❌ Error notificando estudiante registrado: $e');
     }
   }
 
@@ -276,7 +277,7 @@ class TeacherNotificationService {
       
       await showNotification(notification);
     } catch (e) {
-      debugPrint('❌ Error notificando múltiples estudiantes: $e');
+      logger.d('❌ Error notificando múltiples estudiantes: $e');
     }
   }
 
@@ -308,7 +309,7 @@ class TeacherNotificationService {
       }
       
     } catch (e) {
-      debugPrint('❌ Error en actualización de asistencia: $e');
+      logger.d('❌ Error en actualización de asistencia: $e');
     }
   }
 
@@ -326,7 +327,7 @@ class TeacherNotificationService {
     if (!_settings.enableStudentAlerts) return;
     
     try {
-      debugPrint('🚨 Estudiante salió del área: $studentName');
+      logger.d('🚨 Estudiante salió del área: $studentName');
       
       // Agregar al buffer para posible agrupación
       _studentsLeftBuffer.putIfAbsent(eventId, () => []).add(studentName);
@@ -354,7 +355,7 @@ class TeacherNotificationService {
       });
       
     } catch (e) {
-      debugPrint('❌ Error notificando estudiante que salió: $e');
+      logger.d('❌ Error notificando estudiante que salió: $e');
     }
   }
 
@@ -383,7 +384,7 @@ class TeacherNotificationService {
       
       await showNotification(notification);
     } catch (e) {
-      debugPrint('❌ Error notificando múltiples estudiantes: $e');
+      logger.d('❌ Error notificando múltiples estudiantes: $e');
     }
   }
 
@@ -407,7 +408,7 @@ class TeacherNotificationService {
       
       await showNotification(notification);
     } catch (e) {
-      debugPrint('❌ Error sugiriendo receso: $e');
+      logger.d('❌ Error sugiriendo receso: $e');
     }
   }
 
@@ -434,7 +435,7 @@ class TeacherNotificationService {
       
       await showNotification(notification);
     } catch (e) {
-      debugPrint('❌ Error notificando estudiantes esperando: $e');
+      logger.d('❌ Error notificando estudiantes esperando: $e');
     }
   }
 
@@ -468,7 +469,7 @@ class TeacherNotificationService {
       
       await showNotification(notification);
     } catch (e) {
-      debugPrint('❌ Error notificando reporte: $e');
+      logger.d('❌ Error notificando reporte: $e');
     }
   }
 
@@ -481,7 +482,7 @@ class TeacherNotificationService {
     try {
       // Verificar si el tipo está habilitado
       if (!_settings.isTypeEnabled(notification.type)) {
-        debugPrint('🚫 Tipo de notificación deshabilitado: ${notification.type.name}');
+        logger.d('🚫 Tipo de notificación deshabilitado: ${notification.type.name}');
         return;
       }
       
@@ -509,9 +510,9 @@ class TeacherNotificationService {
         await _savePersistedNotification(notification);
       }
       
-      debugPrint('✅ Notificación mostrada: ${notification.title}');
+      logger.d('✅ Notificación mostrada: ${notification.title}');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación: $e');
+      logger.d('❌ Error mostrando notificación: $e');
     }
   }
 
@@ -562,7 +563,7 @@ class TeacherNotificationService {
         details,
       );
     } catch (e) {
-      debugPrint('❌ Error en notificación del sistema: $e');
+      logger.d('❌ Error en notificación del sistema: $e');
     }
   }
 
@@ -575,9 +576,9 @@ class TeacherNotificationService {
       // Cancelar notificación del sistema
       _notifications.cancel(notificationId.hashCode);
       
-      debugPrint('✅ Notificación descartada: $notificationId');
+      logger.d('✅ Notificación descartada: $notificationId');
     } catch (e) {
-      debugPrint('❌ Error descartando notificación: $e');
+      logger.d('❌ Error descartando notificación: $e');
     }
   }
 
@@ -590,7 +591,7 @@ class TeacherNotificationService {
         _notifyListeners();
       }
     } catch (e) {
-      debugPrint('❌ Error marcando como leída: $e');
+      logger.d('❌ Error marcando como leída: $e');
     }
   }
 
@@ -600,9 +601,9 @@ class TeacherNotificationService {
       _activeNotifications.clear();
       _notifyListeners();
       _notifications.cancelAll();
-      debugPrint('✅ Todas las notificaciones limpiadas');
+      logger.d('✅ Todas las notificaciones limpiadas');
     } catch (e) {
-      debugPrint('❌ Error limpiando notificaciones: $e');
+      logger.d('❌ Error limpiando notificaciones: $e');
     }
   }
 
@@ -615,9 +616,9 @@ class TeacherNotificationService {
     try {
       _settings = newSettings;
       await _saveSettings();
-      debugPrint('✅ Configuración de notificaciones actualizada');
+      logger.d('✅ Configuración de notificaciones actualizada');
     } catch (e) {
-      debugPrint('❌ Error actualizando configuración: $e');
+      logger.d('❌ Error actualizando configuración: $e');
     }
   }
 
@@ -630,7 +631,7 @@ class TeacherNotificationService {
         _settings = TeacherNotificationSettings.fromJson(json);
       }
     } catch (e) {
-      debugPrint('❌ Error cargando configuración: $e');
+      logger.d('❌ Error cargando configuración: $e');
       _settings = TeacherNotificationSettings.defaultSettings;
     }
   }
@@ -641,7 +642,7 @@ class TeacherNotificationService {
       final json = jsonEncode(_settings.toJson());
       await _storageService.saveData('teacher_notification_settings', json);
     } catch (e) {
-      debugPrint('❌ Error guardando configuración: $e');
+      logger.d('❌ Error guardando configuración: $e');
     }
   }
 
@@ -736,7 +737,7 @@ class TeacherNotificationService {
   // ===========================================
 
   void _handleStartEventNow(String eventId) {
-    debugPrint('🎮 Iniciar evento ahora: $eventId');
+    logger.d('🎮 Iniciar evento ahora: $eventId');
     // Integración con EventService para iniciar evento
     _performEventAction('start_event', eventId, {
       'action': 'manual_start',
@@ -745,7 +746,7 @@ class TeacherNotificationService {
   }
 
   void _handleEndEventNow(String eventId) {
-    debugPrint('🏁 Finalizar evento ahora: $eventId');
+    logger.d('🏁 Finalizar evento ahora: $eventId');
     // Integración con EventService para finalizar evento
     _performEventAction('end_event', eventId, {
       'action': 'manual_end',
@@ -754,7 +755,7 @@ class TeacherNotificationService {
   }
 
   void _handleStartBreak(String eventId) {
-    debugPrint('⏸️ Iniciar receso: $eventId');
+    logger.d('⏸️ Iniciar receso: $eventId');
     // Integración con EventService para iniciar receso
     _performEventAction('start_break', eventId, {
       'action': 'start_break',
@@ -763,7 +764,7 @@ class TeacherNotificationService {
   }
 
   void _handleContactStudent(String studentName, String eventId) {
-    debugPrint('📞 Contactar estudiante: $studentName');
+    logger.d('📞 Contactar estudiante: $studentName');
     // Integración con comunicación de estudiantes
     _performEventAction('contact_student', eventId, {
       'student_name': studentName,
@@ -776,7 +777,7 @@ class TeacherNotificationService {
   }
 
   void _handleMultipleStudentsLeftAction(String eventId) {
-    debugPrint('👥 Ver detalles de estudiantes que salieron: $eventId');
+    logger.d('👥 Ver detalles de estudiantes que salieron: $eventId');
     // Integración con navegación a detalles
     _performEventAction('view_left_students', eventId, {
       'action': 'navigate_to_details',
@@ -788,14 +789,14 @@ class TeacherNotificationService {
   void _performEventAction(String actionType, String eventId, Map<String, dynamic> data) {
     try {
       // En producción, esto se integraría con los servicios correspondientes
-      debugPrint('TeacherNotificationService: Performing $actionType for event $eventId');
-      debugPrint('TeacherNotificationService: Action data: $data');
+      logger.d('TeacherNotificationService: Performing $actionType for event $eventId');
+      logger.d('TeacherNotificationService: Action data: $data');
       
       // Registrar acción para analytics (implementar cuando esté disponible)
       // AnalyticsService.trackEvent(...)
       
     } catch (e) {
-      debugPrint('TeacherNotificationService: Error performing event action $actionType: $e');
+      logger.d('TeacherNotificationService: Error performing event action $actionType: $e');
     }
   }
 
@@ -803,7 +804,7 @@ class TeacherNotificationService {
   void _sendStudentNotification(String studentName, String eventId) {
     try {
       // En producción, esto se integraría con el servicio de notificaciones de estudiantes
-      debugPrint('TeacherNotificationService: Sending notification to student: $studentName for event: $eventId');
+      logger.d('TeacherNotificationService: Sending notification to student: $studentName for event: $eventId');
       
       // Placeholder para envío de notificación
       final notificationData = {
@@ -813,9 +814,9 @@ class TeacherNotificationService {
         'timestamp': DateTime.now().toIso8601String(),
       };
       
-      debugPrint('TeacherNotificationService: Student notification data: $notificationData');
+      logger.d('TeacherNotificationService: Student notification data: $notificationData');
     } catch (e) {
-      debugPrint('TeacherNotificationService: Error sending student notification: $e');
+      logger.d('TeacherNotificationService: Error sending student notification: $e');
     }
   }
 
@@ -829,16 +830,16 @@ class TeacherNotificationService {
       final json = jsonEncode(notification.toJson());
       await _storageService.saveData(key, json);
     } catch (e) {
-      debugPrint('❌ Error guardando notificación persistente: $e');
+      logger.d('❌ Error guardando notificación persistente: $e');
     }
   }
 
   Future<void> _loadPersistedNotifications() async {
     try {
       // TODO: Implementar carga de notificaciones persistentes
-      debugPrint('📱 Cargando notificaciones persistentes...');
+      logger.d('📱 Cargando notificaciones persistentes...');
     } catch (e) {
-      debugPrint('❌ Error cargando notificaciones persistentes: $e');
+      logger.d('❌ Error cargando notificaciones persistentes: $e');
     }
   }
 
@@ -911,7 +912,7 @@ class TeacherNotificationService {
       
       await showNotification(notification);
     } catch (e) {
-      debugPrint('❌ Error notificando hito: $e');
+      logger.d('❌ Error notificando hito: $e');
     }
   }
 
@@ -933,12 +934,12 @@ class TeacherNotificationService {
       
       await showNotification(notification);
     } catch (e) {
-      debugPrint('❌ Error notificando asistencia baja: $e');
+      logger.d('❌ Error notificando asistencia baja: $e');
     }
   }
 
   void _handleRemindStudents(String eventId) {
-    debugPrint('📢 Recordar estudiantes: $eventId');
+    logger.d('📢 Recordar estudiantes: $eventId');
     // TODO: Implementar lógica para enviar recordatorios
   }
 
@@ -959,9 +960,9 @@ class TeacherNotificationService {
       }
       _attendanceTimers.clear();
       
-      debugPrint('✅ TeacherNotificationService disposed');
+      logger.d('✅ TeacherNotificationService disposed');
     } catch (e) {
-      debugPrint('❌ Error disposing TeacherNotificationService: $e');
+      logger.d('❌ Error disposing TeacherNotificationService: $e');
     }
   }
 }

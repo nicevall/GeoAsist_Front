@@ -1,4 +1,5 @@
 // lib/utils/app_router.dart - VERSIÓN CORREGIDA CON NAVEGACIÓN UNIFICADA
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import '../core/app_constants.dart';
 import '../screens/login_screen.dart';
@@ -585,14 +586,14 @@ class AppRouter {
       final isAuth = await isAuthenticated;
       if (isAuth) {
         // Si está autenticado, se queda donde está
-        debugPrint('🏠 Usuario autenticado - permaneciendo en pantalla actual');
+        logger.d('🏠 Usuario autenticado - permaneciendo en pantalla actual');
       } else {
         // Solo va al login si NO está autenticado
         goToLogin();
       }
     } catch (e) {
       // En caso de error, se queda donde está
-      debugPrint(
+      logger.d(
           '🏠 Error verificando autenticación - permaneciendo en pantalla actual');
     }
   }

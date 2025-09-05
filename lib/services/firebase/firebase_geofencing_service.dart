@@ -1,4 +1,5 @@
 // lib/services/firebase/firebase_geofencing_service.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -30,7 +31,7 @@ class FirebaseGeofencingService {
   // 🚀 INICIAR MONITOREO DE GEOFENCES
   Future<void> startMonitoring(String userId) async {
     if (_isMonitoring) {
-      debugPrint('⚠️ Geofencing ya está activo');
+      logger.d('⚠️ Geofencing ya está activo');
       return;
     }
 
@@ -40,9 +41,9 @@ class FirebaseGeofencingService {
       _startLocationTracking();
       _isMonitoring = true;
       
-      debugPrint('✅ Monitoreo de geofences iniciado para usuario: $userId');
+      logger.d('✅ Monitoreo de geofences iniciado para usuario: $userId');
     } catch (e) {
-      debugPrint('❌ Error iniciando monitoreo: $e');
+      logger.d('❌ Error iniciando monitoreo: $e');
       onError?.call('Error iniciando geofencing: $e');
     }
   }
@@ -54,7 +55,7 @@ class FirebaseGeofencingService {
     _activeGeofences.clear();
     _currentUserId = null;
     
-    debugPrint('🛑 Monitoreo de geofences detenido');
+    logger.d('🛑 Monitoreo de geofences detenido');
   }
 
   // 📍 TRACKING DE UBICACIÓN
@@ -93,7 +94,7 @@ class FirebaseGeofencingService {
       await _checkAllGeofences(position);
       
     } catch (e) {
-      debugPrint('❌ Error actualizando ubicación: $e');
+      logger.d('❌ Error actualizando ubicación: $e');
       onError?.call('Error obteniendo ubicación: $e');
     }
   }
@@ -103,9 +104,9 @@ class FirebaseGeofencingService {
     try {
       final geofences = await _firestoreService.getGeofencesActivos();
       _activeGeofences = geofences.map((data) => EventoGeofence.fromMap(data)).toList();
-      debugPrint('📊 Cargados ${_activeGeofences.length} geofences activos');
+      logger.d('📊 Cargados ${_activeGeofences.length} geofences activos');
     } catch (e) {
-      debugPrint('❌ Error cargando geofences: $e');
+      logger.d('❌ Error cargando geofences: $e');
     }
   }
 
@@ -270,7 +271,7 @@ class FirebaseGeofencingService {
         behaviorScore = onTimeCount / asistencias.length;
       }
     } catch (e) {
-      debugPrint('⚠️ Error obteniendo historial de asistencias: $e');
+      logger.d('⚠️ Error obteniendo historial de asistencias: $e');
       // Mantener el score base de 0.5
     }
 

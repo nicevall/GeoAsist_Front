@@ -1,4 +1,5 @@
 // lib/widgets/optimized_list_view.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
@@ -76,7 +77,7 @@ class _OptimizedListViewState<T> extends State<OptimizedListView<T>>
       _scrollController.addListener(_trackVisibleItems);
     }
     
-    debugPrint('OptimizedListView: Initialized with ${_items.length} items');
+    logger.d('OptimizedListView: Initialized with ${_items.length} items');
   }
 
   @override
@@ -87,7 +88,7 @@ class _OptimizedListViewState<T> extends State<OptimizedListView<T>>
       setState(() {
         _items = List.from(widget.items);
       });
-      debugPrint('OptimizedListView: Updated with ${_items.length} items');
+      logger.d('OptimizedListView: Updated with ${_items.length} items');
     }
   }
 
@@ -141,12 +142,12 @@ class _OptimizedListViewState<T> extends State<OptimizedListView<T>>
         _isLoadingMore = false;
       });
       
-      debugPrint('OptimizedListView: Loaded ${newItems.length} more items');
+      logger.d('OptimizedListView: Loaded ${newItems.length} more items');
     } catch (e) {
       setState(() {
         _isLoadingMore = false;
       });
-      debugPrint('OptimizedListView: Failed to load more items: $e');
+      logger.d('OptimizedListView: Failed to load more items: $e');
     }
   }
 
@@ -458,7 +459,7 @@ class _ListPerformanceMonitorState extends State<ListPerformanceMonitor> {
       
       if (_lastBuild != null) {
         final timeSinceLastBuild = now.difference(_lastBuild!);
-        debugPrint('ListPerformanceMonitor [${widget.listName}]: '
+        logger.d('ListPerformanceMonitor [${widget.listName}]: '
             'Build #$_buildCount, Time since last: ${timeSinceLastBuild.inMilliseconds}ms');
       }
       

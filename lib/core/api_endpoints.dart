@@ -1,5 +1,6 @@
 // lib/core/api_endpoints.dart
 import 'package:flutter/foundation.dart';
+import 'utils/app_logger.dart';
 
 /// ✅ API ENDPOINTS: Centralización de endpoints backend preservada
 /// Responsabilidades:
@@ -263,7 +264,7 @@ class ApiEndpoints {
   /// Configurar entorno de testing
   static void setTestingMode(bool enabled) {
     if (kDebugMode) {
-      debugPrint('🧪 Testing mode: ${enabled ? "enabled" : "disabled"}');
+      logger.i('🧪 Testing mode: ${enabled ? "enabled" : "disabled"}');
     }
   }
 
@@ -318,11 +319,11 @@ class ApiEndpoints {
   /// Log de configuración actual
   static void logConfiguration() {
     if (kDebugMode) {
-      debugPrint('🔧 API Configuration:');
-      debugPrint('   Base URL: $baseUrl');
-      debugPrint('   WebSocket URL: $wsUrl');
-      debugPrint('   Environment: ${kDebugMode ? "Development" : "Production"}');
-      debugPrint('   Default timeout: ${defaultTimeout.inSeconds}s');
+      logger.i('🔧 API Configuration:');
+      logger.i('   Base URL: $baseUrl');
+      logger.i('   WebSocket URL: $wsUrl');
+      logger.i('   Environment: ${kDebugMode ? "Development" : "Production"}');
+      logger.i('   Default timeout: ${defaultTimeout.inSeconds}s');
     }
   }
 }

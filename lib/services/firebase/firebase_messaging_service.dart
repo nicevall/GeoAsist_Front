@@ -1,4 +1,5 @@
 // lib/services/firebase/firebase_messaging_service.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
@@ -31,7 +32,7 @@ class FirebaseMessagingService {
   // 🚀 INICIALIZAR FCM
   Future<void> initialize(String userId) async {
     if (_isInitialized) {
-      debugPrint('⚠️ FCM ya está inicializado');
+      logger.d('⚠️ FCM ya está inicializado');
       return;
     }
 
@@ -49,9 +50,9 @@ class FirebaseMessagingService {
       _setupMessageHandlers();
       
       _isInitialized = true;
-      debugPrint('✅ Firebase Messaging inicializado correctamente');
+      logger.d('✅ Firebase Messaging inicializado correctamente');
     } catch (e) {
-      debugPrint('❌ Error inicializando FCM: $e');
+      logger.d('❌ Error inicializando FCM: $e');
       rethrow;
     }
   }
@@ -68,7 +69,7 @@ class FirebaseMessagingService {
       sound: true,
     );
 
-    debugPrint('📱 Permisos FCM: ${settings.authorizationStatus}');
+    logger.d('📱 Permisos FCM: ${settings.authorizationStatus}');
     
     if (settings.authorizationStatus != AuthorizationStatus.authorized) {
       throw Exception('Permisos de notificaciones no concedidos');
@@ -159,7 +160,7 @@ class FirebaseMessagingService {
       _fcmToken = await _messaging.getToken();
       
       if (_fcmToken != null) {
-        debugPrint('📱 FCM Token obtenido: ${_fcmToken!.substring(0, 20)}...');
+        logger.d('📱 FCM Token obtenido: ${_fcmToken!.substring(0, 20)}...');
         
         // ✅ PHASE 3: Registrar token tanto en Firestore como en Backend API
         await Future.wait([
@@ -184,11 +185,11 @@ class FirebaseMessagingService {
           _registerTokenWithBackend(userId, newToken),
         ]);
         
-        debugPrint('🔄 FCM Token actualizado en ambos servicios');
+        logger.d('🔄 FCM Token actualizado en ambos servicios');
       });
       
     } catch (e) {
-      debugPrint('❌ Error configurando token FCM: $e');
+      logger.d('❌ Error configurando token FCM: $e');
     }
   }
 
@@ -204,7 +205,7 @@ class FirebaseMessagingService {
         // Suscripción por rol
         if (usuario['rol'] != null) {
           await _messaging.subscribeToTopic('rol_${usuario['rol']}');
-          debugPrint('📢 Suscrito al tema: rol_${usuario['rol']}');
+          logger.d('📢 Suscrito al tema: rol_${usuario['rol']}');
         }
         
         // Suscripción por materias (si aplica)
@@ -216,10 +217,10 @@ class FirebaseMessagingService {
         
         // Tema general
         await _messaging.subscribeToTopic('todos_usuarios');
-        debugPrint('📢 Suscrito al tema: todos_usuarios');
+        logger.d('📢 Suscrito al tema: todos_usuarios');
       }
     } catch (e) {
-      debugPrint('❌ Error suscribiéndose a temas: $e');
+      logger.d('❌ Error suscribiéndose a temas: $e');
     }
   }
 
@@ -237,9 +238,9 @@ class FirebaseMessagingService {
 
   // 📱 MANEJAR MENSAJE EN FOREGROUND
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    debugPrint('📱 Mensaje FCM en foreground: ${message.messageId}');
-    debugPrint('📱 Título: ${message.notification?.title}');
-    debugPrint('📱 Cuerpo: ${message.notification?.body}');
+    logger.d('📱 Mensaje FCM en foreground: ${message.messageId}');
+    logger.d('📱 Título: ${message.notification?.title}');
+    logger.d('📱 Cuerpo: ${message.notification?.body}');
     
     onMessageReceived?.call(message);
     
@@ -249,7 +250,7 @@ class FirebaseMessagingService {
 
   // 👆 MANEJAR TOQUE EN NOTIFICACIÓN
   Future<void> _handleMessageOpenedApp(RemoteMessage message) async {
-    debugPrint('👆 App abierta desde notificación: ${message.messageId}');
+    logger.d('👆 App abierta desde notificación: ${message.messageId}');
     onMessageTapped?.call(message);
     
     // Procesar acción según tipo de mensaje
@@ -260,7 +261,7 @@ class FirebaseMessagingService {
   Future<void> _checkInitialMessage() async {
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
-      debugPrint('🚀 App iniciada desde notificación: ${initialMessage.messageId}');
+      logger.d('🚀 App iniciada desde notificación: ${initialMessage.messageId}');
       await _processNotificationAction(initialMessage);
     }
   }
@@ -327,7 +328,7 @@ class FirebaseMessagingService {
     final tipo = message.data['tipo'];
     final eventoId = message.data['eventoId'];
     
-    debugPrint('🎯 Procesando acción: $tipo para evento: $eventoId');
+    logger.d('🎯 Procesando acción: $tipo para evento: $eventoId');
     
     switch (tipo) {
       case 'asistencia_automatica':
@@ -348,7 +349,7 @@ class FirebaseMessagingService {
 
   // 🔔 TOQUE EN NOTIFICACIÓN LOCAL
   void _onLocalNotificationTapped(NotificationResponse response) {
-    debugPrint('👆 Notificación local tocada: ${response.payload}');
+    logger.d('👆 Notificación local tocada: ${response.payload}');
     
     if (response.payload != null) {
       // ✅ NUEVO: Manejar notificaciones de pre-registro
@@ -364,10 +365,10 @@ class FirebaseMessagingService {
         // Delegar al servicio de pre-registro
         await _handlePreRegistrationNotification(payload);
       } else {
-        debugPrint('🔄 Payload de notificación no reconocido: $payload');
+        logger.d('🔄 Payload de notificación no reconocido: $payload');
       }
     } catch (e) {
-      debugPrint('❌ Error manejando payload de notificación: $e');
+      logger.d('❌ Error manejando payload de notificación: $e');
     }
   }
 
@@ -376,14 +377,14 @@ class FirebaseMessagingService {
     try {
       await PreRegistrationNotificationService.handleNotificationTap(payload);
     } catch (e) {
-      debugPrint('❌ Error manejando notificación de pre-registro: $e');
+      logger.d('❌ Error manejando notificación de pre-registro: $e');
     }
   }
 
   // 📨 ENVIAR NOTIFICACIÓN DE PRUEBA
   Future<void> sendTestNotification() async {
     if (_fcmToken == null) {
-      debugPrint('❌ No hay token FCM disponible');
+      logger.d('❌ No hay token FCM disponible');
       return;
     }
 
@@ -411,18 +412,18 @@ class FirebaseMessagingService {
   Future<void> subscribeToTopic(String topic) async {
     try {
       await _messaging.subscribeToTopic(topic);
-      debugPrint('📢 Suscrito al tema: $topic');
+      logger.d('📢 Suscrito al tema: $topic');
     } catch (e) {
-      debugPrint('❌ Error suscribiendo al tema $topic: $e');
+      logger.d('❌ Error suscribiendo al tema $topic: $e');
     }
   }
 
   Future<void> unsubscribeFromTopic(String topic) async {
     try {
       await _messaging.unsubscribeFromTopic(topic);
-      debugPrint('📢 Desuscrito del tema: $topic');
+      logger.d('📢 Desuscrito del tema: $topic');
     } catch (e) {
-      debugPrint('❌ Error desuscribiendo del tema $topic: $e');
+      logger.d('❌ Error desuscribiendo del tema $topic: $e');
     }
   }
 
@@ -434,17 +435,17 @@ class FirebaseMessagingService {
       
       if (_fcmToken != null) {
         await _firestoreService.updateUsuarioFCMToken(userId, _fcmToken!);
-        debugPrint('🔄 Token FCM actualizado exitosamente');
+        logger.d('🔄 Token FCM actualizado exitosamente');
       }
     } catch (e) {
-      debugPrint('❌ Error actualizando token: $e');
+      logger.d('❌ Error actualizando token: $e');
     }
   }
 
   // ✅ PHASE 3: Registrar token FCM en Backend API
   Future<void> _registerTokenWithBackend(String userId, String fcmToken) async {
     try {
-      debugPrint('📡 Registrando FCM token en backend API...');
+      logger.d('📡 Registrando FCM token en backend API...');
       
       final response = await _apiService.post(
         '/firestore/register-token',
@@ -457,14 +458,14 @@ class FirebaseMessagingService {
       );
       
       if (response.success) {
-        debugPrint('✅ FCM token registrado exitosamente en backend API');
+        logger.d('✅ FCM token registrado exitosamente en backend API');
       } else {
-        debugPrint('⚠️ Backend rechazó el token: ${response.error}');
+        logger.d('⚠️ Backend rechazó el token: ${response.error}');
         // No lanzar excepción para evitar fallar la inicialización completa
       }
       
     } catch (e) {
-      debugPrint('❌ Error registrando token en backend: $e');
+      logger.d('❌ Error registrando token en backend: $e');
       // No lanzar excepción para evitar fallar la inicialización completa
       // El token se guarda en Firestore de todos modos
     }

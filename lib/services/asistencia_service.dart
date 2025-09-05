@@ -1,7 +1,7 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/asistencia_service.dart
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import '../core/app_constants.dart';
 import '../models/api_response_model.dart';
 import '../models/asistencia_model.dart';
@@ -46,7 +46,7 @@ class AsistenciaService {
     
     while (attempt <= maxRetries) {
       try {
-        debugPrint('🔄 [$operationName] Intento $attempt/$maxRetries');
+        logger.d('🔄 [$operationName] Intento $attempt/$maxRetries');
         
         final response = await operation().timeout(
           Duration(seconds: _timeoutSeconds),
@@ -55,7 +55,7 @@ class AsistenciaService {
         
         if (response.success || !shouldRetry || attempt == maxRetries) {
           if (response.success) {
-            debugPrint('✅ [$operationName] Exitoso en intento $attempt');
+            logger.d('✅ [$operationName] Exitoso en intento $attempt');
           }
           return response;
         }
@@ -63,12 +63,12 @@ class AsistenciaService {
         // Determine if we should retry based on error type
         final errorType = _categorizeError(response.error ?? '');
         if (!_shouldRetryForErrorType(errorType)) {
-          debugPrint('❌ [$operationName] Error no recuperable: ${response.error}');
+          logger.d('❌ [$operationName] Error no recuperable: ${response.error}');
           return response;
         }
         
       } catch (e) {
-        debugPrint('❌ [$operationName] Excepción en intento $attempt: $e');
+        logger.d('❌ [$operationName] Excepción en intento $attempt: $e');
         
         if (attempt == maxRetries) {
           return ApiResponse<T>.error(_formatError(e, operationName));
@@ -77,7 +77,7 @@ class AsistenciaService {
       
       if (attempt < maxRetries) {
         final delayMs = _calculateRetryDelay(attempt);
-        debugPrint('⏳ [$operationName] Esperando ${delayMs}ms antes del siguiente intento...');
+        logger.d('⏳ [$operationName] Esperando ${delayMs}ms antes del siguiente intento...');
         await Future.delayed(Duration(milliseconds: delayMs));
       }
       
@@ -160,15 +160,15 @@ class AsistenciaService {
     double? precision,
     double? speed,
   }) async {
-    debugPrint('📍 Actualizando ubicación en tiempo real');
-    debugPrint('🌍 Usuario: $usuarioId en evento: $eventoId');
-    debugPrint('📊 Coords: ($latitud, $longitud), precisión: ${precision ?? 'N/A'}m');
+    logger.d('📍 Actualizando ubicación en tiempo real');
+    logger.d('🌍 Usuario: $usuarioId en evento: $eventoId');
+    logger.d('📊 Coords: ($latitud, $longitud), precisión: ${precision ?? 'N/A'}m');
 
     return _executeWithRetry<bool>(
       () async {
         final token = await _storageService.getToken();
         if (token == null) {
-          debugPrint('❌ No hay sesión activa para actualizar ubicación');
+          logger.d('❌ No hay sesión activa para actualizar ubicación');
           return ApiResponse.error('No hay sesión activa');
         }
 
@@ -202,17 +202,17 @@ class AsistenciaService {
   // 🎯 MÉTODO 3: Obtener asistencias de un evento específico (para profesor)
   Future<List<Asistencia>> obtenerAsistenciasEvento(String eventoId) async {
     try {
-      debugPrint('👥 Obteniendo asistencias del evento: $eventoId');
+      logger.d('👥 Obteniendo asistencias del evento: $eventoId');
       
       // ✅ CRÍTICO: Validar eventoId antes de hacer request al backend
       if (eventoId.isEmpty || eventoId == 'null' || eventoId == 'undefined') {
-        debugPrint('❌ eventoId inválido: "$eventoId" - retornando lista vacía');
+        logger.d('❌ eventoId inválido: "$eventoId" - retornando lista vacía');
         return [];
       }
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No hay sesión activa para obtener asistencias');
+        logger.d('❌ No hay sesión activa para obtener asistencias');
         return [];
       }
 
@@ -221,7 +221,7 @@ class AsistenciaService {
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Response success: ${response.success}');
+      logger.d('📡 Response success: ${response.success}');
 
       if (response.success && response.data != null) {
         final List<dynamic> asistenciasData =
@@ -229,14 +229,14 @@ class AsistenciaService {
         final asistencias =
             asistenciasData.map((data) => Asistencia.fromJson(data)).toList();
 
-        debugPrint('✅ Asistencias cargadas: ${asistencias.length} registros');
+        logger.d('✅ Asistencias cargadas: ${asistencias.length} registros');
         return asistencias;
       }
 
-      debugPrint('❌ Error obteniendo asistencias: ${response.error}');
+      logger.d('❌ Error obteniendo asistencias: ${response.error}');
       return [];
     } catch (e) {
-      debugPrint('❌ Excepción obteniendo asistencias: $e');
+      logger.d('❌ Excepción obteniendo asistencias: $e');
       return [];
     }
   }
@@ -246,21 +246,21 @@ class AsistenciaService {
     try {
       // Validar que el usuarioId no esté vacío
       if (usuarioId.isEmpty) {
-        debugPrint('❌ UsuarioId vacío, no se puede obtener historial');
+        logger.d('❌ UsuarioId vacío, no se puede obtener historial');
         return [];
       }
 
-      debugPrint(
+      logger.d(
           '📚 Obteniendo historial de asistencias del usuario: $usuarioId');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No hay sesión activa para obtener historial');
+        logger.d('❌ No hay sesión activa para obtener historial');
         return [];
       }
 
       final response = await _apiService.get(
-        '${AppConstants.asistenciaEndpoint.replaceAll('/registrar', '/mis-asistencias')}',
+        AppConstants.asistenciaEndpoint.replaceAll('/registrar', '/mis-asistencias'),
         headers: AppConstants.getAuthHeaders(token),
       );
 
@@ -273,14 +273,14 @@ class AsistenciaService {
         // Ordenar por fecha más reciente primero
         asistencias.sort((a, b) => b.fecha.compareTo(a.fecha));
 
-        debugPrint('✅ Historial cargado: ${asistencias.length} registros');
+        logger.d('✅ Historial cargado: ${asistencias.length} registros');
         return asistencias;
       }
 
-      debugPrint('❌ Error obteniendo historial: ${response.error}');
+      logger.d('❌ Error obteniendo historial: ${response.error}');
       return [];
     } catch (e) {
-      debugPrint('❌ Excepción obteniendo historial: $e');
+      logger.d('❌ Excepción obteniendo historial: $e');
       return [];
     }
   }
@@ -289,18 +289,18 @@ class AsistenciaService {
   Future<Map<String, dynamic>> obtenerEstadisticasPersonales(
       String usuarioId) async {
     try {
-      debugPrint(
+      logger.d(
           '📊 Obteniendo estadísticas personales del usuario: $usuarioId');
           
       // ✅ CRÍTICO: Validar usuarioId antes de hacer request al backend
       if (usuarioId.isEmpty || usuarioId == 'null' || usuarioId == 'undefined') {
-        debugPrint('❌ usuarioId inválido: "$usuarioId" - retornando mapa vacío');
+        logger.d('❌ usuarioId inválido: "$usuarioId" - retornando mapa vacío');
         return {};
       }
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No hay sesión activa para obtener estadísticas');
+        logger.d('❌ No hay sesión activa para obtener estadísticas');
         return {};
       }
 
@@ -311,14 +311,14 @@ class AsistenciaService {
 
       if (response.success && response.data != null) {
         final stats = response.data!;
-        debugPrint('✅ Estadísticas cargadas: $stats');
+        logger.d('✅ Estadísticas cargadas: $stats');
         return stats;
       }
 
-      debugPrint('❌ Error obteniendo estadísticas: ${response.error}');
+      logger.d('❌ Error obteniendo estadísticas: ${response.error}');
       return {};
     } catch (e) {
-      debugPrint('❌ Excepción obteniendo estadísticas: $e');
+      logger.d('❌ Excepción obteniendo estadísticas: $e');
       return {};
     }
   }
@@ -331,19 +331,19 @@ class AsistenciaService {
     String? motivo,
   }) async {
     try {
-      debugPrint('📄 Enviando justificación con link');
-      debugPrint('🔗 Link: $linkDocumento');
-      debugPrint('📝 Motivo: ${motivo ?? 'No especificado'}');
+      logger.d('📄 Enviando justificación con link');
+      logger.d('🔗 Link: $linkDocumento');
+      logger.d('📝 Motivo: ${motivo ?? 'No especificado'}');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No hay sesión activa para enviar justificación');
+        logger.d('❌ No hay sesión activa para enviar justificación');
         return ApiResponse.error('No hay sesión activa');
       }
 
       // Validar que sea un link válido
       if (!_esLinkValido(linkDocumento)) {
-        debugPrint('❌ Link no válido: $linkDocumento');
+        logger.d('❌ Link no válido: $linkDocumento');
         return ApiResponse.error('El link proporcionado no es válido');
       }
 
@@ -372,16 +372,16 @@ class AsistenciaService {
       );
 
       if (response.success) {
-        debugPrint('✅ Justificación enviada exitosamente');
+        logger.d('✅ Justificación enviada exitosamente');
         return ApiResponse.success(true,
             message: 'Justificación enviada exitosamente');
       }
 
-      debugPrint('❌ Error enviando justificación: ${response.error}');
+      logger.d('❌ Error enviando justificación: ${response.error}');
       return ApiResponse.error(
           response.error ?? 'Error enviando justificación');
     } catch (e) {
-      debugPrint('❌ Excepción enviando justificación: $e');
+      logger.d('❌ Excepción enviando justificación: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -390,7 +390,7 @@ class AsistenciaService {
   Future<List<Map<String, dynamic>>> obtenerJustificaciones(
       String usuarioId) async {
     try {
-      debugPrint('📄 Obteniendo justificaciones del usuario: $usuarioId');
+      logger.d('📄 Obteniendo justificaciones del usuario: $usuarioId');
 
       final asistencias = await obtenerHistorialUsuario(usuarioId);
       final justificaciones = <Map<String, dynamic>>[];
@@ -418,10 +418,10 @@ class AsistenciaService {
         }
       }
 
-      debugPrint('✅ Justificaciones encontradas: ${justificaciones.length}');
+      logger.d('✅ Justificaciones encontradas: ${justificaciones.length}');
       return justificaciones;
     } catch (e) {
-      debugPrint('❌ Error obteniendo justificaciones: $e');
+      logger.d('❌ Error obteniendo justificaciones: $e');
       return [];
     }
   }
@@ -437,7 +437,7 @@ class AsistenciaService {
         // Esperar 30 segundos antes de la siguiente actualización
         await Future.delayed(const Duration(seconds: 30));
       } catch (e) {
-        debugPrint('❌ Error en stream de asistencias: $e');
+        logger.d('❌ Error en stream de asistencias: $e');
         yield [];
         await Future.delayed(const Duration(seconds: 30));
       }
@@ -448,15 +448,15 @@ class AsistenciaService {
   Future<String?> validarEstadoAsistencia(
       String usuarioId, String eventoId) async {
     try {
-      debugPrint('🔍 Validando estado de asistencia');
-      debugPrint('👤 Usuario: $usuarioId, Evento: $eventoId');
+      logger.d('🔍 Validando estado de asistencia');
+      logger.d('👤 Usuario: $usuarioId, Evento: $eventoId');
 
       final asistencias = await obtenerAsistenciasEvento(eventoId);
       final asistenciaUsuario =
           asistencias.where((a) => a.usuarioId == usuarioId).toList();
 
       if (asistenciaUsuario.isEmpty) {
-        debugPrint('📋 Usuario sin asistencia registrada');
+        logger.d('📋 Usuario sin asistencia registrada');
         return null;
       }
 
@@ -464,10 +464,10 @@ class AsistenciaService {
       asistenciaUsuario.sort((a, b) => b.fecha.compareTo(a.fecha));
       final ultimaAsistencia = asistenciaUsuario.first;
 
-      debugPrint('✅ Estado actual: ${ultimaAsistencia.estado}');
+      logger.d('✅ Estado actual: ${ultimaAsistencia.estado}');
       return ultimaAsistencia.estado;
     } catch (e) {
-      debugPrint('❌ Error validando estado: $e');
+      logger.d('❌ Error validando estado: $e');
       return null;
     }
   }
@@ -479,8 +479,8 @@ class AsistenciaService {
     required String motivo,
   }) async {
     try {
-      debugPrint('❌ Marcando usuario como ausente');
-      debugPrint('📱 Motivo: $motivo');
+      logger.d('❌ Marcando usuario como ausente');
+      logger.d('📱 Motivo: $motivo');
 
       return await registrarAsistencia(
         eventoId: eventoId,
@@ -497,7 +497,7 @@ class AsistenciaService {
         return ApiResponse.error(response.error ?? 'Error marcando ausencia');
       });
     } catch (e) {
-      debugPrint('❌ Error marcando ausente: $e');
+      logger.d('❌ Error marcando ausente: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -515,7 +515,7 @@ class AsistenciaService {
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint('💓 Enviando heartbeat mejorado con estado de app');
+      logger.d('💓 Enviando heartbeat mejorado con estado de app');
 
       final response = await _apiService.post(
         AppConstants.heartbeatEndpoint, // '/asistencia/heartbeat'
@@ -534,16 +534,16 @@ class AsistenciaService {
       );
 
       if (response.success) {
-        debugPrint('💓 Heartbeat enviado exitosamente');
+        logger.d('💓 Heartbeat enviado exitosamente');
 
         // El backend puede devolver comandos o información adicional
         return ApiResponse.success(response.data ?? {});
       }
 
-      debugPrint('❌ Error en heartbeat: ${response.error}');
+      logger.d('❌ Error en heartbeat: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error en heartbeat');
     } catch (e) {
-      debugPrint('❌ Excepción en heartbeat: $e');
+      logger.d('❌ Excepción en heartbeat: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -560,7 +560,7 @@ class AsistenciaService {
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint(
+      logger.d(
           '✅ Registrando recovery exitoso - downtime: ${downtimeSeconds}s');
 
       final response = await _apiService.post(
@@ -577,13 +577,13 @@ class AsistenciaService {
       );
 
       if (response.success) {
-        debugPrint('✅ Recovery exitoso registrado en backend');
+        logger.d('✅ Recovery exitoso registrado en backend');
         return ApiResponse.success(true);
       }
 
       return ApiResponse.error(response.error ?? 'Error registrando recovery');
     } catch (e) {
-      debugPrint('❌ Error registrando recovery: $e');
+      logger.d('❌ Error registrando recovery: $e');
       return ApiResponse.error('Error: $e');
     }
   }
@@ -601,7 +601,7 @@ class AsistenciaService {
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint('📱 Marcando estado background: $status');
+      logger.d('📱 Marcando estado background: $status');
 
       final response = await _apiService.post(
         AppConstants
@@ -618,14 +618,14 @@ class AsistenciaService {
       );
 
       if (response.success) {
-        debugPrint('✅ Estado background registrado: $status');
+        logger.d('✅ Estado background registrado: $status');
         return ApiResponse.success(true);
       }
 
       return ApiResponse.error(
           response.error ?? 'Error marcando estado background');
     } catch (e) {
-      debugPrint('❌ Error marcando estado background: $e');
+      logger.d('❌ Error marcando estado background: $e');
       return ApiResponse.error('Error: $e');
     }
   }
@@ -641,7 +641,7 @@ class AsistenciaService {
   }) async {
     for (int intento = 1; intento <= maxReintentos; intento++) {
       try {
-        debugPrint(
+        logger.d(
             '💓 Heartbeat con validación - Intento $intento/$maxReintentos');
 
         // 1. ✅ Validar conexión antes de enviar
@@ -649,7 +649,7 @@ class AsistenciaService {
           // Solo validar en el primer intento para eficiencia
           final connectionTest = await testConnection();
           if (!connectionTest.success) {
-            debugPrint('❌ Sin conexión - omitiendo heartbeat');
+            logger.d('❌ Sin conexión - omitiendo heartbeat');
             return ApiResponse.error('Sin conexión de red');
           }
         }
@@ -666,7 +666,7 @@ class AsistenciaService {
         // 3. ✅ Si es exitoso, retornar inmediatamente
         if (heartbeatResponse.success) {
           if (intento > 1) {
-            debugPrint('✅ Heartbeat exitoso después de $intento intentos');
+            logger.d('✅ Heartbeat exitoso después de $intento intentos');
           }
           return heartbeatResponse;
         }
@@ -674,11 +674,11 @@ class AsistenciaService {
         // 4. ✅ Si falla y no es el último intento, esperar y reintentar
         if (intento < maxReintentos) {
           final delaySegundos = intento * 2; // Backoff exponencial: 2s, 4s, 6s
-          debugPrint('⏳ Reintentando heartbeat en ${delaySegundos}s...');
+          logger.d('⏳ Reintentando heartbeat en ${delaySegundos}s...');
           await Future.delayed(Duration(seconds: delaySegundos));
         }
       } catch (e) {
-        debugPrint('❌ Error en intento $intento de heartbeat: $e');
+        logger.d('❌ Error en intento $intento de heartbeat: $e');
 
         if (intento == maxReintentos) {
           return ApiResponse.error('Fallos múltiples de heartbeat: $e');
@@ -687,7 +687,7 @@ class AsistenciaService {
     }
 
     // Si llegamos aquí, todos los intentos fallaron
-    debugPrint('❌ TODOS LOS INTENTOS DE HEARTBEAT FALLARON');
+    logger.d('❌ TODOS LOS INTENTOS DE HEARTBEAT FALLARON');
     return ApiResponse.error(
         'Heartbeat falló después de $maxReintentos intentos');
   }
@@ -698,7 +698,7 @@ class AsistenciaService {
     required String eventoId,
   }) async {
     try {
-      debugPrint('🔍 Validando estado del evento via heartbeat');
+      logger.d('🔍 Validando estado del evento via heartbeat');
 
       final heartbeatResponse = await enviarHeartbeatConValidacion(
         usuarioId: usuarioId,
@@ -720,14 +720,14 @@ class AsistenciaService {
           'heartbeatValido': true,
         };
 
-        debugPrint('📊 Estado del evento validado: $estadoEvento');
+        logger.d('📊 Estado del evento validado: $estadoEvento');
         return estadoEvento;
       }
 
-      debugPrint('❌ No se pudo validar estado del evento');
+      logger.d('❌ No se pudo validar estado del evento');
       return {'heartbeatValido': false, 'error': heartbeatResponse.error};
     } catch (e) {
-      debugPrint('❌ Error validando estado del evento: $e');
+      logger.d('❌ Error validando estado del evento: $e');
       return {'heartbeatValido': false, 'error': e.toString()};
     }
   }
@@ -739,7 +739,7 @@ class AsistenciaService {
     required String tipoEmergencia, // 'app_closing', 'connection_lost', etc.
   }) async {
     try {
-      debugPrint('🚨 Enviando heartbeat de EMERGENCIA: $tipoEmergencia');
+      logger.d('🚨 Enviando heartbeat de EMERGENCIA: $tipoEmergencia');
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -769,14 +769,14 @@ class AsistenciaService {
           );
 
       if (response.success) {
-        debugPrint('✅ Heartbeat de emergencia enviado');
+        logger.d('✅ Heartbeat de emergencia enviado');
         return ApiResponse.success(true);
       }
 
       return ApiResponse.error(
           response.error ?? 'Error en heartbeat de emergencia');
     } catch (e) {
-      debugPrint('❌ Error crítico en heartbeat de emergencia: $e');
+      logger.d('❌ Error crítico en heartbeat de emergencia: $e');
       return ApiResponse.error('Error crítico: $e');
     }
   }
@@ -786,14 +786,14 @@ class AsistenciaService {
     if (_sessionId == null) {
       _sessionId =
           '${DateTime.now().millisecondsSinceEpoch}_${Platform.operatingSystem}';
-      debugPrint('🆔 Session ID creado: $_sessionId');
+      logger.d('🆔 Session ID creado: $_sessionId');
     }
     return _sessionId!;
   }
 
   /// 🔥 NUEVO: Reset de session (para nuevos eventos)
   void resetSession() {
-    debugPrint('🔄 Reseteando session de heartbeat');
+    logger.d('🔄 Reseteando session de heartbeat');
     _sessionId = null;
     _heartbeatSequence = 0;
   }
@@ -815,7 +815,7 @@ class AsistenciaService {
   Future<ApiResponse<Map<String, dynamic>>> obtenerMetricasEvento(
       String eventoId) async {
     try {
-      debugPrint('📊 Obteniendo métricas del evento: $eventoId');
+      logger.d('📊 Obteniendo métricas del evento: $eventoId');
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -833,7 +833,7 @@ class AsistenciaService {
 
       return ApiResponse.error(response.error ?? 'Error obteniendo métricas');
     } catch (e) {
-      debugPrint('❌ Error obteniendo métricas del evento: $e');
+      logger.d('❌ Error obteniendo métricas del evento: $e');
       rethrow;
     }
   }
@@ -841,7 +841,7 @@ class AsistenciaService {
   /// 🔥 NUEVO: Test de conexión rápido para validaciones
   Future<ApiResponse<bool>> testConnection() async {
     try {
-      debugPrint('🔍 Testing conexión al backend');
+      logger.d('🔍 Testing conexión al backend');
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -855,12 +855,12 @@ class AsistenciaService {
       );
 
       final isConnected = response.success;
-      debugPrint(
+      logger.d(
           '📡 Test de conexión: ${isConnected ? "✅ CONECTADO" : "❌ SIN CONEXIÓN"}');
 
       return ApiResponse.success(isConnected);
     } catch (e) {
-      debugPrint('❌ Error en test de conexión: $e');
+      logger.d('❌ Error en test de conexión: $e');
       return ApiResponse.error('Sin conexión: $e');
     }
   }
@@ -872,7 +872,7 @@ class AsistenciaService {
     String? razonEspecifica,
   }) async {
     try {
-      debugPrint('🚨 Marcando ausente por cierre de app');
+      logger.d('🚨 Marcando ausente por cierre de app');
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -896,13 +896,13 @@ class AsistenciaService {
       );
 
       if (response.success) {
-        debugPrint('✅ Marcado como ausente por cierre de app');
+        logger.d('✅ Marcado como ausente por cierre de app');
         return ApiResponse.success(true);
       }
 
       return ApiResponse.error(response.error ?? 'Error marcando ausente');
     } catch (e) {
-      debugPrint('❌ Excepción marcando ausente: $e');
+      logger.d('❌ Excepción marcando ausente: $e');
       return ApiResponse.error('Error: $e');
     }
   }
@@ -917,7 +917,7 @@ class AsistenciaService {
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint('🔍 Validando estado de tracking en backend');
+      logger.d('🔍 Validando estado de tracking en backend');
 
       final response = await _apiService.get(
         '/asistencia/estado-tracking/$eventoId/$usuarioId',
@@ -927,16 +927,16 @@ class AsistenciaService {
       if (response.success) {
         final data = response.data ?? {};
 
-        debugPrint('✅ Estado de tracking obtenido del backend');
-        debugPrint('📊 Estado: ${data['tracking_status']}');
-        debugPrint('📊 Último heartbeat: ${data['last_heartbeat']}');
+        logger.d('✅ Estado de tracking obtenido del backend');
+        logger.d('📊 Estado: ${data['tracking_status']}');
+        logger.d('📊 Último heartbeat: ${data['last_heartbeat']}');
 
         return ApiResponse.success(data);
       }
 
       return ApiResponse.error(response.error ?? 'Error validando estado');
     } catch (e) {
-      debugPrint('❌ Error validando estado: $e');
+      logger.d('❌ Error validando estado: $e');
       return ApiResponse.error('Error: $e');
     }
   }
@@ -962,13 +962,13 @@ class AsistenciaService {
                 .toList() ??
             [];
 
-        debugPrint('📡 Comandos pendientes obtenidos: ${comandos.length}');
+        logger.d('📡 Comandos pendientes obtenidos: ${comandos.length}');
         return ApiResponse.success(comandos);
       }
 
       return ApiResponse.error(response.error ?? 'Error obteniendo comandos');
     } catch (e) {
-      debugPrint('❌ Error obteniendo comandos: $e');
+      logger.d('❌ Error obteniendo comandos: $e');
       return ApiResponse.error('Error: $e');
     }
   }
@@ -987,7 +987,7 @@ class AsistenciaService {
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint('🌍 Actualizando ubicación con estado de app');
+      logger.d('🌍 Actualizando ubicación con estado de app');
 
       final response = await _apiService.post(
         AppConstants.locationEndpoint, // '/location/update'
@@ -1009,14 +1009,14 @@ class AsistenciaService {
       );
 
       if (response.success) {
-        debugPrint('✅ Ubicación actualizada con estado de app');
+        logger.d('✅ Ubicación actualizada con estado de app');
         return ApiResponse.success(true);
       }
 
       return ApiResponse.error(
           response.error ?? 'Error actualizando ubicación');
     } catch (e) {
-      debugPrint('❌ Error actualizando ubicación: $e');
+      logger.d('❌ Error actualizando ubicación: $e');
       return ApiResponse.error('Error: $e');
     }
   }
@@ -1031,7 +1031,7 @@ class AsistenciaService {
     String? observaciones,
     bool validateAppState = true,
   }) async {
-    debugPrint('📝 Registrando asistencia con validaciones DÍA 4');
+    logger.d('📝 Registrando asistencia con validaciones DÍA 4');
 
     return _executeWithRetry<bool>(
       () async {
@@ -1078,7 +1078,7 @@ class AsistenciaService {
 
   // ✅ NUEVO: Cleanup de resources para heartbeat
   void cleanupHeartbeatResources() {
-    debugPrint('🧹 Limpiando recursos de heartbeat');
+    logger.d('🧹 Limpiando recursos de heartbeat');
     resetSession();
   }
 
@@ -1092,7 +1092,7 @@ class AsistenciaService {
   }) async {
     try {
       final tipoEvento = entrando ? 'entrada_area' : 'salida_area';
-      debugPrint('📍 Registrando $tipoEvento de geofence');
+      logger.d('📍 Registrando $tipoEvento de geofence');
 
       final response = await actualizarUbicacion(
         usuarioId: usuarioId,
@@ -1102,13 +1102,13 @@ class AsistenciaService {
       );
 
       if (response.success) {
-        debugPrint('✅ Evento geofence registrado: $tipoEvento');
+        logger.d('✅ Evento geofence registrado: $tipoEvento');
         return ApiResponse.success(true);
       }
 
       return ApiResponse.error(response.error ?? 'Error registrando geofence');
     } catch (e) {
-      debugPrint('❌ Excepción registrando geofence: $e');
+      logger.d('❌ Excepción registrando geofence: $e');
       return ApiResponse.error('Error: $e');
     }
   }
@@ -1154,7 +1154,7 @@ class AsistenciaService {
 
   // Limpiar cache de asistencias (útil para debugging)
   void limpiarCache() {
-    debugPrint('🧹 Limpiando cache de AsistenciaService');
+    logger.d('🧹 Limpiando cache de AsistenciaService');
     // En el futuro se puede implementar cache local si es necesario
   }
 

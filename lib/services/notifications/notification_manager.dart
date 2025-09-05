@@ -1,4 +1,5 @@
 // lib/services/notifications/notification_manager.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -46,7 +47,7 @@ class NotificationManager {
     if (_isInitialized) return;
 
     try {
-      debugPrint('🔔 Inicializando NotificationManager');
+      logger.d('🔔 Inicializando NotificationManager');
 
       _notifications = FlutterLocalNotificationsPlugin();
 
@@ -57,9 +58,9 @@ class NotificationManager {
       _startNotificationCleanup();
 
       _isInitialized = true;
-      debugPrint('✅ NotificationManager inicializado correctamente');
+      logger.d('✅ NotificationManager inicializado correctamente');
     } catch (e) {
-      debugPrint('❌ Error inicializando NotificationManager: $e');
+      logger.d('❌ Error inicializando NotificationManager: $e');
       rethrow;
     }
   }
@@ -88,7 +89,7 @@ class NotificationManager {
       await _createAndroidChannels();
     }
 
-    debugPrint('✅ Canales de notificación configurados');
+    logger.d('✅ Canales de notificación configurados');
   }
 
   Future<void> _createAndroidChannels() async {
@@ -124,7 +125,7 @@ class NotificationManager {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(alertsChannel);
 
-    debugPrint('✅ Canales Android creados');
+    logger.d('✅ Canales Android creados');
   }
 
   Future<void> _requestPermissions() async {
@@ -150,7 +151,7 @@ class NotificationManager {
       }
     }
 
-    debugPrint('✅ Permisos de notificación solicitados');
+    logger.d('✅ Permisos de notificación solicitados');
   }
   
   /// ✅ NUEVO: Iniciar cleanup automático de notificaciones
@@ -174,7 +175,7 @@ class NotificationManager {
     
     // Evitar duplicadas en los últimos 5 minutos
     if (_sentNotifications.contains(notificationKey)) {
-      debugPrint('⚠️ Notificación duplicada evitada: $title');
+      logger.d('⚠️ Notificación duplicada evitada: $title');
       return;
     }
     
@@ -269,13 +270,13 @@ class NotificationManager {
       await _notifications.show(id, title, body, details);
       
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación: $e');
+      logger.d('❌ Error mostrando notificación: $e');
     }
   }
   
   void _cleanupSentNotifications() {
     _sentNotifications.clear();
-    debugPrint('🧹 Cache de notificaciones limpiado');
+    logger.d('🧹 Cache de notificaciones limpiado');
   }
 
   // 🎯 NOTIFICACIÓN PERSISTENTE DE TRACKING
@@ -283,7 +284,7 @@ class NotificationManager {
   /// Mostrar notificación persistente durante tracking
   Future<void> showTrackingActiveNotification() async {
     try {
-      debugPrint('📱 Mostrando notificación de tracking activo');
+      logger.d('📱 Mostrando notificación de tracking activo');
 
       const androidDetails = AndroidNotificationDetails(
         _trackingChannelId,
@@ -317,9 +318,9 @@ class NotificationManager {
         details,
       );
 
-      debugPrint('✅ Notificación de tracking mostrada');
+      logger.d('✅ Notificación de tracking mostrada');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación de tracking: $e');
+      logger.d('❌ Error mostrando notificación de tracking: $e');
     }
   }
 
@@ -355,14 +356,14 @@ class NotificationManager {
         details,
       );
     } catch (e) {
-      debugPrint('❌ Error actualizando notificación: $e');
+      logger.d('❌ Error actualizando notificación: $e');
     }
   }
 
   // ✅ NUEVO DÍA 4: Notificación de background tracking normal (SIN penalización)
   Future<void> showBackgroundTrackingNotification() async {
     try {
-      debugPrint('📱 Mostrando notificación - Background tracking normal');
+      logger.d('📱 Mostrando notificación - Background tracking normal');
 
       await _showAlertNotification(
         _backgroundTrackingId,
@@ -375,14 +376,14 @@ class NotificationManager {
       // Vibración suave para confirmar
       await HapticFeedback.selectionClick();
     } catch (e) {
-      debugPrint('❌ Error notificación background tracking: $e');
+      logger.d('❌ Error notificación background tracking: $e');
     }
   }
 
   // ✅ NUEVO DÍA 4: Notificación cuando se reanuda después de grace period
   Future<void> showTrackingResumedNotification() async {
     try {
-      debugPrint('✅ Mostrando notificación - Tracking reanudado');
+      logger.d('✅ Mostrando notificación - Tracking reanudado');
 
       await _showAlertNotification(
         _trackingResumedId,
@@ -397,7 +398,7 @@ class NotificationManager {
       await Future.delayed(const Duration(milliseconds: 100));
       await HapticFeedback.selectionClick();
     } catch (e) {
-      debugPrint('❌ Error notificación tracking reanudado: $e');
+      logger.d('❌ Error notificación tracking reanudado: $e');
     }
   }
 
@@ -406,7 +407,7 @@ class NotificationManager {
   /// Notificación al entrar al geofence
   Future<void> showGeofenceEnteredNotification(String eventName) async {
     try {
-      debugPrint('✅ Mostrando notificación - Entraste al área');
+      logger.d('✅ Mostrando notificación - Entraste al área');
 
       await _showAlertNotification(
         _geofenceEnteredId,
@@ -419,14 +420,14 @@ class NotificationManager {
       // Vibración de éxito
       await HapticFeedback.lightImpact();
     } catch (e) {
-      debugPrint('❌ Error notificación geofence entrada: $e');
+      logger.d('❌ Error notificación geofence entrada: $e');
     }
   }
 
   /// Notificación al salir del geofence
   Future<void> showGeofenceExitedNotification(String eventName) async {
     try {
-      debugPrint('⚠️ Mostrando notificación - Saliste del área');
+      logger.d('⚠️ Mostrando notificación - Saliste del área');
 
       await _showAlertNotification(
         _geofenceExitedId,
@@ -439,14 +440,14 @@ class NotificationManager {
       // Vibración de warning
       await HapticFeedback.mediumImpact();
     } catch (e) {
-      debugPrint('❌ Error notificación geofence salida: $e');
+      logger.d('❌ Error notificación geofence salida: $e');
     }
   }
 
   // ✅ NUEVO DÍA 4: Notificación de evento iniciado
   Future<void> showEventStartedNotification(String eventName) async {
     try {
-      debugPrint('🎯 Mostrando notificación - Evento iniciado');
+      logger.d('🎯 Mostrando notificación - Evento iniciado');
 
       await _showAlertNotification(
         _eventStartedId,
@@ -459,7 +460,7 @@ class NotificationManager {
       // Vibración informativa
       await HapticFeedback.selectionClick();
     } catch (e) {
-      debugPrint('❌ Error notificación evento iniciado: $e');
+      logger.d('❌ Error notificación evento iniciado: $e');
     }
   }
 
@@ -468,7 +469,7 @@ class NotificationManager {
   /// ✅ NUEVO: Notificación de evento finalizado
   Future<void> showEventEndedNotification(String eventId) async {
     try {
-      debugPrint('📢 Mostrando notificación: Evento Finalizado');
+      logger.d('📢 Mostrando notificación: Evento Finalizado');
 
       await _notifications.show(
         _eventEndedId,
@@ -492,16 +493,16 @@ class NotificationManager {
       // Vibración háptica diferenciada
       HapticFeedback.lightImpact();
 
-      debugPrint('✅ Notificación "Evento Finalizado" mostrada');
+      logger.d('✅ Notificación "Evento Finalizado" mostrada');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación evento finalizado: $e');
+      logger.d('❌ Error mostrando notificación evento finalizado: $e');
     }
   }
 
   /// Notificación cuando inicia un receso
   Future<void> showBreakStartedNotification([String? eventId]) async {
     try {
-      debugPrint('📢 Mostrando notificación: Receso Iniciado');
+      logger.d('📢 Mostrando notificación: Receso Iniciado');
 
       await _notifications.show(
         _breakStartedId,
@@ -525,16 +526,16 @@ class NotificationManager {
       // Vibración háptica diferenciada
       HapticFeedback.mediumImpact();
 
-      debugPrint('✅ Notificación "Receso Iniciado" mostrada');
+      logger.d('✅ Notificación "Receso Iniciado" mostrada');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación receso iniciado: $e');
+      logger.d('❌ Error mostrando notificación receso iniciado: $e');
     }
   }
 
   /// Notificación cuando termina un receso
   Future<void> showBreakEndedNotification([String? eventId]) async {
     try {
-      debugPrint('📢 Mostrando notificación: Receso Terminado');
+      logger.d('📢 Mostrando notificación: Receso Terminado');
 
       await _notifications.show(
         _breakEndedId, // ID único para receso terminado
@@ -558,9 +559,9 @@ class NotificationManager {
       // Vibración háptica diferenciada
       HapticFeedback.heavyImpact();
 
-      debugPrint('✅ Notificación "Receso Terminado" mostrada');
+      logger.d('✅ Notificación "Receso Terminado" mostrada');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación receso terminado: $e');
+      logger.d('❌ Error mostrando notificación receso terminado: $e');
     }
   }
 
@@ -569,7 +570,7 @@ class NotificationManager {
   /// Notificación cuando se registra asistencia (método legado)
   Future<void> showAttendanceRegisteredNotificationLegacy() async {
     try {
-      debugPrint('✅ Mostrando notificación - Asistencia registrada');
+      logger.d('✅ Mostrando notificación - Asistencia registrada');
 
       await _showAlertNotification(
         _attendanceRegisteredId,
@@ -581,7 +582,7 @@ class NotificationManager {
       // Vibración suave de confirmación
       await HapticFeedback.selectionClick();
     } catch (e) {
-      debugPrint('❌ Error notificación asistencia registrada: $e');
+      logger.d('❌ Error notificación asistencia registrada: $e');
     }
   }
 
@@ -593,7 +594,7 @@ class NotificationManager {
     String? eventName,
   }) async {
     try {
-      debugPrint('⏰ Mostrando notificación - Período de gracia iniciado: ${remainingSeconds}s');
+      logger.d('⏰ Mostrando notificación - Período de gracia iniciado: ${remainingSeconds}s');
 
       await _showAlertNotification(
         1020, // ID único para grace period started
@@ -608,7 +609,7 @@ class NotificationManager {
       await Future.delayed(const Duration(milliseconds: 200));
       await HapticFeedback.heavyImpact();
     } catch (e) {
-      debugPrint('❌ Error notificación período de gracia iniciado: $e');
+      logger.d('❌ Error notificación período de gracia iniciado: $e');
     }
   }
 
@@ -617,7 +618,7 @@ class NotificationManager {
     String? eventName,
   }) async {
     try {
-      debugPrint('🚨 Mostrando notificación - Período de gracia expirado');
+      logger.d('🚨 Mostrando notificación - Período de gracia expirado');
 
       await _showAlertNotification(
         1021, // ID único para grace period expired
@@ -633,7 +634,7 @@ class NotificationManager {
         await Future.delayed(const Duration(milliseconds: 150));
       }
     } catch (e) {
-      debugPrint('❌ Error notificación período de gracia expirado: $e');
+      logger.d('❌ Error notificación período de gracia expirado: $e');
     }
   }
 
@@ -642,7 +643,7 @@ class NotificationManager {
   /// Advertencia crítica cuando la app se cierra
   Future<void> showAppClosedWarningNotification(int secondsRemaining) async {
     try {
-      debugPrint(
+      logger.d(
           '🚨 Mostrando advertencia crítica - App cerrada ($secondsRemaining s)');
 
       // Diferentes niveles de urgencia según el tiempo restante
@@ -740,14 +741,14 @@ class NotificationManager {
         await HapticFeedback.mediumImpact();
       }
     } catch (e) {
-      debugPrint('❌ Error notificación app cerrada: $e');
+      logger.d('❌ Error notificación app cerrada: $e');
     }
   }
 
   /// Advertencia crítica general de lifecycle
   Future<void> showCriticalAppLifecycleWarning() async {
     try {
-      debugPrint('🚨 Mostrando advertencia crítica de lifecycle');
+      logger.d('🚨 Mostrando advertencia crítica de lifecycle');
 
       await _showAlertNotification(
         _criticalWarningId,
@@ -756,7 +757,7 @@ class NotificationManager {
         'critical',
       );
     } catch (e) {
-      debugPrint('❌ Error advertencia crítica: $e');
+      logger.d('❌ Error advertencia crítica: $e');
     }
   }
 
@@ -870,7 +871,7 @@ class NotificationManager {
         });
       }
     } catch (e) {
-      debugPrint('❌ Error mostrando alerta ($type): $e');
+      logger.d('❌ Error mostrando alerta ($type): $e');
     }
   }
 
@@ -997,7 +998,7 @@ class NotificationManager {
   Future<void> testAllNotifications() async {
     if (!kDebugMode) return; // Solo en debug mode
 
-    debugPrint('🧪 TESTING: Probando todas las notificaciones...');
+    logger.d('🧪 TESTING: Probando todas las notificaciones...');
 
     try {
       await showTrackingActiveNotification();
@@ -1027,9 +1028,9 @@ class NotificationManager {
       await showTrackingResumedNotification();
       await Future.delayed(const Duration(seconds: 2));
 
-      debugPrint('✅ TESTING: Todas las notificaciones probadas');
+      logger.d('✅ TESTING: Todas las notificaciones probadas');
     } catch (e) {
-      debugPrint('❌ TESTING: Error probando notificaciones: $e');
+      logger.d('❌ TESTING: Error probando notificaciones: $e');
     }
   }
 
@@ -1038,13 +1039,13 @@ class NotificationManager {
   /// Limpiar todas las notificaciones
   Future<void> clearAllNotifications() async {
     try {
-      debugPrint('🧹 Limpiando todas las notificaciones');
+      logger.d('🧹 Limpiando todas las notificaciones');
 
       await _notifications.cancelAll();
 
-      debugPrint('✅ Notificaciones limpiadas');
+      logger.d('✅ Notificaciones limpiadas');
     } catch (e) {
-      debugPrint('❌ Error limpiando notificaciones: $e');
+      logger.d('❌ Error limpiando notificaciones: $e');
     }
   }
 
@@ -1052,9 +1053,9 @@ class NotificationManager {
   Future<void> cancelNotification(int id) async {
     try {
       await _notifications.cancel(id);
-      debugPrint('✅ Notificación $id cancelada');
+      logger.d('✅ Notificación $id cancelada');
     } catch (e) {
-      debugPrint('❌ Error cancelando notificación $id: $e');
+      logger.d('❌ Error cancelando notificación $id: $e');
     }
   }
 
@@ -1077,7 +1078,7 @@ class NotificationManager {
       }
       return true; // Asumir habilitadas en iOS
     } catch (e) {
-      debugPrint('❌ Error verificando notificaciones: $e');
+      logger.d('❌ Error verificando notificaciones: $e');
       return false;
     }
   }
@@ -1111,7 +1112,7 @@ class NotificationManager {
 
   Future<void> showConnectionErrorNotification() async {
     try {
-      debugPrint('🔔 Mostrando notificación - Error de conexión');
+      logger.d('🔔 Mostrando notificación - Error de conexión');
 
       await _showAlertNotification(
         _connectionErrorId,
@@ -1123,14 +1124,14 @@ class NotificationManager {
       // Vibración de advertencia
       await HapticFeedback.heavyImpact();
     } catch (e) {
-      debugPrint('❌ Error notificación de conexión: $e');
+      logger.d('❌ Error notificación de conexión: $e');
     }
   }
 
   /// Notificación cuando se pierde la asistencia
   Future<void> showAttendanceLostNotification(String reason) async {
     try {
-      debugPrint('❌ Mostrando notificación - Asistencia perdida');
+      logger.d('❌ Mostrando notificación - Asistencia perdida');
 
       const androidDetails = AndroidNotificationDetails(
         _alertsChannelId,
@@ -1172,7 +1173,7 @@ class NotificationManager {
       await Future.delayed(const Duration(milliseconds: 500));
       await HapticFeedback.heavyImpact();
     } catch (e) {
-      debugPrint('❌ Error notificación asistencia perdida: $e');
+      logger.d('❌ Error notificación asistencia perdida: $e');
     }
   }
 
@@ -1181,7 +1182,7 @@ class NotificationManager {
 
   Future<void> showStudentNotification(StudentNotification notification) async {
     try {
-      debugPrint(
+      logger.d(
           '📱 Mostrando notificación para estudiante: ${notification.title}');
 
       await _showAlertNotification(
@@ -1191,9 +1192,9 @@ class NotificationManager {
         notification.type.toString().split('.').last.toLowerCase(),
       );
 
-      debugPrint('✅ Notificación de estudiante mostrada');
+      logger.d('✅ Notificación de estudiante mostrada');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación de estudiante: $e');
+      logger.d('❌ Error mostrando notificación de estudiante: $e');
     }
   }
 
@@ -1207,7 +1208,7 @@ class NotificationManager {
     required String studentName,
   }) async {
     try {
-      debugPrint('✅ Mostrando notificación - Asistencia automática registrada');
+      logger.d('✅ Mostrando notificación - Asistencia automática registrada');
 
       const androidDetails = AndroidNotificationDetails(
         'attendance_alerts',
@@ -1253,14 +1254,14 @@ class NotificationManager {
       });
 
     } catch (e) {
-      debugPrint('❌ Error notificación asistencia automática: $e');
+      logger.d('❌ Error notificación asistencia automática: $e');
     }
   }
 
   /// ✅ NUEVO: Notificación de entrada al geofence con auto-registro
   Future<void> showGeofenceEnteredWithAutoRegistration(String eventName) async {
     try {
-      debugPrint('🎯 Mostrando notificación - Entrada al geofence con auto-registro');
+      logger.d('🎯 Mostrando notificación - Entrada al geofence con auto-registro');
 
       const androidDetails = AndroidNotificationDetails(
         'geofence_alerts',
@@ -1299,7 +1300,7 @@ class NotificationManager {
       await HapticFeedback.lightImpact();
 
     } catch (e) {
-      debugPrint('❌ Error notificación entrada geofence: $e');
+      logger.d('❌ Error notificación entrada geofence: $e');
     }
   }
 
@@ -1314,7 +1315,7 @@ class NotificationManager {
         data,
       );
     } catch (e) {
-      debugPrint('❌ Error in showLocal: $e');
+      logger.d('❌ Error in showLocal: $e');
     }
   }
 
@@ -1328,9 +1329,9 @@ class NotificationManager {
         'test',
         {'type': 'test', 'timestamp': DateTime.now().millisecondsSinceEpoch},
       );
-      debugPrint('✅ Notificación de prueba mostrada correctamente');
+      logger.d('✅ Notificación de prueba mostrada correctamente');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación de prueba: $e');
+      logger.d('❌ Error mostrando notificación de prueba: $e');
     }
   }
 
@@ -1344,9 +1345,9 @@ class NotificationManager {
         'critical_warning',
         {'priority': 'high', 'type': 'warning'},
       );
-      debugPrint('✅ Notificación crítica mostrada: $title');
+      logger.d('✅ Notificación crítica mostrada: $title');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación crítica: $e');
+      logger.d('❌ Error mostrando notificación crítica: $e');
     }
   }
 
@@ -1360,9 +1361,9 @@ class NotificationManager {
         'attendance_success',
         {'type': 'success'},
       );
-      debugPrint('✅ Notificación de éxito de asistencia mostrada');
+      logger.d('✅ Notificación de éxito de asistencia mostrada');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación de asistencia: $e');
+      logger.d('❌ Error mostrando notificación de asistencia: $e');
     }
   }
 
@@ -1375,9 +1376,9 @@ class NotificationManager {
         'location_error',
         {'type': 'error'},
       );
-      debugPrint('✅ Notificación de error de ubicación mostrada');
+      logger.d('✅ Notificación de error de ubicación mostrada');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación de error de ubicación: $e');
+      logger.d('❌ Error mostrando notificación de error de ubicación: $e');
     }
   }
 
@@ -1389,7 +1390,7 @@ class NotificationManager {
     required String payload,
   }) async {
     try {
-      debugPrint('📢 Mostrando notificación de inicio de evento: $title');
+      logger.d('📢 Mostrando notificación de inicio de evento: $title');
 
       const androidDetails = AndroidNotificationDetails(
         'event_start_channel',
@@ -1440,9 +1441,9 @@ class NotificationManager {
       await Future.delayed(const Duration(milliseconds: 200));
       await HapticFeedback.mediumImpact();
 
-      debugPrint('✅ Notificación de evento mostrada con ID: $id');
+      logger.d('✅ Notificación de evento mostrada con ID: $id');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación de evento: $e');
+      logger.d('❌ Error mostrando notificación de evento: $e');
     }
   }
 
@@ -1455,7 +1456,7 @@ class NotificationManager {
     required String payload,
   }) async {
     try {
-      debugPrint('🔔 Mostrando notificación persistente de asistencia con ID: $id');
+      logger.d('🔔 Mostrando notificación persistente de asistencia con ID: $id');
 
       const androidDetails = AndroidNotificationDetails(
         'attendance_tracking',
@@ -1511,9 +1512,9 @@ class NotificationManager {
         payload: payload,
       );
 
-      debugPrint('✅ Notificación persistente de asistencia mostrada con ID: $id');
+      logger.d('✅ Notificación persistente de asistencia mostrada con ID: $id');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación persistente: $e');
+      logger.d('❌ Error mostrando notificación persistente: $e');
     }
   }
 
@@ -1522,9 +1523,9 @@ class NotificationManager {
   Future<void> cancelAllNotifications() async {
     try {
       await _notifications.cancelAll();
-      debugPrint('✅ Todas las notificaciones canceladas');
+      logger.d('✅ Todas las notificaciones canceladas');
     } catch (e) {
-      debugPrint('❌ Error cancelando todas las notificaciones: $e');
+      logger.d('❌ Error cancelando todas las notificaciones: $e');
     }
   }
 
@@ -1535,7 +1536,7 @@ class NotificationManager {
     String duration,
   ) async {
     try {
-      debugPrint('🔄 Mostrando notificación de asistencia recuperada');
+      logger.d('🔄 Mostrando notificación de asistencia recuperada');
 
       await _notifications.show(
         2001, // ID específico para recuperación
@@ -1575,9 +1576,9 @@ class NotificationManager {
       // Vibración de confirmación
       await HapticFeedback.mediumImpact();
       
-      debugPrint('✅ Notificación de recuperación mostrada para: $eventTitle');
+      logger.d('✅ Notificación de recuperación mostrada para: $eventTitle');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación de recuperación: $e');
+      logger.d('❌ Error mostrando notificación de recuperación: $e');
     }
   }
 
@@ -1586,7 +1587,7 @@ class NotificationManager {
     required String eventName,
   }) async {
     try {
-      debugPrint('📝 Mostrando notificación - Inscripción exitosa');
+      logger.d('📝 Mostrando notificación - Inscripción exitosa');
 
       await _notifications.show(
         2002, // ID específico para inscripción
@@ -1614,9 +1615,9 @@ class NotificationManager {
       );
 
       await HapticFeedback.lightImpact();
-      debugPrint('✅ Notificación de inscripción mostrada');
+      logger.d('✅ Notificación de inscripción mostrada');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación de inscripción: $e');
+      logger.d('❌ Error mostrando notificación de inscripción: $e');
     }
   }
 
@@ -1626,7 +1627,7 @@ class NotificationManager {
     required int minutesLeft,
   }) async {
     try {
-      debugPrint('⏰ Mostrando notificación - Evento inicia pronto');
+      logger.d('⏰ Mostrando notificación - Evento inicia pronto');
 
       await _notifications.show(
         2003, // ID específico para evento próximo
@@ -1667,9 +1668,9 @@ class NotificationManager {
       await Future.delayed(const Duration(milliseconds: 300));
       await HapticFeedback.mediumImpact();
       
-      debugPrint('✅ Notificación de evento próximo mostrada');
+      logger.d('✅ Notificación de evento próximo mostrada');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación de evento próximo: $e');
+      logger.d('❌ Error mostrando notificación de evento próximo: $e');
     }
   }
 
@@ -1678,7 +1679,7 @@ class NotificationManager {
     required String eventName,
   }) async {
     try {
-      debugPrint('🚪 Mostrando notificación - Evento abandonado');
+      logger.d('🚪 Mostrando notificación - Evento abandonado');
 
       await _notifications.show(
         2004, // ID específico para abandono
@@ -1706,9 +1707,9 @@ class NotificationManager {
       );
 
       await HapticFeedback.mediumImpact();
-      debugPrint('✅ Notificación de abandono mostrada');
+      logger.d('✅ Notificación de abandono mostrada');
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación de abandono: $e');
+      logger.d('❌ Error mostrando notificación de abandono: $e');
     }
   }
 

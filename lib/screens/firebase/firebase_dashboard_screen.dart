@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/firebase/firebase_dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -50,7 +51,7 @@ class _FirebaseDashboardScreenState extends State<FirebaseDashboardScreen> {
         await _messagingService.initialize(firebaseUser.uid);
       }
     } catch (e) {
-      debugPrint('Error inicializando datos de usuario: $e');
+      logger.d('Error inicializando datos de usuario: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -519,7 +520,7 @@ class _FirebaseDashboardScreenState extends State<FirebaseDashboardScreen> {
     final response = await _eventoService.getEventoActivo();
     if (response != null) {
       // Convert Map to Evento if needed, for now just show placeholder
-      debugPrint('Event found: $response');
+      logger.d('Event found: $response');
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -581,7 +582,7 @@ class _FirebaseDashboardScreenState extends State<FirebaseDashboardScreen> {
         Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       }
     } catch (e) {
-      debugPrint('Error during logout: $e');
+      logger.d('Error during logout: $e');
     }
   }
 

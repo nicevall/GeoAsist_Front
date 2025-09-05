@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/api_service.dart
 import 'dart:convert';
 import 'dart:io';
@@ -6,7 +7,6 @@ import '../core/app_constants.dart';
 import '../core/api_endpoints.dart';
 import '../core/error_handler.dart';
 import '../models/api_response_model.dart';
-import 'package:flutter/foundation.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -23,8 +23,8 @@ class ApiService {
     final stopwatch = Stopwatch()..start();
 
     // 🔍 DEBUG REQUEST
-    debugPrint('🌐 API GET: $endpoint');
-    debugPrint('📋 Headers: ${headers ?? 'Default headers'}');
+    logger.d('🌐 API GET: $endpoint');
+    logger.d('📋 Headers: ${headers ?? 'Default headers'}');
 
     try {
       // Usar endpoints centralizados cuando sea posible
@@ -41,16 +41,16 @@ class ApiService {
       stopwatch.stop();
 
       // 🔍 DEBUG RESPONSE
-      debugPrint('⏱️ GET Response Time: ${stopwatch.elapsedMilliseconds}ms');
-      debugPrint('📊 Status Code: ${response.statusCode}');
-      debugPrint(
+      logger.d('⏱️ GET Response Time: ${stopwatch.elapsedMilliseconds}ms');
+      logger.d('📊 Status Code: ${response.statusCode}');
+      logger.d(
           '✅ Response Body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...[TRUNCATED]' : response.body}');
 
       return _handleResponseEnhanced(response, stopwatch.elapsed);
     } catch (e) {
       stopwatch.stop();
       final appError = _errorHandler.handleError(e, context: 'GET $endpoint');
-      debugPrint('❌ GET Error after ${stopwatch.elapsedMilliseconds}ms: ${appError.message}');
+      logger.d('❌ GET Error after ${stopwatch.elapsedMilliseconds}ms: ${appError.message}');
       return ApiResponse.error(appError.userFriendlyMessage);
     }
   }
@@ -63,9 +63,9 @@ class ApiService {
     final stopwatch = Stopwatch()..start();
 
     // 🔍 DEBUG REQUEST
-    debugPrint('🌐 API POST: $endpoint');
-    debugPrint('📦 Body: ${body != null ? jsonEncode(body) : 'No body'}');
-    debugPrint('📋 Headers: ${headers ?? 'Default headers'}');
+    logger.d('🌐 API POST: $endpoint');
+    logger.d('📦 Body: ${body != null ? jsonEncode(body) : 'No body'}');
+    logger.d('📋 Headers: ${headers ?? 'Default headers'}');
 
     try {
       // Usar endpoints centralizados cuando sea posible
@@ -83,15 +83,15 @@ class ApiService {
       stopwatch.stop();
 
       // 🔍 DEBUG RESPONSE
-      debugPrint('⏱️ POST Response Time: ${stopwatch.elapsedMilliseconds}ms');
-      debugPrint('📊 Status Code: ${response.statusCode}');
-      debugPrint(
+      logger.d('⏱️ POST Response Time: ${stopwatch.elapsedMilliseconds}ms');
+      logger.d('📊 Status Code: ${response.statusCode}');
+      logger.d(
           '✅ Response Body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...[TRUNCATED]' : response.body}');
 
       return _handleResponse(response);
     } catch (e) {
       stopwatch.stop();
-      debugPrint('❌ POST Error after ${stopwatch.elapsedMilliseconds}ms: $e');
+      logger.d('❌ POST Error after ${stopwatch.elapsedMilliseconds}ms: $e');
       return ApiResponse.error(_handleError(e));
     }
   }
@@ -104,9 +104,9 @@ class ApiService {
     final stopwatch = Stopwatch()..start();
 
     // 🔍 DEBUG REQUEST
-    debugPrint('🌐 API PUT: $endpoint');
-    debugPrint('📦 Body: ${body != null ? jsonEncode(body) : 'No body'}');
-    debugPrint('📋 Headers: ${headers ?? 'Default headers'}');
+    logger.d('🌐 API PUT: $endpoint');
+    logger.d('📦 Body: ${body != null ? jsonEncode(body) : 'No body'}');
+    logger.d('📋 Headers: ${headers ?? 'Default headers'}');
 
     try {
       final uri = Uri.parse('${AppConstants.baseUrl}$endpoint');
@@ -121,15 +121,15 @@ class ApiService {
       stopwatch.stop();
 
       // 🔍 DEBUG RESPONSE
-      debugPrint('⏱️ PUT Response Time: ${stopwatch.elapsedMilliseconds}ms');
-      debugPrint('📊 Status Code: ${response.statusCode}');
-      debugPrint(
+      logger.d('⏱️ PUT Response Time: ${stopwatch.elapsedMilliseconds}ms');
+      logger.d('📊 Status Code: ${response.statusCode}');
+      logger.d(
           '✅ Response Body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...[TRUNCATED]' : response.body}');
 
       return _handleResponse(response);
     } catch (e) {
       stopwatch.stop();
-      debugPrint('❌ PUT Error after ${stopwatch.elapsedMilliseconds}ms: $e');
+      logger.d('❌ PUT Error after ${stopwatch.elapsedMilliseconds}ms: $e');
       return ApiResponse.error(_handleError(e));
     }
   }
@@ -141,8 +141,8 @@ class ApiService {
     final stopwatch = Stopwatch()..start();
 
     // 🔍 DEBUG REQUEST
-    debugPrint('🌐 API DELETE: $endpoint');
-    debugPrint('📋 Headers: ${headers ?? 'Default headers'}');
+    logger.d('🌐 API DELETE: $endpoint');
+    logger.d('📋 Headers: ${headers ?? 'Default headers'}');
 
     try {
       final uri = Uri.parse('${AppConstants.baseUrl}$endpoint');
@@ -156,15 +156,15 @@ class ApiService {
       stopwatch.stop();
 
       // 🔍 DEBUG RESPONSE
-      debugPrint('⏱️ DELETE Response Time: ${stopwatch.elapsedMilliseconds}ms');
-      debugPrint('📊 Status Code: ${response.statusCode}');
-      debugPrint(
+      logger.d('⏱️ DELETE Response Time: ${stopwatch.elapsedMilliseconds}ms');
+      logger.d('📊 Status Code: ${response.statusCode}');
+      logger.d(
           '✅ Response Body: ${response.body.length > 500 ? '${response.body.substring(0, 500)}...[TRUNCATED]' : response.body}');
 
       return _handleResponse(response);
     } catch (e) {
       stopwatch.stop();
-      debugPrint('❌ DELETE Error after ${stopwatch.elapsedMilliseconds}ms: $e');
+      logger.d('❌ DELETE Error after ${stopwatch.elapsedMilliseconds}ms: $e');
       return ApiResponse.error(_handleError(e));
     }
   }

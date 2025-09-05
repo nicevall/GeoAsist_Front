@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../api_service.dart';
 // Unused import removed: api_response_model.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 
 /// ✅ HEARTBEAT MANAGER: Heartbeats críticos cada 30 segundos
 /// Responsabilidades:
@@ -55,7 +56,7 @@ class HeartbeatManager {
     const bool heartbeatEnabled = false; // Backend endpoint no existe
     
     if (!heartbeatEnabled) {
-      debugPrint('⚠️ Heartbeat DISABLED - Backend endpoint /asistencia/heartbeat no existe');
+      logger.d('⚠️ Heartbeat DISABLED - Backend endpoint /asistencia/heartbeat no existe');
       _updateStatus(HeartbeatStatus.disabled);
       return;
     }
@@ -65,7 +66,7 @@ class HeartbeatManager {
 
   /// ✅ DETENER HEARTBEAT MANAGER
   Future<void> stopHeartbeat() async {
-    debugPrint('💓 Stopping heartbeat manager');
+    logger.d('💓 Stopping heartbeat manager');
     
     _isActive = false;
     _heartbeatTimer?.cancel();
@@ -88,7 +89,7 @@ class HeartbeatManager {
     required bool isInForeground,
     bool? isInGracePeriod,
   }) {
-    debugPrint('📱 App state updated - Foreground: $isInForeground, Grace: ${isInGracePeriod ?? _isInGracePeriod}');
+    logger.d('📱 App state updated - Foreground: $isInForeground, Grace: ${isInGracePeriod ?? _isInGracePeriod}');
     
     // Removed assignment to unused field _isAppInForeground
     if (isInGracePeriod != null) {
@@ -102,7 +103,7 @@ class HeartbeatManager {
 
   /// 🔚 HEARTBEAT FINAL
   Future<void> _sendFinalHeartbeat() async {
-    debugPrint('🔚 Sending final heartbeat');
+    logger.d('🔚 Sending final heartbeat');
     
     try {
       final finalData = {
@@ -116,10 +117,10 @@ class HeartbeatManager {
       await _apiService.post('/asistencia/heartbeat', body: finalData)
           .timeout(_timeoutDuration);
       
-      debugPrint('✅ Final heartbeat sent successfully');
+      logger.d('✅ Final heartbeat sent successfully');
       
     } catch (e) {
-      debugPrint('❌ Final heartbeat failed: $e');
+      logger.d('❌ Final heartbeat failed: $e');
     }
   }
 
@@ -149,13 +150,13 @@ class HeartbeatManager {
 
   /// 🧹 CLEANUP
   void dispose() {
-    debugPrint('🧹 Disposing HeartbeatManager');
+    logger.d('🧹 Disposing HeartbeatManager');
     
     _isActive = false;
     _heartbeatTimer?.cancel();
     _statusController.close();
     
-    debugPrint('🧹 HeartbeatManager disposed');
+    logger.d('🧹 HeartbeatManager disposed');
   }
 }
 

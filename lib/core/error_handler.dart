@@ -1,3 +1,4 @@
+import 'utils/app_logger.dart';
 // lib/core/error_handler.dart
 import 'package:flutter/foundation.dart';
 import 'dart:async';
@@ -87,7 +88,7 @@ class ErrorHandler {
           ),
         );
         
-        debugPrint('🔄 Reintentando operación (${attempt + 1}/$retries) en ${currentDelay.inSeconds}s');
+        logger.d('🔄 Reintentando operación (${attempt + 1}/$retries) en ${currentDelay.inSeconds}s');
         await Future.delayed(currentDelay);
       }
     }
@@ -304,15 +305,15 @@ class ErrorHandler {
   /// 📝 REGISTRAR ERROR
   void _logError(AppError error, StackTrace? stackTrace) {
     if (kDebugMode) {
-      debugPrint('❌ [${error.type.name.toUpperCase()}] ${error.code}: ${error.message}');
-      debugPrint('   Details: ${error.details}');
-      debugPrint('   Context: ${error.context ?? "None"}');
-      debugPrint('   Technical: ${error.technicalMessage}');
-      debugPrint('   Retriable: ${error.isRetriable}');
+      logger.d('❌ [${error.type.name.toUpperCase()}] ${error.code}: ${error.message}');
+      logger.d('   Details: ${error.details}');
+      logger.d('   Context: ${error.context ?? "None"}');
+      logger.d('   Technical: ${error.technicalMessage}');
+      logger.d('   Retriable: ${error.isRetriable}');
       
       if (stackTrace != null) {
-        debugPrint('   Stack trace:');
-        debugPrint(stackTrace.toString());
+        logger.d('   Stack trace:');
+        logger.d(stackTrace.toString());
       }
     } else {
       // En producción, enviar a servicio de logging
@@ -343,7 +344,7 @@ class ErrorHandler {
   void _reportErrorToService(AppError error, StackTrace? stackTrace) {
     // Implementar envío a servicio de análisis de errores
     // Como Crashlytics, Sentry, etc.
-    debugPrint('📤 Reportando error crítico: ${error.code}');
+    logger.d('📤 Reportando error crítico: ${error.code}');
   }
 
   /// 📊 OBTENER MÉTRICAS DE ERRORES

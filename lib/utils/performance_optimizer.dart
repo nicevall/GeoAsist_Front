@@ -3,11 +3,11 @@
 // Detección automática de lag/stuttering, priorización inteligente de tareas
 // Cleanup automático de recursos, monitoreo de FPS en tiempo real
 
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:logger/logger.dart';
 import 'battery_manager.dart';
 import 'memory_manager.dart';
 import 'connectivity_manager.dart';
@@ -20,16 +20,6 @@ class PerformanceOptimizer {
   factory PerformanceOptimizer() => _instance;
   PerformanceOptimizer._internal();
 
-  final Logger _logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 2,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
-    ),
-  );
 
   // 📊 Monitoreo de performance
   Timer? _performanceMonitorTimer;
@@ -58,7 +48,7 @@ class PerformanceOptimizer {
     if (_isInitialized) return;
 
     try {
-      _logger.i('🎯 Inicializando Performance Optimizer...');
+      logger.i('🎯 Inicializando Performance Optimizer...');
 
       // Inicializar gestores especializados
       _batteryManager = BatteryManager();
@@ -76,9 +66,9 @@ class PerformanceOptimizer {
       _setupFrameMonitoring();
 
       _isInitialized = true;
-      _logger.i('✅ Performance Optimizer inicializado correctamente');
+      logger.i('✅ Performance Optimizer inicializado correctamente');
     } catch (e, stackTrace) {
-      _logger.e('❌ Error inicializando Performance Optimizer',
+      logger.e('❌ Error inicializando Performance Optimizer',
           error: e, stackTrace: stackTrace);
       rethrow;
     }
@@ -102,10 +92,10 @@ class PerformanceOptimizer {
         _enableLowPerformanceMode();
       }
 
-      _logger.i(
+      logger.i(
           '📱 Configuración específica: FPS=$_targetFps, Lag threshold=${_lagThreshold}ms');
     } catch (e) {
-      _logger
+      logger
           .w('⚠️ Error configurando settings específicos del dispositivo: $e');
     }
   }
@@ -135,7 +125,7 @@ class PerformanceOptimizer {
   void startMonitoring() {
     if (_isMonitoring) return;
 
-    _logger.i('🎯 Iniciando monitoreo de performance...');
+    logger.i('🎯 Iniciando monitoreo de performance...');
     _isMonitoring = true;
 
     // Timer principal de monitoreo (cada 5 segundos)
@@ -150,20 +140,20 @@ class PerformanceOptimizer {
       (_) => _performResourceCleanup(),
     );
 
-    _logger.i('✅ Monitoreo de performance iniciado');
+    logger.i('✅ Monitoreo de performance iniciado');
   }
 
   /// ⏹️ Detener monitoreo
   void stopMonitoring() {
     if (!_isMonitoring) return;
 
-    _logger.i('⏹️ Deteniendo monitoreo de performance...');
+    logger.i('⏹️ Deteniendo monitoreo de performance...');
 
     _performanceMonitorTimer?.cancel();
     _resourceCleanupTimer?.cancel();
     _isMonitoring = false;
 
-    _logger.i('✅ Monitoreo detenido');
+    logger.i('✅ Monitoreo detenido');
   }
 
   /// 📊 Análisis completo de performance
@@ -188,13 +178,13 @@ class PerformanceOptimizer {
 
       // Log del estado actual
       if (kDebugMode) {
-        _logger.d(
+        logger.d(
             '📊 Performance Analysis - FPS: ${_averageFps.toStringAsFixed(1)}, '
             'Level: $_currentPerformanceLevel, '
             'Memory: ${memoryStatus['usagePercentage'].toStringAsFixed(1)}%');
       }
     } catch (e) {
-      _logger.w('⚠️ Error en análisis de performance: $e');
+      logger.w('⚠️ Error en análisis de performance: $e');
     }
   }
 
@@ -226,7 +216,7 @@ class PerformanceOptimizer {
 
   /// ⚙️ Aplicar nivel de performance
   void _applyPerformanceLevel(PerformanceLevel level) {
-    _logger.i(
+    logger.i(
         '🎯 Cambiando nivel de performance: $_currentPerformanceLevel → $level');
     _currentPerformanceLevel = level;
 
@@ -301,7 +291,7 @@ class PerformanceOptimizer {
 
     if (isLagging && _averageFps < _targetFps * 0.8) {
       if (!_isLowPerformanceMode) {
-        _logger.w(
+        logger.w(
             '⚠️ Detectado lag/stuttering - FPS: ${_averageFps.toStringAsFixed(1)}');
         _enableLowPerformanceMode();
       }
@@ -314,14 +304,14 @@ class PerformanceOptimizer {
   void _enableLowPerformanceMode() {
     _isLowPerformanceMode = true;
     _applyPerformanceOptimizedSettings();
-    _logger.i('🐌 Modo bajo rendimiento habilitado');
+    logger.i('🐌 Modo bajo rendimiento habilitado');
   }
 
   /// 🚀 Deshabilitar modo bajo rendimiento
   void _disableLowPerformanceMode() {
     _isLowPerformanceMode = false;
     _applyOptimalSettings();
-    _logger.i('🚀 Modo bajo rendimiento deshabilitado');
+    logger.i('🚀 Modo bajo rendimiento deshabilitado');
   }
 
   /// 🧹 Cleanup de recursos
@@ -334,7 +324,7 @@ class PerformanceOptimizer {
         _frameTimings.removeRange(0, _frameTimingHistoryLimit);
       }
     } catch (e) {
-      _logger.w('⚠️ Error en cleanup de recursos: $e');
+      logger.w('⚠️ Error en cleanup de recursos: $e');
     }
   }
 
@@ -354,12 +344,12 @@ class PerformanceOptimizer {
 
   /// 🎯 Forzar optimización inmediata
   Future<void> forceOptimization() async {
-    _logger.i('🎯 Forzando optimización inmediata...');
+    logger.i('🎯 Forzando optimización inmediata...');
 
     await _performFullAnalysis();
     await _performResourceCleanup();
 
-    _logger.i('✅ Optimización forzada completada');
+    logger.i('✅ Optimización forzada completada');
   }
 
   /// 🛑 Dispose
@@ -371,7 +361,7 @@ class PerformanceOptimizer {
     _frameTimings.clear();
     _isInitialized = false;
 
-    _logger.i('🛑 Performance Optimizer disposed');
+    logger.i('🛑 Performance Optimizer disposed');
   }
 }
 

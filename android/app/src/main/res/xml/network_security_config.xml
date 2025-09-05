@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Network security configuration for Google Play Store compliance -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <!-- Production API endpoints - HTTPS only -->
+        <domain includeSubdomains="true">api.geoasist.com</domain>
+        <domain includeSubdomains="true">firestore.googleapis.com</domain>
+        <domain includeSubdomains="true">firebase.googleapis.com</domain>
+    </domain-config>
+    
+    <!-- Allow cleartext only for development/local testing -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">192.168.1.1</domain>
+        <domain includeSubdomains="true">192.168.2.5</domain>
+    </domain-config>
+    
+    <!-- Certificate pinning for production APIs -->
+    <domain-config>
+        <domain includeSubdomains="true">api.geoasist.com</domain>
+        <pin-set>
+            <!-- SHA256 pin for production certificate -->
+            <pin digest="SHA256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
+            <!-- Backup pin -->
+            <pin digest="SHA256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
+        </pin-set>
+    </domain-config>
+</network-security-config>

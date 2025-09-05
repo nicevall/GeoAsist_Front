@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/production_health_check.dart
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -14,7 +15,7 @@ class ProductionHealthCheck {
   
   /// Run comprehensive production readiness check
   static Future<ProductionHealthReport> runFullHealthCheck() async {
-    debugPrint('$_tag: Starting comprehensive production health check...');
+    logger.d('$_tag: Starting comprehensive production health check...');
     
     final checks = <HealthCheck>[];
     final startTime = DateTime.now();
@@ -50,13 +51,13 @@ class ProductionHealthCheck {
       
       await _logHealthReport(report);
       
-      debugPrint('$_tag: Health check completed in ${executionTime.inMilliseconds}ms');
-      debugPrint('$_tag: Overall status: ${report.overallStatus.name}');
+      logger.d('$_tag: Health check completed in ${executionTime.inMilliseconds}ms');
+      logger.d('$_tag: Overall status: ${report.overallStatus.name}');
       
       return report;
     } catch (e, stackTrace) {
-      debugPrint('$_tag: Health check failed with error: $e');
-      debugPrint('$_tag: Stack trace: $stackTrace');
+      logger.d('$_tag: Health check failed with error: $e');
+      logger.d('$_tag: Stack trace: $stackTrace');
       
       // Return failed report
       return ProductionHealthReport(
@@ -477,7 +478,7 @@ class ProductionHealthCheck {
         },
       );
     } catch (e) {
-      debugPrint('$_tag: Failed to log health report: $e');
+      logger.d('$_tag: Failed to log health report: $e');
     }
   }
   

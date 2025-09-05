@@ -1,8 +1,8 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/teacher_notification_scheduler.dart
 // ⏰ PROGRAMADOR DE NOTIFICACIONES TEMPORALES PARA DOCENTES
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import '../models/teacher_notification_model.dart';
 import '../models/evento_model.dart';
 import '../services/storage_service.dart';
@@ -41,7 +41,7 @@ class TeacherNotificationScheduler {
   /// Inicializar el programador de notificaciones
   Future<void> initialize() async {
     try {
-      debugPrint('⏰ Inicializando TeacherNotificationScheduler');
+      logger.d('⏰ Inicializando TeacherNotificationScheduler');
       
       // Inicializar zonas horarias
       tz_data.initializeTimeZones();
@@ -52,9 +52,9 @@ class TeacherNotificationScheduler {
       // Reactivar programaciones pendientes
       await _reactivatePendingSchedules();
       
-      debugPrint('✅ TeacherNotificationScheduler inicializado');
+      logger.d('✅ TeacherNotificationScheduler inicializado');
     } catch (e) {
-      debugPrint('❌ Error inicializando TeacherNotificationScheduler: $e');
+      logger.d('❌ Error inicializando TeacherNotificationScheduler: $e');
       rethrow;
     }
   }
@@ -66,7 +66,7 @@ class TeacherNotificationScheduler {
   /// Programar todas las notificaciones para un evento
   Future<void> scheduleEventNotifications(Evento evento) async {
     try {
-      debugPrint('📅 Programando notificaciones para: ${evento.titulo}');
+      logger.d('📅 Programando notificaciones para: ${evento.titulo}');
       
       final now = DateTime.now();
       final eventStart = evento.horaInicio;
@@ -74,7 +74,7 @@ class TeacherNotificationScheduler {
       
       // Solo programar eventos futuros
       if (eventStart.isBefore(now)) {
-        debugPrint('⚠️ Evento ya comenzó, omitiendo programación');
+        logger.d('⚠️ Evento ya comenzó, omitiendo programación');
         return;
       }
 
@@ -193,10 +193,10 @@ class TeacherNotificationScheduler {
       // Persistir programaciones
       await _persistSchedules();
       
-      debugPrint('✅ ${schedules.length} notificaciones programadas para: ${evento.titulo}');
+      logger.d('✅ ${schedules.length} notificaciones programadas para: ${evento.titulo}');
       
     } catch (e) {
-      debugPrint('❌ Error programando notificaciones: $e');
+      logger.d('❌ Error programando notificaciones: $e');
     }
   }
 
@@ -215,7 +215,7 @@ class TeacherNotificationScheduler {
     required String message,
   }) async {
     try {
-      debugPrint('🔄 Programando notificación recurrente cada ${interval.inMinutes} min');
+      logger.d('🔄 Programando notificación recurrente cada ${interval.inMinutes} min');
       
       final schedules = <ScheduledNotification>[];
       var currentTime = eventStart.add(interval);
@@ -244,9 +244,9 @@ class TeacherNotificationScheduler {
       _notifyListeners();
       await _persistSchedules();
       
-      debugPrint('✅ ${schedules.length} notificaciones recurrentes programadas');
+      logger.d('✅ ${schedules.length} notificaciones recurrentes programadas');
     } catch (e) {
-      debugPrint('❌ Error programando notificación recurrente: $e');
+      logger.d('❌ Error programando notificación recurrente: $e');
     }
   }
 
@@ -287,7 +287,7 @@ class TeacherNotificationScheduler {
     _notifyListeners();
     await _persistSchedules();
     
-    debugPrint('✅ Reporte semanal programado para: ${_formatDateTime(reportTime)}');
+    logger.d('✅ Reporte semanal programado para: ${_formatDateTime(reportTime)}');
   }
 
   // ===========================================
@@ -299,11 +299,11 @@ class TeacherNotificationScheduler {
     final delay = schedule.scheduledTime.difference(DateTime.now());
     
     if (delay.isNegative) {
-      debugPrint('⚠️ Programación en el pasado ignorada: ${schedule.id}');
+      logger.d('⚠️ Programación en el pasado ignorada: ${schedule.id}');
       return;
     }
 
-    debugPrint('⏰ Programando ${schedule.id} para: ${_formatDateTime(schedule.scheduledTime)}');
+    logger.d('⏰ Programando ${schedule.id} para: ${_formatDateTime(schedule.scheduledTime)}');
 
     final timer = Timer(delay, () async {
       await _executeScheduledNotification(schedule);
@@ -315,7 +315,7 @@ class TeacherNotificationScheduler {
   /// Ejecutar una notificación programada
   Future<void> _executeScheduledNotification(ScheduledNotification schedule) async {
     try {
-      debugPrint('🔔 Ejecutando notificación programada: ${schedule.id}');
+      logger.d('🔔 Ejecutando notificación programada: ${schedule.id}');
 
       // Crear notificación TeacherNotification
       final notification = TeacherNotification(
@@ -352,7 +352,7 @@ class TeacherNotificationScheduler {
       await _persistSchedules();
       
     } catch (e) {
-      debugPrint('❌ Error ejecutando notificación programada: $e');
+      logger.d('❌ Error ejecutando notificación programada: $e');
     }
   }
 
@@ -380,7 +380,7 @@ class TeacherNotificationScheduler {
 
   /// Manejar acción de notificación programada
   void _handleScheduledAction(ScheduledNotification schedule) {
-    debugPrint('🎮 Acción solicitada para: ${schedule.id}');
+    logger.d('🎮 Acción solicitada para: ${schedule.id}');
     
     // Aquí se conectaría con el sistema principal para ejecutar acciones
     // Por ejemplo: iniciar evento, finalizar evento, generar reporte, etc.
@@ -388,29 +388,29 @@ class TeacherNotificationScheduler {
     switch (schedule.type) {
       case TeacherNotificationType.eventStartingSoon:
       case TeacherNotificationType.eventReminder:
-        debugPrint('🎯 Solicitud de iniciar evento: ${schedule.eventId}');
+        logger.d('🎯 Solicitud de iniciar evento: ${schedule.eventId}');
         // TODO: Integrar con EventService para iniciar evento
         break;
         
       case TeacherNotificationType.eventEndingSoon:
       case TeacherNotificationType.suggestEndEvent:
-        debugPrint('🏁 Solicitud de finalizar evento: ${schedule.eventId}');
+        logger.d('🏁 Solicitud de finalizar evento: ${schedule.eventId}');
         // TODO: Integrar con EventService para finalizar evento
         break;
         
       case TeacherNotificationType.suggestBreak:
-        debugPrint('☕ Solicitud de iniciar receso: ${schedule.eventId}');
+        logger.d('☕ Solicitud de iniciar receso: ${schedule.eventId}');
         // TODO: Integrar con EventService para iniciar receso
         break;
         
       case TeacherNotificationType.weeklyReport:
       case TeacherNotificationType.monthlyReport:
-        debugPrint('📊 Solicitud de abrir reporte');
+        logger.d('📊 Solicitud de abrir reporte');
         // TODO: Integrar con ReportService para abrir reporte
         break;
         
       default:
-        debugPrint('⚠️ Acción no definida para tipo: ${schedule.type.name}');
+        logger.d('⚠️ Acción no definida para tipo: ${schedule.type.name}');
     }
   }
 
@@ -421,7 +421,7 @@ class TeacherNotificationScheduler {
   /// Cancelar todas las programaciones de un evento
   Future<void> cancelEventSchedules(String eventId) async {
     try {
-      debugPrint('🗑️ Cancelando programaciones para evento: $eventId');
+      logger.d('🗑️ Cancelando programaciones para evento: $eventId');
       
       final eventSchedules = _eventSchedules[eventId] ?? [];
       var cancelledCount = 0;
@@ -442,9 +442,9 @@ class TeacherNotificationScheduler {
       _notifyListeners();
       await _persistSchedules();
       
-      debugPrint('✅ $cancelledCount programaciones canceladas para evento: $eventId');
+      logger.d('✅ $cancelledCount programaciones canceladas para evento: $eventId');
     } catch (e) {
-      debugPrint('❌ Error cancelando programaciones: $e');
+      logger.d('❌ Error cancelando programaciones: $e');
     }
   }
 
@@ -466,10 +466,10 @@ class TeacherNotificationScheduler {
         _notifyListeners();
         await _persistSchedules();
         
-        debugPrint('✅ Programación cancelada: $scheduleId');
+        logger.d('✅ Programación cancelada: $scheduleId');
       }
     } catch (e) {
-      debugPrint('❌ Error cancelando programación: $e');
+      logger.d('❌ Error cancelando programación: $e');
     }
   }
 
@@ -504,7 +504,7 @@ class TeacherNotificationScheduler {
       final json = jsonEncode(data);
       await _storageService.saveData('teacher_notification_schedules', json);
     } catch (e) {
-      debugPrint('❌ Error persistiendo programaciones: $e');
+      logger.d('❌ Error persistiendo programaciones: $e');
     }
   }
 
@@ -528,9 +528,9 @@ class TeacherNotificationScheduler {
         _eventSchedules.putIfAbsent(schedule.eventId, () => []).add(schedule);
       }
       
-      debugPrint('✅ ${schedules.length} programaciones cargadas desde almacenamiento');
+      logger.d('✅ ${schedules.length} programaciones cargadas desde almacenamiento');
     } catch (e) {
-      debugPrint('❌ Error cargando programaciones: $e');
+      logger.d('❌ Error cargando programaciones: $e');
     }
   }
 
@@ -554,9 +554,9 @@ class TeacherNotificationScheduler {
       _notifyListeners();
       await _persistSchedules();
       
-      debugPrint('✅ $reactivatedCount programaciones reactivadas');
+      logger.d('✅ $reactivatedCount programaciones reactivadas');
     } catch (e) {
-      debugPrint('❌ Error reactivando programaciones: $e');
+      logger.d('❌ Error reactivando programaciones: $e');
     }
   }
 
@@ -585,7 +585,7 @@ class TeacherNotificationScheduler {
   /// Limpiar recursos del scheduler
   Future<void> dispose() async {
     try {
-      debugPrint('🧹 Limpiando TeacherNotificationScheduler');
+      logger.d('🧹 Limpiando TeacherNotificationScheduler');
       
       // Cancelar todos los timers
       for (final timer in _scheduledTasks.values) {
@@ -602,9 +602,9 @@ class TeacherNotificationScheduler {
       _activeSchedules.clear();
       _eventSchedules.clear();
       
-      debugPrint('✅ TeacherNotificationScheduler disposed');
+      logger.d('✅ TeacherNotificationScheduler disposed');
     } catch (e) {
-      debugPrint('❌ Error disposing scheduler: $e');
+      logger.d('❌ Error disposing scheduler: $e');
     }
   }
 }

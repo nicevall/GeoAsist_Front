@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import '../../models/evento_model.dart';
 import '../../models/ubicacion_model.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 
 /// ✅ GEOFENCE MANAGER: Detección de área y cálculo Haversine
 /// Responsabilidades:
@@ -39,9 +40,9 @@ class GeofenceManager {
 
   /// ✅ CONFIGURAR EVENTO PARA MONITOREO
   void configureEvent(Evento evento) {
-    debugPrint('🎯 Configuring geofence for event: ${evento.titulo}');
-    debugPrint('📍 Event location: ${evento.ubicacion.latitud}, ${evento.ubicacion.longitud}');
-    debugPrint('📏 Event radius: ${evento.rangoPermitido}m');
+    logger.d('🎯 Configuring geofence for event: ${evento.titulo}');
+    logger.d('📍 Event location: ${evento.ubicacion.latitud}, ${evento.ubicacion.longitud}');
+    logger.d('📏 Event radius: ${evento.rangoPermitido}m');
     
     _currentEvent = evento;
     _lastValidLocation = null;
@@ -52,24 +53,24 @@ class GeofenceManager {
 
   /// ✅ VERIFICAR POSICIÓN ACTUAL
   GeofenceResult checkPosition(double latitude, double longitude, {double? accuracy}) {
-    debugPrint('📱 Checking position: $latitude, $longitude (accuracy: ${accuracy ?? 'unknown'}m)');
+    logger.d('📱 Checking position: $latitude, $longitude (accuracy: ${accuracy ?? 'unknown'}m)');
 
     // 1. Validar coordenadas
     final validationResult = validateCoordinates(latitude, longitude);
     if (!validationResult.isValid) {
-      debugPrint('❌ Invalid coordinates: ${validationResult.error}');
+      logger.d('❌ Invalid coordinates: ${validationResult.error}');
       return GeofenceResult.invalid(validationResult.error!);
     }
 
     // 2. Validar que hay evento configurado
     if (_currentEvent == null) {
-      debugPrint('❌ No event configured for geofence');
+      logger.d('❌ No event configured for geofence');
       return GeofenceResult.error('No event configured');
     }
 
     // 3. Validar precisión GPS si disponible
     if (accuracy != null && accuracy > _minAccuracyMeters) {
-      debugPrint('⚠️ Low GPS accuracy: ${accuracy}m (min: $_minAccuracyMeters m)');
+      logger.d('⚠️ Low GPS accuracy: ${accuracy}m (min: $_minAccuracyMeters m)');
       return GeofenceResult.lowAccuracy(accuracy);
     }
 
@@ -82,7 +83,7 @@ class GeofenceManager {
     _lastCalculatedDistance = distance;
     _lastValidLocation = Ubicacion(latitud: latitude, longitud: longitude);
 
-    debugPrint('📏 Distance to event: ${distance.toStringAsFixed(2)}m (radius: ${_currentEvent!.rangoPermitido}m)');
+    logger.d('📏 Distance to event: ${distance.toStringAsFixed(2)}m (radius: ${_currentEvent!.rangoPermitido}m)');
 
     // 5. Determinar si está dentro de la geocerca
     final isInside = distance <= _currentEvent!.rangoPermitido;
@@ -102,7 +103,7 @@ class GeofenceManager {
         accuracy: accuracy,
       );
 
-      debugPrint('🚨 Geofence ${isInside ? 'ENTERED' : 'EXITED'} - Distance: ${distance.toStringAsFixed(2)}m');
+      logger.d('🚨 Geofence ${isInside ? 'ENTERED' : 'EXITED'} - Distance: ${distance.toStringAsFixed(2)}m');
       _emitGeofenceEvent(event);
     }
 
@@ -197,13 +198,13 @@ class GeofenceManager {
 
   /// 🧹 CLEANUP
   void dispose() {
-    debugPrint('🧹 Disposing GeofenceManager');
+    logger.d('🧹 Disposing GeofenceManager');
     
     _geofenceController.close();
     _currentEvent = null;
     _lastValidLocation = null;
     
-    debugPrint('🧹 GeofenceManager disposed');
+    logger.d('🧹 GeofenceManager disposed');
   }
 }
 

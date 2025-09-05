@@ -8,6 +8,7 @@ import '../permission_service.dart';
 import '../storage_service.dart';
 import '../notifications/notification_manager.dart';
 import '../asistencia/heartbeat_manager.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import '../asistencia/geofence_manager.dart';
 import 'attendance_state_manager.dart';
 import 'grace_period_manager.dart';
@@ -60,13 +61,13 @@ class StudentAttendanceManager {
 
   /// ✅ INICIALIZAR TRACKING PARA EVENTO
   Future<bool> startTrackingForEvent(Evento evento) async {
-    debugPrint('🎯 [StudentAttendanceManager] Starting tracking for: ${evento.titulo}');
+    logger.d('🎯 [StudentAttendanceManager] Starting tracking for: ${evento.titulo}');
 
     try {
       // 1. Verificar permisos
       final permissionResult = await _permissionService.requestLocationPermissions();
       if (permissionResult != LocationPermissionResult.granted) {
-        debugPrint('❌ Location permissions not granted');
+        logger.d('❌ Location permissions not granted');
         return false;
       }
 
@@ -92,11 +93,11 @@ class StudentAttendanceManager {
       _isTrackingActive = true;
       _emitTrackingState(StudentTrackingStatus.active);
 
-      debugPrint('✅ Tracking started successfully for event: ${evento.titulo}');
+      logger.d('✅ Tracking started successfully for event: ${evento.titulo}');
       return true;
 
     } catch (e) {
-      debugPrint('❌ Error starting tracking: $e');
+      logger.d('❌ Error starting tracking: $e');
       await stopTracking();
       return false;
     }
@@ -104,7 +105,7 @@ class StudentAttendanceManager {
 
   /// ✅ DETENER TRACKING
   Future<void> stopTracking() async {
-    debugPrint('🛑 [StudentAttendanceManager] Stopping tracking');
+    logger.d('🛑 [StudentAttendanceManager] Stopping tracking');
 
     try {
       _isTrackingActive = false;
@@ -132,16 +133,16 @@ class StudentAttendanceManager {
       await _notificationManager.clearAllNotifications();
 
       _emitTrackingState(StudentTrackingStatus.stopped);
-      debugPrint('✅ Tracking stopped successfully');
+      logger.d('✅ Tracking stopped successfully');
 
     } catch (e) {
-      debugPrint('❌ Error stopping tracking: $e');
+      logger.d('❌ Error stopping tracking: $e');
     }
   }
 
   /// ✅ MANEJAR CAMBIOS DE LIFECYCLE DE APP
   void handleAppLifecycleChange(AppLifecycleState state) {
-    debugPrint('📱 [StudentAttendanceManager] App lifecycle changed: $state');
+    logger.d('📱 [StudentAttendanceManager] App lifecycle changed: $state');
 
     final isInForeground = state == AppLifecycleState.resumed;
     
@@ -181,7 +182,7 @@ class StudentAttendanceManager {
 
   /// 📍 INICIAR TRACKING DE UBICACIÓN
   void _startLocationTracking() {
-    debugPrint('📍 Starting location tracking timer');
+    logger.d('📍 Starting location tracking timer');
 
     _locationTimer = Timer.periodic(_locationUpdateInterval, (timer) async {
       if (!_isTrackingActive) {
@@ -204,10 +205,10 @@ class StudentAttendanceManager {
       // 1. Obtener ubicación actual
       final location = await _locationService.getCurrentPosition();
       if (location == null) {
-        debugPrint('⚠️ Failed to get current location');
+        logger.d('⚠️ Failed to get current location');
         return;
       }
-      debugPrint('📍 Location update: ${location.latitude}, ${location.longitude}');
+      logger.d('📍 Location update: ${location.latitude}, ${location.longitude}');
 
       // 2. Verificar geofence
       final geofenceResult = _geofenceManager.checkPosition(
@@ -217,7 +218,7 @@ class StudentAttendanceManager {
       );
 
       if (!geofenceResult.isSuccess) {
-        debugPrint('⚠️ Geofence check failed: ${geofenceResult.error}');
+        logger.d('⚠️ Geofence check failed: ${geofenceResult.error}');
         return;
       }
 
@@ -238,13 +239,13 @@ class StudentAttendanceManager {
       );
 
     } catch (e) {
-      debugPrint('❌ Error in location update: $e');
+      logger.d('❌ Error in location update: $e');
     }
   }
 
   /// 🚨 MANEJAR EVENTO DE GEOFENCE
   void _handleGeofenceEvent(GeofenceEvent event) {
-    debugPrint('🚨 Geofence event: ${event.type}');
+    logger.d('🚨 Geofence event: ${event.type}');
 
     switch (event.type) {
       case GeofenceEventType.entered:
@@ -258,7 +259,7 @@ class StudentAttendanceManager {
 
   /// ✅ MANEJAR ENTRADA A GEOFENCE
   void _handleGeofenceEntered(GeofenceEvent event) {
-    debugPrint('✅ Student entered geofence');
+    logger.d('✅ Student entered geofence');
 
     // Cancelar grace period de geofence si está activo
     if (_gracePeriodManager.isGeofenceGraceActive) {
@@ -271,7 +272,7 @@ class StudentAttendanceManager {
 
   /// 🚨 MANEJAR SALIDA DE GEOFENCE
   void _handleGeofenceExited(GeofenceEvent event) {
-    debugPrint('🚨 Student exited geofence');
+    logger.d('🚨 Student exited geofence');
 
     // Iniciar grace period de geofence (60 segundos)
     _gracePeriodManager.startGeofenceGracePeriod();
@@ -282,11 +283,11 @@ class StudentAttendanceManager {
     if (_currentEvent == null) return;
 
     try {
-      debugPrint('📝 Attempting automatic attendance registration');
+      logger.d('📝 Attempting automatic attendance registration');
 
       final user = await _storageService.getUser();
       if (user == null) {
-        debugPrint('❌ No user found for attendance registration');
+        logger.d('❌ No user found for attendance registration');
         return;
       }
 
@@ -298,20 +299,20 @@ class StudentAttendanceManager {
       );
 
       if (result.success) {
-        debugPrint('✅ Automatic attendance registration successful');
+        logger.d('✅ Automatic attendance registration successful');
         await _notificationManager.showAttendanceRegisteredNotification();
       } else {
-        debugPrint('❌ Automatic attendance registration failed: ${result.error}');
+        logger.d('❌ Automatic attendance registration failed: ${result.error}');
       }
 
     } catch (e) {
-      debugPrint('❌ Error in automatic attendance registration: $e');
+      logger.d('❌ Error in automatic attendance registration: $e');
     }
   }
 
   /// ⏰ MANEJAR EVENTOS DE GRACE PERIOD
   void _handleGracePeriodEvent(GracePeriodEvent event) {
-    debugPrint('⏰ Grace period event: ${event.type} (${event.remaining}s remaining)');
+    logger.d('⏰ Grace period event: ${event.type} (${event.remaining}s remaining)');
 
     switch (event.type) {
       case GracePeriodEventType.geofenceExpired:
@@ -327,7 +328,7 @@ class StudentAttendanceManager {
 
   /// 🚨 MANEJAR EXPIRACIÓN DE GRACE PERIOD GEOFENCE
   void _handleGeofenceGraceExpired() {
-    debugPrint('🚨 Geofence grace period expired - marking as boundary violation');
+    logger.d('🚨 Geofence grace period expired - marking as boundary violation');
     
     // Marcar como violación de límites
     _emitTrackingState(StudentTrackingStatus.boundaryViolation);
@@ -335,7 +336,7 @@ class StudentAttendanceManager {
 
   /// 🚨 MANEJAR EXPIRACIÓN DE GRACE PERIOD APP CERRADA
   void _handleAppClosedGraceExpired() {
-    debugPrint('🚨 App closed grace period expired - marking as absent');
+    logger.d('🚨 App closed grace period expired - marking as absent');
     
     // Marcar como ausente por app cerrada
     _markAsAbsent('App cerrada por más de 30 segundos');
@@ -343,7 +344,7 @@ class StudentAttendanceManager {
 
   /// 📊 MANEJAR CAMBIOS DE ESTADO DE ASISTENCIA
   void _handleAttendanceStateChange(AttendanceStateChange change) {
-    debugPrint('📊 Attendance state changed: ${change.fromState} -> ${change.toState}');
+    logger.d('📊 Attendance state changed: ${change.fromState} -> ${change.toState}');
     
     // Emitir estado de tracking actualizado
     _emitTrackingState(_getTrackingStatusFromAttendanceState(change.toState));
@@ -351,7 +352,7 @@ class StudentAttendanceManager {
 
   /// 📱 MANEJAR APP REGRESANDO A FOREGROUND
   void _handleAppReturned() {
-    debugPrint('📱 App returned to foreground');
+    logger.d('📱 App returned to foreground');
 
     // Cancelar grace period de app cerrada si está activo
     if (_gracePeriodManager.isAppClosedGraceActive) {
@@ -364,7 +365,7 @@ class StudentAttendanceManager {
 
   /// 📱 MANEJAR APP YENDO A BACKGROUND
   void _handleAppClosed() {
-    debugPrint('📱 App went to background');
+    logger.d('📱 App went to background');
 
     // Iniciar grace period de app cerrada (30 segundos)
     _gracePeriodManager.startAppClosedGracePeriod();
@@ -384,10 +385,10 @@ class StudentAttendanceManager {
         motivo: reason,
       );
 
-      debugPrint('❌ Marked as absent: $reason');
+      logger.d('❌ Marked as absent: $reason');
 
     } catch (e) {
-      debugPrint('❌ Error marking as absent: $e');
+      logger.d('❌ Error marking as absent: $e');
     }
   }
 
@@ -446,7 +447,7 @@ class StudentAttendanceManager {
 
   /// 🧹 CLEANUP
   void dispose() {
-    debugPrint('🧹 Disposing StudentAttendanceManager');
+    logger.d('🧹 Disposing StudentAttendanceManager');
 
     stopTracking();
     _trackingController.close();
@@ -456,7 +457,7 @@ class StudentAttendanceManager {
     _stateManager.dispose();
     _gracePeriodManager.dispose();
     
-    debugPrint('🧹 StudentAttendanceManager disposed');
+    logger.d('🧹 StudentAttendanceManager disposed');
   }
 }
 

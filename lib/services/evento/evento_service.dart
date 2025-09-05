@@ -8,6 +8,7 @@ import '../../core/error_handler.dart';
 import '../../utils/haversine_calculator.dart';
 import '../storage_service.dart';
 import '../notifications/notification_manager.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'evento_repository.dart';
 import 'evento_mapper.dart';
 import 'evento_validator.dart';
@@ -59,7 +60,7 @@ class EventoService {
     _updateLoadingState(operation, EventoLoadingState.loading);
 
     try {
-      debugPrint('📋 Loading events from backend with enhanced sync');
+      logger.d('📋 Loading events from backend with enhanced sync');
       
       // 1. Obtener datos del backend con manejo de errores mejorado
       final backendEvents = await _errorHandler.executeWithRetry(() async {
@@ -76,8 +77,8 @@ class EventoService {
       
       // 4. Log estadísticas de filtrado
       final stats = _mapper.getFilteringStats(backendEvents, eventos);
-      debugPrint('🌍 Filtered out ${stats['eliminado'] ?? 0} deleted events from results');
-      debugPrint('✅ Valid events after filtering: ${eventos.length}');
+      logger.d('🌍 Filtered out ${stats['eliminado'] ?? 0} deleted events from results');
+      logger.d('✅ Valid events after filtering: ${eventos.length}');
       
       // 5. Sincronizar con backend service
       if (_syncService.isOnline) {
@@ -92,7 +93,7 @@ class EventoService {
       return eventos;
     } catch (e) {
       final appError = _errorHandler.handleError(e, context: operation);
-      debugPrint('❌ Error in obtenerEventos: ${appError.message}');
+      logger.d('❌ Error in obtenerEventos: ${appError.message}');
       _updateLoadingState(operation, EventoLoadingState.error, error: appError.userFriendlyMessage);
       return [];
     }
@@ -104,7 +105,7 @@ class EventoService {
     _updateLoadingState(operation, EventoLoadingState.loading);
 
     try {
-      debugPrint('🎓 Loading active events for students');
+      logger.d('🎓 Loading active events for students');
       
       // 1. Obtener todos los eventos (ya filtrados sin eliminados)
       final allEvents = await obtenerEventos();
@@ -118,7 +119,7 @@ class EventoService {
       _updateLoadingState(operation, EventoLoadingState.success);
       return studentEvents;
     } catch (e) {
-      debugPrint('❌ Error in obtenerEventosParaEstudiantes: $e');
+      logger.d('❌ Error in obtenerEventosParaEstudiantes: $e');
       _updateLoadingState(operation, EventoLoadingState.error, error: e.toString());
       return [];
     }
@@ -130,7 +131,7 @@ class EventoService {
     _updateLoadingState(operation, EventoLoadingState.loading);
 
     try {
-      debugPrint('🔍 Fetching event by ID: $eventoId');
+      logger.d('🔍 Fetching event by ID: $eventoId');
       
       // 1. Obtener del backend
       final backendEvent = await _repository.fetchEventById(eventoId);
@@ -144,7 +145,7 @@ class EventoService {
       final eventos = _mapper.filterActiveEvents([backendEvent]);
       
       if (eventos.isEmpty) {
-        debugPrint('🚫 Event $eventoId is deleted, returning null');
+        logger.d('🚫 Event $eventoId is deleted, returning null');
         _updateLoadingState(operation, EventoLoadingState.success);
         return null;
       }
@@ -152,7 +153,7 @@ class EventoService {
       _updateLoadingState(operation, EventoLoadingState.success);
       return eventos.first;
     } catch (e) {
-      debugPrint('❌ Error in obtenerEventoPorId: $e');
+      logger.d('❌ Error in obtenerEventoPorId: $e');
       _updateLoadingState(operation, EventoLoadingState.error, error: e.toString());
       return null;
     }
@@ -164,7 +165,7 @@ class EventoService {
     _updateLoadingState(operation, EventoLoadingState.loading);
 
     try {
-      debugPrint('👩‍🏫 Loading events for teacher: $creadorId');
+      logger.d('👩‍🏫 Loading events for teacher: $creadorId');
       
       // 1. Obtener del backend
       final backendEvents = await _repository.fetchEventsByTeacher(creadorId);
@@ -172,12 +173,12 @@ class EventoService {
       // 2. 🚨 FILTRAR EVENTOS ELIMINADOS
       final eventos = _mapper.filterActiveEvents(backendEvents);
       
-      debugPrint('✅ Teacher events loaded: ${eventos.length} (filtered from ${backendEvents.length})');
+      logger.d('✅ Teacher events loaded: ${eventos.length} (filtered from ${backendEvents.length})');
       
       _updateLoadingState(operation, EventoLoadingState.success);
       return eventos;
     } catch (e) {
-      debugPrint('❌ Error in getEventosByCreador: $e');
+      logger.d('❌ Error in getEventosByCreador: $e');
       _updateLoadingState(operation, EventoLoadingState.error, error: e.toString());
       return [];
     }
@@ -272,7 +273,7 @@ class EventoService {
       }
     } catch (e) {
       final appError = _errorHandler.handleError(e, context: operation);
-      debugPrint('❌ Error in crearEvento: ${appError.message}');
+      logger.d('❌ Error in crearEvento: ${appError.message}');
       _updateLoadingState(operation, EventoLoadingState.error, error: appError.userFriendlyMessage);
       return ApiResponse<Evento>(
         success: false,
@@ -325,7 +326,7 @@ class EventoService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Error in editarEvento: $e');
+      logger.d('❌ Error in editarEvento: $e');
       _updateLoadingState(operation, EventoLoadingState.error, error: e.toString());
       return ApiResponse<Evento>(
         success: false,
@@ -360,7 +361,7 @@ class EventoService {
       _updateLoadingState(operation, EventoLoadingState.success);
       return response;
     } catch (e) {
-      debugPrint('❌ Error in eliminarEvento: $e');
+      logger.d('❌ Error in eliminarEvento: $e');
       _updateLoadingState(operation, EventoLoadingState.error, error: e.toString());
       return ApiResponse<bool>(
         success: false,
@@ -382,7 +383,7 @@ class EventoService {
       // 2. Validar
       final validation = _validator.validateToggleActive(eventoId, isActive, usuario);
       if (!validation.isValid) {
-        debugPrint('❌ Toggle validation failed: ${validation.message}');
+        logger.d('❌ Toggle validation failed: ${validation.message}');
         _updateLoadingState(operation, EventoLoadingState.error, error: validation.message);
         return false;
       }
@@ -393,7 +394,7 @@ class EventoService {
       _updateLoadingState(operation, EventoLoadingState.success);
       return success;
     } catch (e) {
-      debugPrint('❌ Error in toggleEventoActive: $e');
+      logger.d('❌ Error in toggleEventoActive: $e');
       _updateLoadingState(operation, EventoLoadingState.error, error: e.toString());
       return false;
     }
@@ -405,7 +406,7 @@ class EventoService {
       final metrics = await _repository.fetchEventMetrics(eventoId);
       return metrics ?? {};
     } catch (e) {
-      debugPrint('❌ Error fetching event metrics: $e');
+      logger.d('❌ Error fetching event metrics: $e');
       return {};
     }
   }
@@ -417,7 +418,7 @@ class EventoService {
       final eventosTerminados = _mapper.filterFinishedEvents(allEvents);
       
       if (eventosTerminados.isEmpty) {
-        debugPrint('📝 No finished events found for student liberation');
+        logger.d('📝 No finished events found for student liberation');
         return;
       }
       
@@ -425,9 +426,9 @@ class EventoService {
       final storageKeys = await _storageService.getAllKeys();
       final eventKeys = storageKeys.where((key) => key.startsWith('student_event_')).toList();
       
-      debugPrint('📚 Student storage keys related to events:');
+      logger.d('📚 Student storage keys related to events:');
       for (final key in eventKeys) {
-        debugPrint('  - $key');
+        logger.d('  - $key');
       }
       
       // 3. Limpiar datos de eventos finalizados
@@ -435,20 +436,20 @@ class EventoService {
         final eventKey = 'student_event_${evento.id}';
         if (eventKeys.contains(eventKey)) {
           await _storageService.removeData(eventKey);
-          debugPrint('🧹 Cleaned up data for finished event: ${evento.titulo}');
+          logger.d('🧹 Cleaned up data for finished event: ${evento.titulo}');
         }
       }
       
       // 4. Verificar estado actual del estudiante
       final currentEventData = await _storageService.getData('current_student_event');
-      debugPrint('🔍 Current student event data: $currentEventData');
+      logger.d('🔍 Current student event data: $currentEventData');
       
       if (currentEventData == null) {
-        debugPrint('📝 No current event data found for student');
+        logger.d('📝 No current event data found for student');
       }
       
     } catch (e) {
-      debugPrint('❌ Error liberating students from finished events: $e');
+      logger.d('❌ Error liberating students from finished events: $e');
     }
   }
 
@@ -466,7 +467,7 @@ class EventoService {
       _stateController.add(Map.from(_loadingStates));
     }
     
-    debugPrint('🔄 [$operation] Estado: $state ${error != null ? "Error: $error" : ""}');
+    logger.d('🔄 [$operation] Estado: $state ${error != null ? "Error: $error" : ""}');
   }
 
   /// 🧹 CLEANUP
@@ -475,7 +476,7 @@ class EventoService {
     _repository.dispose();
     _mapper.dispose();
     _validator.dispose();
-    debugPrint('🧹 EventoService disposed');
+    logger.d('🧹 EventoService disposed');
   }
 }
 

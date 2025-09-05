@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/events/event_monitor_screen.dart
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -82,7 +83,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
   @override
   void dispose() {
-    debugPrint('🧹 Disposing EventMonitorScreen resources');
+    logger.d('🧹 Disposing EventMonitorScreen resources');
     
     // Cancel all timers
     _refreshController.dispose();
@@ -99,13 +100,13 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     _disposeTeacherNotificationServices();
 
     super.dispose();
-    debugPrint('✅ EventMonitorScreen disposed successfully');
+    logger.d('✅ EventMonitorScreen disposed successfully');
   }
   
   /// ✅ NUEVO: Limpiar servicios de notificaciones profesors
   Future<void> _disposeTeacherNotificationServices() async {
     try {
-      debugPrint('🔔 Limpiando servicios de notificaciones profesors');
+      logger.d('🔔 Limpiando servicios de notificaciones profesors');
       
       // Cancelar programaciones del evento actual
       await _teacherScheduler.cancelEventSchedules(widget.eventId);
@@ -116,9 +117,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       // Limpiar servicio de notificaciones (sin dispose completo para no afectar otros usos)
       // El TeacherNotificationService se mantiene activo para otros eventos
       
-      debugPrint('✅ Servicios de notificaciones profesors limpiados');
+      logger.d('✅ Servicios de notificaciones profesors limpiados');
     } catch (e) {
-      debugPrint('❌ Error limpiando servicios de notificaciones: $e');
+      logger.d('❌ Error limpiando servicios de notificaciones: $e');
     }
   }
 
@@ -139,19 +140,19 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   Future<void> _initializeNotificationManager() async {
     try {
       await _notificationManager.initialize();
-      debugPrint('✅ NotificationManager inicializado para EventMonitor');
+      logger.d('✅ NotificationManager inicializado para EventMonitor');
       
       // ✅ NUEVO: Inicializar sistema de notificaciones para profesors
       await _initializeTeacherNotificationSystem();
     } catch (e) {
-      debugPrint('❌ Error inicializando NotificationManager: $e');
+      logger.d('❌ Error inicializando NotificationManager: $e');
     }
   }
   
   /// ✅ NUEVO: Inicializar sistema completo de notificaciones para profesors
   Future<void> _initializeTeacherNotificationSystem() async {
     try {
-      debugPrint('🔔 Inicializando sistema de notificaciones para profesors');
+      logger.d('🔔 Inicializando sistema de notificaciones para profesors');
       
       // Inicializar TeacherNotificationService
       await _teacherNotificationService.initialize();
@@ -164,14 +165,14 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         await _scheduleEventTeacherNotifications(_monitoredEvent!);
       }
       
-      debugPrint('✅ Sistema de notificaciones para profesors inicializado');
+      logger.d('✅ Sistema de notificaciones para profesors inicializado');
     } catch (e) {
-      debugPrint('❌ Error inicializando notificaciones profesors: $e');
+      logger.d('❌ Error inicializando notificaciones profesors: $e');
     }
   }
 
   Future<void> _initializeEventMonitor() async {
-    debugPrint('🎯 Inicializando EventMonitor para evento: ${widget.eventId}');
+    logger.d('🎯 Inicializando EventMonitor para evento: ${widget.eventId}');
 
     try {
       // 1. Cargar evento específico a monitorear
@@ -189,7 +190,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       // 5. ✅ NUEVO: Iniciar actualización periódica de asistencia (cada 15 min)
       _startAttendanceUpdateNotifications();
     } catch (e) {
-      debugPrint('❌ Error inicializando event monitor: $e');
+      logger.d('❌ Error inicializando event monitor: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -201,7 +202,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
   Future<void> _loadMonitoredEvent() async {
     try {
-      debugPrint('📊 Cargando evento para monitoreo: ${widget.eventId}');
+      logger.d('📊 Cargando evento para monitoreo: ${widget.eventId}');
 
       // ✅ CORREGIDO: EventoService retorna List<Evento> directamente
       final eventos = await _eventoService.obtenerEventos();
@@ -224,21 +225,21 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       // ✅ NUEVO: Establecer métricas iniciales
       await _initializeEventMetrics(event);
 
-      debugPrint(
+      logger.d(
           '✅ Evento cargado: ${event.titulo}, activo: ${event.isActive}');
     } catch (e) {
-      debugPrint('❌ Error cargando evento: $e');
+      logger.d('❌ Error cargando evento: $e');
       rethrow; // ✅ CORREGIDO: usar rethrow
     }
   }
 
   Future<void> _loadEventAttendances() async {
     try {
-      debugPrint('👥 Cargando asistencias del evento: ${widget.eventId}');
+      logger.d('👥 Cargando asistencias del evento: ${widget.eventId}');
 
       // ✅ VALIDAR que el eventId no sea nulo o vacío
       if (widget.eventId.isEmpty) {
-        debugPrint('❌ EventId is empty, cannot load attendances');
+        logger.d('❌ EventId is empty, cannot load attendances');
         if (mounted) {
           setState(() {
             _studentActivities = [];
@@ -262,16 +263,16 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       // ✅ NUEVO: Actualizar métricas y enviar notificaciones si hay cambios
       await _updateAttendanceMetrics(asistencias);
 
-      debugPrint('✅ Asistencias cargadas: ${asistencias.length} registros');
+      logger.d('✅ Asistencias cargadas: ${asistencias.length} registros');
     } catch (e) {
-      debugPrint('❌ Error cargando asistencias: $e');
+      logger.d('❌ Error cargando asistencias: $e');
       // No interrumpir el flujo si falla las asistencias
     }
   }
 
   Future<void> _loadRealtimeMetrics() async {
     try {
-      debugPrint(
+      logger.d(
           '📊 Cargando métricas en tiempo real del evento: ${widget.eventId}');
 
       // ✅ CORREGIDO: EventoService retorna Map<String, dynamic> directamente
@@ -284,9 +285,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         });
       }
 
-      debugPrint('✅ Métricas cargadas: $metrics');
+      logger.d('✅ Métricas cargadas: $metrics');
     } catch (e) {
-      debugPrint('❌ Error cargando métricas: $e');
+      logger.d('❌ Error cargando métricas: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -298,7 +299,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   /// ✅ NUEVO: Programar notificaciones para el evento
   Future<void> _scheduleEventTeacherNotifications(Evento event) async {
     try {
-      debugPrint('📅 Programando notificaciones para profesor: ${event.titulo}');
+      logger.d('📅 Programando notificaciones para profesor: ${event.titulo}');
       
       // Programar notificaciones temporales
       await _teacherScheduler.scheduleEventNotifications(event);
@@ -308,9 +309,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         await _teacherScheduler.scheduleBreakSuggestions(event);
       }
       
-      debugPrint('✅ Notificaciones programadas para: ${event.titulo}');
+      logger.d('✅ Notificaciones programadas para: ${event.titulo}');
     } catch (e) {
-      debugPrint('❌ Error programando notificaciones: $e');
+      logger.d('❌ Error programando notificaciones: $e');
     }
   }
   
@@ -328,9 +329,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       
       _previousAttendanceCount = _studentsPresent;
       
-      debugPrint('📊 Métricas inicializadas - Esperados: $_totalStudentsExpected, Presentes: $_studentsPresent');
+      logger.d('📊 Métricas inicializadas - Esperados: $_totalStudentsExpected, Presentes: $_studentsPresent');
     } catch (e) {
-      debugPrint('❌ Error inicializando métricas: $e');
+      logger.d('❌ Error inicializando métricas: $e');
     }
   }
   
@@ -382,9 +383,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       // Actualizar métricas
       _studentsPresent = newStudentsPresent;
       
-      debugPrint('📊 Métricas actualizadas - Presentes: $_studentsPresent/$_totalStudentsExpected');
+      logger.d('📊 Métricas actualizadas - Presentes: $_studentsPresent/$_totalStudentsExpected');
     } catch (e) {
-      debugPrint('❌ Error actualizando métricas de asistencia: $e');
+      logger.d('❌ Error actualizando métricas de asistencia: $e');
     }
   }
 
@@ -396,13 +397,13 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       const Duration(seconds: 30),
       (timer) async {
         if (mounted && _autoRefreshEnabled) {
-          debugPrint('🔄 Actualizando datos en tiempo real...');
+          logger.d('🔄 Actualizando datos en tiempo real...');
           await _refreshData();
         }
       },
     );
 
-    debugPrint('✅ Auto-actualización iniciada cada 30 segundos');
+    logger.d('✅ Auto-actualización iniciada cada 30 segundos');
   }
   
   /// ✅ NUEVO: Iniciar notificaciones de actualización de asistencia cada 15 minutos
@@ -424,13 +425,13 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           trend: _getAttendanceTrend(),
         );
         
-        debugPrint('📊 Notificación de asistencia enviada: $_studentsPresent/$_totalStudentsExpected');
+        logger.d('📊 Notificación de asistencia enviada: $_studentsPresent/$_totalStudentsExpected');
       } catch (e) {
-        debugPrint('❌ Error enviando actualización de asistencia: $e');
+        logger.d('❌ Error enviando actualización de asistencia: $e');
       }
     });
     
-    debugPrint('📊 Notificaciones de asistencia cada 15 min iniciadas');
+    logger.d('📊 Notificaciones de asistencia cada 15 min iniciadas');
   }
   
   /// ✅ NUEVO: Calcular tendencia de asistencia
@@ -460,7 +461,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         _loadMonitoredEvent(), // Verificar cambios en el evento
       ]);
     } catch (e) {
-      debugPrint('❌ Error actualizando datos: $e');
+      logger.d('❌ Error actualizando datos: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -472,7 +473,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   }
 
   void _manualRefresh() {
-    debugPrint('🔄 Actualización manual solicitada');
+    logger.d('🔄 Actualización manual solicitada');
     _refreshData();
   }
 
@@ -483,17 +484,17 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
     if (_autoRefreshEnabled) {
       _startRealtimeUpdates();
-      debugPrint('✅ Auto-actualización activada');
+      logger.d('✅ Auto-actualización activada');
     } else {
       _realtimeUpdateTimer?.cancel();
-      debugPrint('⏸️ Auto-actualización pausada');
+      logger.d('⏸️ Auto-actualización pausada');
     }
   }
 
   // 🎯 CONTROL DE EVENTOS EN TIEMPO REAL
   Future<void> _activateEvent() async {
     try {
-      debugPrint('▶️ Activando evento: ${widget.eventId}');
+      logger.d('▶️ Activando evento: ${widget.eventId}');
 
       // ✅ CORREGIDO: EventoService retorna bool directamente
       final result = await _eventoService.activarEvento(widget.eventId);
@@ -517,7 +518,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           ),
         );
 
-        debugPrint('✅ Evento activado exitosamente');
+        logger.d('✅ Evento activado exitosamente');
       } else {
         if (!mounted) return; // ✅ CORREGIDO: Verificar mounted
         ScaffoldMessenger.of(context).showSnackBar(
@@ -528,7 +529,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         );
       }
     } catch (e) {
-      debugPrint('❌ Error activando evento: $e');
+      logger.d('❌ Error activando evento: $e');
       if (!mounted) return; // ✅ CORREGIDO: Verificar mounted
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -541,7 +542,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
   Future<void> _deactivateEvent() async {
     try {
-      debugPrint('⏹️ Desactivando evento: ${widget.eventId}');
+      logger.d('⏹️ Desactivando evento: ${widget.eventId}');
 
       // ✅ CORREGIDO: EventoService retorna bool directamente
       final result = await _eventoService.desactivarEvento(widget.eventId);
@@ -564,7 +565,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           ),
         );
 
-        debugPrint('✅ Evento desactivado exitosamente');
+        logger.d('✅ Evento desactivado exitosamente');
       } else {
         if (!mounted) return; // ✅ CORREGIDO: Verificar mounted
         ScaffoldMessenger.of(context).showSnackBar(
@@ -575,7 +576,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         );
       }
     } catch (e) {
-      debugPrint('❌ Error desactivando evento: $e');
+      logger.d('❌ Error desactivando evento: $e');
       if (!mounted) return; // ✅ CORREGIDO: Verificar mounted
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -588,7 +589,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
   Future<void> _endBreak() async {
     try {
-      debugPrint('▶️ Terminando receso para evento: ${widget.eventId}');
+      logger.d('▶️ Terminando receso para evento: ${widget.eventId}');
 
       // 1. Obtener duración como texto ANTES de limpiar _breakStartTime
       final breakDurationText = _getBreakDurationText();
@@ -644,7 +645,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           ),
         );
 
-        debugPrint(
+        logger.d(
             '✅ Receso terminado exitosamente. Duración: $breakDurationText');
       } else {
         if (!mounted) return;
@@ -656,7 +657,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         );
       }
     } catch (e) {
-      debugPrint('❌ Error terminando receso: $e');
+      logger.d('❌ Error terminando receso: $e');
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -670,7 +671,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
 
   Future<void> _startBreak() async {
     try {
-      debugPrint('⏸️ Iniciando receso para evento: ${widget.eventId}');
+      logger.d('⏸️ Iniciando receso para evento: ${widget.eventId}');
 
       final result = await _eventoService.iniciarReceso(widget.eventId);
 
@@ -720,7 +721,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           ),
         );
 
-        debugPrint(
+        logger.d(
             '✅ Receso iniciado exitosamente a las ${_formatTime(_breakStartTime!)}');
       } else {
         if (!mounted) return;
@@ -732,7 +733,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         );
       }
     } catch (e) {
-      debugPrint('❌ Error iniciando receso: $e');
+      logger.d('❌ Error iniciando receso: $e');
 
       setState(() {
         _isBreakActive = false;
@@ -761,14 +762,14 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
       }
     });
 
-    debugPrint('⏰ Timer de duración de receso iniciado');
+    logger.d('⏰ Timer de duración de receso iniciado');
   }
 
   /// Detener timer de duración del receso
   void _stopBreakDurationTimer() {
     _breakDurationTimer?.cancel();
     _breakDurationTimer = null;
-    debugPrint('⏰ Timer de duración de receso detenido');
+    logger.d('⏰ Timer de duración de receso detenido');
   }
 
   /// Obtener duración actual del receso como Duration
@@ -1496,9 +1497,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         totalStudents: _totalStudentsExpected,
       );
       
-      debugPrint('✅ Notificación enviada: estudiante $studentName se registró');
+      logger.d('✅ Notificación enviada: estudiante $studentName se registró');
     } catch (e) {
-      debugPrint('❌ Error enviando notificación de estudiante registrado: $e');
+      logger.d('❌ Error enviando notificación de estudiante registrado: $e');
     }
   }
   
@@ -1514,9 +1515,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         timeOutside: timeOutside,
       );
       
-      debugPrint('🚨 Notificación enviada: estudiante $studentName salió del área');
+      logger.d('🚨 Notificación enviada: estudiante $studentName salió del área');
     } catch (e) {
-      debugPrint('❌ Error enviando notificación de estudiante que salió: $e');
+      logger.d('❌ Error enviando notificación de estudiante que salió: $e');
     }
   }
   
@@ -1536,10 +1537,10 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           totalStudents: _totalStudentsExpected,
         );
         
-        debugPrint('✅ Notificación enviada: ${studentNames.length} estudiantes se registraron');
+        logger.d('✅ Notificación enviada: ${studentNames.length} estudiantes se registraron');
       }
     } catch (e) {
-      debugPrint('❌ Error enviando notificación de múltiples estudiantes: $e');
+      logger.d('❌ Error enviando notificación de múltiples estudiantes: $e');
     }
   }
   
@@ -1559,14 +1560,14 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
           trend: trend,
         );
         
-        debugPrint('📊 Notificación de conteo enviada: $newCount/$_totalStudentsExpected');
+        logger.d('📊 Notificación de conteo enviada: $newCount/$_totalStudentsExpected');
       }
       
       // Actualizar métricas locales
       _previousAttendanceCount = _studentsPresent;
       _studentsPresent = newCount;
     } catch (e) {
-      debugPrint('❌ Error enviando actualización de conteo: $e');
+      logger.d('❌ Error enviando actualización de conteo: $e');
     }
   }
 
@@ -1618,7 +1619,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
   /// ✅ NUEVO: Inicializar conexión WebSocket robusta
   Future<void> _initializeWebSocketConnection() async {
     try {
-      debugPrint('📊 Iniciando conexión WebSocket para monitoreo del evento: ${widget.eventId}');
+      logger.d('📊 Iniciando conexión WebSocket para monitoreo del evento: ${widget.eventId}');
       
       // ✅ CONECTAR WEBSOCKET ESPECÍFICO PARA MONITOREO
       final connected = await WebSocketService.instance.connectToEvent(
@@ -1632,18 +1633,18 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
         _wsSubscription = WebSocketService.instance.messageStream.listen(
           _handleRealtimeUpdate,
           onError: (error) {
-            debugPrint('❌ Error en stream WebSocket: $error');
+            logger.d('❌ Error en stream WebSocket: $error');
             _showConnectionError();
           },
         );
         
-        debugPrint('✅ Monitoreo WebSocket iniciado');
+        logger.d('✅ Monitoreo WebSocket iniciado');
       } else {
         _showConnectionError();
       }
       
     } catch (e) {
-      debugPrint('❌ Error inicializando WebSocket: $e');
+      logger.d('❌ Error inicializando WebSocket: $e');
       _showConnectionError();
     }
   }
@@ -1682,7 +1683,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     final attendanceStatus = data['attendanceStatus'] as String?;
     final timestamp = data['timestamp'] as String?;
     
-    debugPrint('📝 Actualización de asistencia via WebSocket: $studentName -> $attendanceStatus');
+    logger.d('📝 Actualización de asistencia via WebSocket: $studentName -> $attendanceStatus');
     
     // ✅ USAR MÉTODOS DE NOTIFICACIÓN PARA PROFESORES
     if (attendanceStatus == 'presente') {
@@ -1708,7 +1709,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     final latitude = data['latitude'] as double?;
     final longitude = data['longitude'] as double?;
     
-    debugPrint('📍 Actualización de ubicación: $studentName ($latitude, $longitude)');
+    logger.d('📍 Actualización de ubicación: $studentName ($latitude, $longitude)');
   }
 
   /// ✅ NUEVO: Manejar violación de geofence via WebSocket
@@ -1716,7 +1717,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     final studentName = data['studentName'] as String? ?? 'Estudiante';
     final gracePeriodSeconds = data['gracePeriodSeconds'] as int? ?? 60;
     
-    debugPrint('⚠️ Violación de geofence: $studentName (${gracePeriodSeconds}s de gracia)');
+    logger.d('⚠️ Violación de geofence: $studentName (${gracePeriodSeconds}s de gracia)');
     
     // ✅ USAR MÉTODO DE NOTIFICACIÓN PARA PROFESORES
     _handleStudentLeftAreaNotification(studentName, data);
@@ -1727,7 +1728,7 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     final totalStudents = data['totalStudents'] as int? ?? 0;
     final presentStudents = data['presentStudents'] as int? ?? 0;
     
-    debugPrint('📊 Métricas actualizadas via WebSocket: $presentStudents/$totalStudents estudiantes');
+    logger.d('📊 Métricas actualizadas via WebSocket: $presentStudents/$totalStudents estudiantes');
     
     // ✅ USAR MÉTODO DE NOTIFICACIÓN PARA ACTUALIZACIONES DE ASISTENCIA
     _handleAttendanceCountUpdate(data);
@@ -1792,9 +1793,9 @@ class _EventMonitorScreenState extends State<EventMonitorScreen>
     try {
       await _wsSubscription.cancel();
       await WebSocketService.instance.disconnect();
-      debugPrint('✅ WebSocket connection cleaned up');
+      logger.d('✅ WebSocket connection cleaned up');
     } catch (e) {
-      debugPrint('❌ Error cleaning up WebSocket: $e');
+      logger.d('❌ Error cleaning up WebSocket: $e');
     }
   }
 }

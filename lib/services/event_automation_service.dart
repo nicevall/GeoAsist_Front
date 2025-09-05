@@ -1,7 +1,7 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/event_automation_service.dart
 // 🎯 SERVICIO DE AUTOMATIZACIÓN DE EVENTOS CON WEBSOCKET
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import '../services/websocket_service.dart';
 import '../services/local_presence_manager.dart';
 import '../services/local_geofencing_service.dart';
@@ -47,7 +47,7 @@ class EventAutomationService {
 
   /// ✅ INICIAR AUTOMATIZACIÓN PARA UN EVENTO
   Future<void> startEventAutomation(Evento event) async {
-    debugPrint('🤖 Iniciando automatización para evento: ${event.titulo}');
+    logger.d('🤖 Iniciando automatización para evento: ${event.titulo}');
     
     _currentEvent = event;
     _currentUserId = await _storageService.getUserId();
@@ -63,7 +63,7 @@ class EventAutomationService {
 
     _updateStatus(EventAutomationStatus.monitoring);
     
-    debugPrint('✅ Automatización iniciada - Esperando cambios del backend');
+    logger.d('✅ Automatización iniciada - Esperando cambios del backend');
   }
 
   /// 🔗 CONFIGURAR CONEXIÓN WEBSOCKET
@@ -83,12 +83,12 @@ class EventAutomationService {
         _webSocketSubscription = _webSocketService.messageStream.listen(
           _handleWebSocketMessage,
           onError: (error) {
-            debugPrint('❌ Error WebSocket: $error');
+            logger.d('❌ Error WebSocket: $error');
           },
         );
       }
     } catch (e) {
-      debugPrint('❌ Error configurando WebSocket: $e');
+      logger.d('❌ Error configurando WebSocket: $e');
     }
   }
 
@@ -103,9 +103,9 @@ class EventAutomationService {
       // Iniciar geofencing local
       await _geofencingService.startGeofencing(_currentEvent!);
       
-      debugPrint('✅ Monitoreo local iniciado');
+      logger.d('✅ Monitoreo local iniciado');
     } catch (e) {
-      debugPrint('❌ Error iniciando monitoreo local: $e');
+      logger.d('❌ Error iniciando monitoreo local: $e');
     }
   }
 
@@ -131,7 +131,7 @@ class EventAutomationService {
         _handleEventStatusChange(data);
         break;
       default:
-        debugPrint('📨 Mensaje WebSocket no manejado: $messageType');
+        logger.d('📨 Mensaje WebSocket no manejado: $messageType');
     }
   }
 
@@ -141,11 +141,11 @@ class EventAutomationService {
     final eventId = data['evento'] as String?;
     
     if (eventId != _currentEvent?.id) {
-      debugPrint('⚠️ Cambio de estado para evento diferente, ignorando');
+      logger.d('⚠️ Cambio de estado para evento diferente, ignorando');
       return;
     }
 
-    debugPrint('🎯 AUTOMATIZACIÓN: Evento cambió a estado "$newStatus"');
+    logger.d('🎯 AUTOMATIZACIÓN: Evento cambió a estado "$newStatus"');
 
     switch (newStatus) {
       case 'En proceso':
@@ -165,7 +165,7 @@ class EventAutomationService {
 
   /// 🟢 EVENTO INICIADO AUTOMÁTICAMENTE POR CRON
   void _handleEventStartedAutomatically() {
-    debugPrint('🟢 AUTOMATIZACIÓN: Evento iniciado por cron del backend');
+    logger.d('🟢 AUTOMATIZACIÓN: Evento iniciado por cron del backend');
     
     _updateStatus(EventAutomationStatus.eventActive);
     
@@ -180,7 +180,7 @@ class EventAutomationService {
 
   /// 🔴 EVENTO FINALIZADO AUTOMÁTICAMENTE POR CRON
   void _handleEventEndedAutomatically() {
-    debugPrint('🔴 AUTOMATIZACIÓN: Evento finalizado por cron del backend');
+    logger.d('🔴 AUTOMATIZACIÓN: Evento finalizado por cron del backend');
     
     _updateStatus(EventAutomationStatus.eventFinished);
     
@@ -200,7 +200,7 @@ class EventAutomationService {
 
   /// ⏸️ EVENTO PAUSADO (CONTINÚA MAÑANA)
   void _handleEventPausedAutomatically() {
-    debugPrint('⏸️ AUTOMATIZACIÓN: Evento pausado hasta mañana');
+    logger.d('⏸️ AUTOMATIZACIÓN: Evento pausado hasta mañana');
     
     _updateStatus(EventAutomationStatus.eventPaused);
     
@@ -210,7 +210,7 @@ class EventAutomationService {
 
   /// ❌ EVENTO CANCELADO
   void _handleEventCancelledAutomatically() {
-    debugPrint('❌ AUTOMATIZACIÓN: Evento cancelado');
+    logger.d('❌ AUTOMATIZACIÓN: Evento cancelado');
     
     // Detener todo inmediatamente
     stopEventAutomation();
@@ -221,7 +221,7 @@ class EventAutomationService {
     final userRole = await _storageService.getUserRole();
     
     if (userRole == 'estudiante') {
-      debugPrint('🎯 Activando tracking de estudiante automáticamente');
+      logger.d('🎯 Activando tracking de estudiante automáticamente');
       
       // El LocalPresenceManager ya está corriendo
       // Solo notificar que pueden registrar asistencia
@@ -231,7 +231,7 @@ class EventAutomationService {
 
   /// 🛑 DESACTIVAR TRACKING
   void _deactivateTracking() {
-    debugPrint('🛑 Desactivando tracking');
+    logger.d('🛑 Desactivando tracking');
     
     _presenceManager.stopPresenceMonitoring();
     _geofencingService.stopGeofencing();
@@ -239,7 +239,7 @@ class EventAutomationService {
 
   /// ⏸️ PAUSAR TRACKING
   void _pauseTracking() {
-    debugPrint('⏸️ Pausando tracking');
+    logger.d('⏸️ Pausando tracking');
     
     // Pausar pero no detener completamente
     _presenceManager.activateGracePeriod(duration: const Duration(hours: 12));
@@ -249,16 +249,16 @@ class EventAutomationService {
   void _handlePresenceChange(LocalPresenceStatus status) {
     switch (status) {
       case LocalPresenceStatus.present:
-        debugPrint('✅ Usuario presente en el evento');
+        logger.d('✅ Usuario presente en el evento');
         break;
       case LocalPresenceStatus.absent:
-        debugPrint('❌ Usuario ausente del evento');
+        logger.d('❌ Usuario ausente del evento');
         break;
       case LocalPresenceStatus.warning:
-        debugPrint('⚠️ Usuario cerca del límite');
+        logger.d('⚠️ Usuario cerca del límite');
         break;
       case LocalPresenceStatus.disconnected:
-        debugPrint('📵 Sin conexión GPS');
+        logger.d('📵 Sin conexión GPS');
         break;
       default:
         break;
@@ -268,9 +268,9 @@ class EventAutomationService {
   /// 🎯 MANEJAR CAMBIOS DE GEOFENCING LOCAL
   void _handleGeofenceChange(GeofenceResult result) {
     if (result.isInside) {
-      debugPrint('🎯 Usuario dentro del geofence');
+      logger.d('🎯 Usuario dentro del geofence');
     } else {
-      debugPrint('📍 Usuario fuera del geofence (${result.distance.round()}m)');
+      logger.d('📍 Usuario fuera del geofence (${result.distance.round()}m)');
     }
   }
 
@@ -280,13 +280,13 @@ class EventAutomationService {
       _status = newStatus;
       _statusController.add(newStatus);
       
-      debugPrint('🤖 Estado automatización: ${newStatus.toString()}');
+      logger.d('🤖 Estado automatización: ${newStatus.toString()}');
     }
   }
 
   /// 🛑 DETENER AUTOMATIZACIÓN
   Future<void> stopEventAutomation() async {
-    debugPrint('🛑 Deteniendo automatización de eventos');
+    logger.d('🛑 Deteniendo automatización de eventos');
 
     // Cerrar WebSocket
     await _webSocketService.disconnect();
@@ -304,7 +304,7 @@ class EventAutomationService {
     
     _updateStatus(EventAutomationStatus.inactive);
     
-    debugPrint('✅ Automatización detenida completamente');
+    logger.d('✅ Automatización detenida completamente');
   }
 
   /// 📊 GETTERS DE ESTADO

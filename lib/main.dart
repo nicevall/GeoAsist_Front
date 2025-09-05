@@ -1,4 +1,5 @@
 // lib/main.dart - FIREBASE MIGRATION
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:workmanager/workmanager.dart';
@@ -28,7 +29,7 @@ import 'services/session_persistence_service.dart';
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
-      debugPrint('🔄 [BACKGROUND] Ejecutando tarea: $task');
+      logger.d('🔄 [BACKGROUND] Ejecutando tarea: $task');
 
       final taskType = inputData?['task_type'] as String?;
       final eventId = inputData?['event_id'] as String?;
@@ -45,12 +46,12 @@ void callbackDispatcher() {
           await _handleBackgroundLocationUpdate(eventId, userId);
           break;
         default:
-          debugPrint('⚠️ [BACKGROUND] Tipo de tarea desconocido: $taskType');
+          logger.d('⚠️ [BACKGROUND] Tipo de tarea desconocido: $taskType');
       }
 
       return Future.value(true);
     } catch (e) {
-      debugPrint('❌ [BACKGROUND] Error en tarea $task: $e');
+      logger.d('❌ [BACKGROUND] Error en tarea $task: $e');
       return Future.value(false);
     }
   });
@@ -58,16 +59,16 @@ void callbackDispatcher() {
 
 /// 🎯 HANDLERS DE TAREAS BACKGROUND
 Future<void> _handleBackgroundTracking(String? eventId, String? userId) async {
-  debugPrint('📍 [BACKGROUND] Ejecutando tracking - Evento: $eventId');
+  logger.d('📍 [BACKGROUND] Ejecutando tracking - Evento: $eventId');
 }
 
 Future<void> _handleBackgroundHeartbeat(String? eventId, String? userId) async {
-  debugPrint('💓 [BACKGROUND] Enviando heartbeat - Usuario: $userId');
+  logger.d('💓 [BACKGROUND] Enviando heartbeat - Usuario: $userId');
 }
 
 Future<void> _handleBackgroundLocationUpdate(
     String? eventId, String? userId) async {
-  debugPrint('🌍 [BACKGROUND] Actualizando ubicación en background');
+  logger.d('🌍 [BACKGROUND] Actualizando ubicación en background');
 }
 
 /// 🚀 FUNCIÓN MAIN CON INICIALIZACIÓN ASÍNCRONA
@@ -75,7 +76,7 @@ void main() async {
   // ✅ CONFIGURACIÓN INICIAL OBLIGATORIA
   WidgetsFlutterBinding.ensureInitialized();
 
-  debugPrint('🚀 Iniciando GeoAsist con servicios de Fase C...');
+  logger.d('🚀 Iniciando GeoAsist con servicios de Fase C...');
 
   try {
     // ✅ CONFIGURAR ORIENTACIÓN DE PANTALLA
@@ -90,7 +91,7 @@ void main() async {
     // ✅ INICIALIZAR SERVICIOS SECUNDARIOS
     await _initializeSecondaryServices();
 
-    debugPrint('✅ Inicialización completa - Lanzando aplicación');
+    logger.d('✅ Inicialización completa - Lanzando aplicación');
 
     // ✅ LANZAR LA APLICACIÓN CON MULTIPROVIDER
     runApp(
@@ -162,11 +163,11 @@ void main() async {
       ),
     );
   } catch (e, stackTrace) {
-    debugPrint('❌ ERROR CRÍTICO durante inicialización: $e');
-    debugPrint('📋 StackTrace: $stackTrace');
+    logger.d('❌ ERROR CRÍTICO durante inicialización: $e');
+    logger.d('📋 StackTrace: $stackTrace');
 
     // En caso de error crítico, lanzar app básica con providers mínimos
-    debugPrint('⚠️ Iniciando en modo de recuperación con providers básicos...');
+    logger.d('⚠️ Iniciando en modo de recuperación con providers básicos...');
     runApp(
       MultiProvider(
         providers: [
@@ -188,80 +189,80 @@ void main() async {
 
 /// 🎯 INICIALIZAR SERVICIOS CRÍTICOS (OBLIGATORIOS)
 Future<void> _initializeCriticalServices() async {
-  debugPrint('🔧 Inicializando servicios críticos...');
+  logger.d('🔧 Inicializando servicios críticos...');
 
   try {
     // 1. 🔥 FIREBASE CORE (PRIMER SERVICIO)
-    debugPrint('🔥 Inicializando Firebase...');
+    logger.d('🔥 Inicializando Firebase...');
     await FirebaseConfig.initialize();
-    debugPrint('✅ Firebase inicializado');
+    logger.d('✅ Firebase inicializado');
 
     // 2. 📱 NOTIFICATION MANAGER (SEGUNDO SERVICIO)
-    debugPrint('📱 Inicializando NotificationManager...');
+    logger.d('📱 Inicializando NotificationManager...');
     final notificationManager = NotificationManager();
     await notificationManager.initialize();
-    debugPrint('✅ NotificationManager inicializado');
+    logger.d('✅ NotificationManager inicializado');
 
     // 3. 🔋 BACKGROUND SERVICE (INCLUYE WORKMANAGER)
-    debugPrint('🔋 Inicializando BackgroundService...');
+    logger.d('🔋 Inicializando BackgroundService...');
     final backgroundService = BackgroundService();
     await backgroundService.initialize();
-    debugPrint('✅ BackgroundService inicializado');
+    logger.d('✅ BackgroundService inicializado');
 
     // 4. 🎯 STUDENT ATTENDANCE MANAGER (INICIALIZACIÓN TEMPRANA)
-    debugPrint('🎯 Inicializando StudentAttendanceManager...');
+    logger.d('🎯 Inicializando StudentAttendanceManager...');
     final attendanceManager = StudentAttendanceManager();
     await attendanceManager.initialize(autoStart: false); // No auto start en main
-    debugPrint('✅ StudentAttendanceManager inicializado');
+    logger.d('✅ StudentAttendanceManager inicializado');
 
-    debugPrint('✅ Servicios críticos inicializados correctamente');
+    logger.d('✅ Servicios críticos inicializados correctamente');
   } catch (e) {
-    debugPrint('❌ Error en servicios críticos: $e');
-    debugPrint('⚠️ Iniciando en modo de recuperación con providers básicos...');
+    logger.d('❌ Error en servicios críticos: $e');
+    logger.d('⚠️ Iniciando en modo de recuperación con providers básicos...');
     // No relanzar - permitir que la app funcione en modo de recuperación
   }
 }
 
 /// 🎯 INICIALIZAR SERVICIOS SECUNDARIOS (OPCIONALES)
 Future<void> _initializeSecondaryServices() async {
-  debugPrint('🔧 Inicializando servicios secundarios...');
+  logger.d('🔧 Inicializando servicios secundarios...');
 
   try {
     // 1. 🌐 CONNECTIVITY MANAGER
-    debugPrint('🌐 Inicializando ConnectivityManager...');
+    logger.d('🌐 Inicializando ConnectivityManager...');
     final connectivityManager = ConnectivityManager();
     await connectivityManager.initialize();
-    debugPrint('✅ ConnectivityManager inicializado');
+    logger.d('✅ ConnectivityManager inicializado');
 
     // 2. 📝 PRE-REGISTRATION NOTIFICATION SERVICE
-    debugPrint('📝 Inicializando PreRegistrationNotificationService...');
+    logger.d('📝 Inicializando PreRegistrationNotificationService...');
     final preRegService = PreRegistrationNotificationService();
     await preRegService.initialize();
-    debugPrint('✅ PreRegistrationNotificationService inicializado');
+    logger.d('✅ PreRegistrationNotificationService inicializado');
 
     // 3. 💾 SESSION PERSISTENCE SERVICE
-    debugPrint('💾 Inicializando SessionPersistenceService...');
+    logger.d('💾 Inicializando SessionPersistenceService...');
     final sessionPersistenceService = SessionPersistenceService();
     await sessionPersistenceService.initialize();
-    debugPrint('✅ SessionPersistenceService inicializado');
+    logger.d('✅ SessionPersistenceService inicializado');
 
     // 4. 🔐 PERMISSION SERVICE (VALIDACIÓN INICIAL)
-    debugPrint('🔐 Validando permisos básicos...');
+    logger.d('🔐 Validando permisos básicos...');
     final permissionService = PermissionService();
 
     // Solo verificar permisos básicos, no forzar solicitud
     final hasBasicPermissions =
         await permissionService.hasLocationPermissions();
-    debugPrint(
+    logger.d(
         '📍 Permisos básicos de ubicación: ${hasBasicPermissions ? "✅" : "⚠️"}');
 
     if (!hasBasicPermissions) {
-      debugPrint('⚠️ Permisos de ubicación pendientes - se solicitarán en uso');
+      logger.d('⚠️ Permisos de ubicación pendientes - se solicitarán en uso');
     }
 
-    debugPrint('✅ Servicios secundarios inicializados correctamente');
+    logger.d('✅ Servicios secundarios inicializados correctamente');
   } catch (e) {
-    debugPrint('⚠️ Error en servicios secundarios (no crítico): $e');
+    logger.d('⚠️ Error en servicios secundarios (no crítico): $e');
     // No relanzar error - los servicios secundarios son opcionales
   }
 }

@@ -8,6 +8,7 @@ import '../../../services/permission_service.dart';
 import '../../../services/notifications/notification_manager.dart';
 import '../../../models/usuario_model.dart';
 import '../../../models/evento_model.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import '../../../models/asistencia_model.dart';
 
 class AttendanceTrackingManager {
@@ -97,7 +98,7 @@ class AttendanceTrackingManager {
         _currentUser = Usuario.fromJson(userData);
       }
     } catch (e) {
-      debugPrint('Error cargando datos de usuario: $e');
+      logger.d('Error cargando datos de usuario: $e');
     }
   }
 
@@ -112,7 +113,7 @@ class AttendanceTrackingManager {
         await _requestMissingPermissions();
       }
     } catch (e) {
-      debugPrint('Error verificando permisos: $e');
+      logger.d('Error verificando permisos: $e');
       _hasPermissions = false;
     }
   }
@@ -150,7 +151,7 @@ class AttendanceTrackingManager {
         }
       }
     } catch (e) {
-      debugPrint('Error cargando evento activo: $e');
+      logger.d('Error cargando evento activo: $e');
     }
   }
 
@@ -163,7 +164,7 @@ class AttendanceTrackingManager {
         }
       }
     } catch (e) {
-      debugPrint('Error cargando historial de asistencias: $e');
+      logger.d('Error cargando historial de asistencias: $e');
     }
   }
 
@@ -210,7 +211,7 @@ class AttendanceTrackingManager {
         'El rastreo de asistencia ha sido detenido',
       );
     } catch (e) {
-      debugPrint('Error deteniendo tracking: $e');
+      logger.d('Error deteniendo tracking: $e');
     }
   }
 
@@ -250,7 +251,7 @@ class AttendanceTrackingManager {
 
       _notifyStateChanged();
     } catch (e) {
-      debugPrint('Error actualizando posición: $e');
+      logger.d('Error actualizando posición: $e');
       _trackingStatus = 'error';
       _notifyStateChanged();
     }
@@ -291,7 +292,7 @@ class AttendanceTrackingManager {
         await _registerAutomaticAttendance();
       }
     } catch (e) {
-      debugPrint('Error verificando estado de geofence: $e');
+      logger.d('Error verificando estado de geofence: $e');
     }
   }
 
@@ -319,7 +320,7 @@ class AttendanceTrackingManager {
         _notifyStateChanged();
       }
     } catch (e) {
-      debugPrint('Error registrando asistencia automática: $e');
+      logger.d('Error registrando asistencia automática: $e');
     }
   }
 
@@ -387,7 +388,7 @@ class AttendanceTrackingManager {
         _currentPosition!.accuracy,
       );
     } catch (e) {
-      debugPrint('Error enviando heartbeat: $e');
+      logger.d('Error enviando heartbeat: $e');
     }
   }
 

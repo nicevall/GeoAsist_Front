@@ -1,4 +1,5 @@
 // lib/core/geo_assist_app.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -27,7 +28,7 @@ class _GeoAssistAppState extends State<GeoAssistApp> with WidgetsBindingObserver
 
     // ✅ CONFIGURAR LIFECYCLE OBSERVER
     WidgetsBinding.instance.addObserver(this);
-    debugPrint('🔄 Lifecycle observer activado en GeoAssistApp');
+    logger.d('🔄 Lifecycle observer activado en GeoAssistApp');
 
     // ✅ INICIALIZAR REFERENCIA AL STUDENTATTENDANCEMANAGER
     _initializeAttendanceManagerReference();
@@ -40,15 +41,15 @@ class _GeoAssistAppState extends State<GeoAssistApp> with WidgetsBindingObserver
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
           _attendanceManager = Provider.of<StudentAttendanceManager>(context, listen: false);
-          debugPrint('✅ Referencia a StudentAttendanceManager inicializada desde Provider');
+          logger.d('✅ Referencia a StudentAttendanceManager inicializada desde Provider');
         } catch (e) {
           // Fallback a singleton si Provider no está disponible
           _attendanceManager = StudentAttendanceManager();
-          debugPrint('✅ Referencia a StudentAttendanceManager inicializada como singleton');
+          logger.d('✅ Referencia a StudentAttendanceManager inicializada como singleton');
         }
       });
     } catch (e) {
-      debugPrint('⚠️ Error inicializando referencia AttendanceManager: $e');
+      logger.d('⚠️ Error inicializando referencia AttendanceManager: $e');
     }
   }
 
@@ -56,7 +57,7 @@ class _GeoAssistAppState extends State<GeoAssistApp> with WidgetsBindingObserver
   void dispose() {
     // ✅ LIMPIAR LIFECYCLE OBSERVER
     WidgetsBinding.instance.removeObserver(this);
-    debugPrint('🔄 Lifecycle observer desactivado');
+    logger.d('🔄 Lifecycle observer desactivado');
     super.dispose();
   }
 
@@ -65,14 +66,14 @@ class _GeoAssistAppState extends State<GeoAssistApp> with WidgetsBindingObserver
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    debugPrint('🔄 [LIFECYCLE] Cambio detectado: $state');
+    logger.d('🔄 [LIFECYCLE] Cambio detectado: $state');
 
     // ✅ CONECTAR CON STUDENTATTENDANCEMANAGER
     if (_attendanceManager != null) {
       _attendanceManager!.handleAppLifecycleChange(state);
-      debugPrint('📱 Lifecycle enviado a StudentAttendanceManager');
+      logger.d('📱 Lifecycle enviado a StudentAttendanceManager');
     } else {
-      debugPrint('⚠️ StudentAttendanceManager no disponible para lifecycle');
+      logger.d('⚠️ StudentAttendanceManager no disponible para lifecycle');
     }
 
     // ✅ MANTENER: Métodos existentes para logging y debugging
@@ -97,69 +98,69 @@ class _GeoAssistAppState extends State<GeoAssistApp> with WidgetsBindingObserver
 
   /// 🔄 APP RESUMED (REABIERTA) - LOGGING ADICIONAL
   void _handleAppResumed() {
-    debugPrint('✅ [LIFECYCLE] App reabierta - Reactivando tracking');
+    logger.d('✅ [LIFECYCLE] App reabierta - Reactivando tracking');
 
     try {
       // ✅ Confirmar que AttendanceManager recibió el evento
       if (_attendanceManager != null) {
         final attendanceState = _attendanceManager!.currentState;
-        debugPrint('📱 Estado AttendanceManager: ${attendanceState.trackingStatus}');
-        debugPrint('⏰ Grace period activo: ${attendanceState.isInGracePeriod}');
+        logger.d('📱 Estado AttendanceManager: ${attendanceState.trackingStatus}');
+        logger.d('⏰ Grace period activo: ${attendanceState.isInGracePeriod}');
       }
     } catch (e) {
-      debugPrint('⚠️ Error verificando servicio: $e');
+      logger.d('⚠️ Error verificando servicio: $e');
     }
   }
 
   /// 🔄 APP PAUSED (EN BACKGROUND) - LOGGING ADICIONAL
   void _handleAppPaused() {
-    debugPrint('⚠️ [LIFECYCLE] App en background - Continuando tracking');
+    logger.d('⚠️ [LIFECYCLE] App en background - Continuando tracking');
 
     try {
       // ✅ Logging del estado de AttendanceManager
       if (_attendanceManager != null) {
         final isTracking = _attendanceManager!.currentState.trackingStatus;
-        debugPrint('📱 AttendanceManager tracking: $isTracking');
+        logger.d('📱 AttendanceManager tracking: $isTracking');
       }
     } catch (e) {
-      debugPrint('⚠️ Error verificando background service: $e');
+      logger.d('⚠️ Error verificando background service: $e');
     }
   }
 
   /// 🔄 APP DETACHED (CERRADA) - CRÍTICO PARA FASE 3
   void _handleAppDetached() {
-    debugPrint('🚨 [LIFECYCLE] App CERRADA - Grace period iniciado automáticamente');
+    logger.d('🚨 [LIFECYCLE] App CERRADA - Grace period iniciado automáticamente');
 
     // ✅ Confirmar que AttendanceManager recibió el evento crítico
     if (_attendanceManager != null) {
       final attendanceState = _attendanceManager!.currentState;
-      debugPrint('📱 Estado post-detached: ${attendanceState.trackingStatus}');
-      debugPrint('⏰ Grace period iniciado: ${attendanceState.isInGracePeriod}');
-      debugPrint('⏱️ Segundos restantes: ${attendanceState.gracePeriodRemaining}');
+      logger.d('📱 Estado post-detached: ${attendanceState.trackingStatus}');
+      logger.d('⏰ Grace period iniciado: ${attendanceState.isInGracePeriod}');
+      logger.d('⏱️ Segundos restantes: ${attendanceState.gracePeriodRemaining}');
     } else {
-      debugPrint('❌ CRÍTICO: AttendanceManager no disponible durante detached');
+      logger.d('❌ CRÍTICO: AttendanceManager no disponible durante detached');
     }
   }
 
   /// 🔄 APP INACTIVE (TRANSITORIA)
   void _handleAppInactive() {
-    debugPrint('⏸️ [LIFECYCLE] App inactiva temporalmente');
+    logger.d('⏸️ [LIFECYCLE] App inactiva temporalmente');
 
     // ✅ Estado transitorio - solo logging
     if (_attendanceManager != null) {
       final isTracking = _attendanceManager!.currentState.trackingStatus;
-      debugPrint('📱 Tracking durante inactive: $isTracking');
+      logger.d('📱 Tracking durante inactive: $isTracking');
     }
   }
 
   /// 🔄 APP HIDDEN (MINIMIZADA)
   void _handleAppHidden() {
-    debugPrint('👁️ [LIFECYCLE] App oculta - Tracking en background activo');
+    logger.d('👁️ [LIFECYCLE] App oculta - Tracking en background activo');
 
     // ✅ Confirmar estado durante hidden
     if (_attendanceManager != null) {
       final isTracking = _attendanceManager!.currentState.trackingStatus;
-      debugPrint('📱 Tracking durante hidden: $isTracking');
+      logger.d('📱 Tracking durante hidden: $isTracking');
     }
   }
 

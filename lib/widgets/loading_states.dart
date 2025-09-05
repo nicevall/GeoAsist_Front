@@ -43,7 +43,7 @@ class EnhancedLoadingIndicator extends StatelessWidget {
             Text(
               message!,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -402,7 +402,7 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: backgroundColor ?? Colors.black.withOpacity(0.3),
+            color: backgroundColor ?? Colors.black.withValues(alpha: 0.3),
             child: Center(
               child: Container(
                 padding: const EdgeInsets.all(24),
@@ -411,7 +411,7 @@ class LoadingOverlay extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -525,7 +525,7 @@ class ProgressIndicatorWithPercentage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final progressColor = color ?? theme.primaryColor;
-    final bgColor = backgroundColor ?? progressColor.withOpacity(0.2);
+    final bgColor = backgroundColor ?? progressColor.withValues(alpha: 0.2);
     final percentage = (progress * 100).round();
     
     return Column(

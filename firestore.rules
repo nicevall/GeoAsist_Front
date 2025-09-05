@@ -1,0 +1,183 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin';
+    }
+    
+    function isTeacher() {
+      return isAuthenticated() && getUserData().role == 'teacher';
+    }
+    
+    function isAdminOrTeacher() {
+      return isAdmin() || isTeacher();
+    }
+
+    // Users collection rules
+    match /usuarios/{userId} {
+      // Users can read their own data, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can update their own profile (except role), admins can update all
+      allow write: if isOwner(userId) && 
+        (request.resource.data.role == resource.data.role || !('role' in request.resource.data))
+        || isAdmin();
+      
+      // Only admins can create user documents
+      allow create: if isAdmin() || !exists(/databases/$(database)/documents/usuarios/$(userId));
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+    
+    // Events collection rules
+    match /eventos/{eventId} {
+      // All authenticated users can read events
+      allow read: if isAuthenticated();
+      
+      // Only admins and teachers can create/update/delete events
+      allow write: if isAdminOrTeacher();
+      
+      // Event statistics and analytics
+      match /estadisticas/{statId} {
+        allow read: if isAuthenticated();
+        allow write: if false; // Only Cloud Functions can write stats
+      }
+    }
+    
+    // Attendance collection rules
+    match /asistencias/{attendanceId} {
+      // Users can read their own attendance, admins/teachers can read all
+      allow read: if isAuthenticated() && 
+        (resource.data.usuarioId == request.auth.uid || isAdminOrTeacher());
+      
+      // Users can create their own attendance records
+      allow create: if isAuthenticated() && 
+        request.resource.data.usuarioId == request.auth.uid;
+      
+      // Only the owner or admins/teachers can update attendance
+      allow update: if isAuthenticated() && 
+        (resource.data.usuarioId == request.auth.uid || isAdminOrTeacher());
+      
+      // Only admins can delete attendance records
+      allow delete: if isAdmin();
+    }
+    
+    // Notifications collection rules
+    match /notificaciones/{notificationId} {
+      // Users can read notifications sent to them or global notifications
+      allow read: if isAuthenticated() && 
+        (resource.data.targetUserId == request.auth.uid || 
+         resource.data.targetUserId == null ||
+         isAdminOrTeacher());
+      
+      // Only Cloud Functions can write notifications
+      allow write: if false;
+    }
+    
+    // System collection rules (for health checks, configuration)
+    match /system/{docId} {
+      // All authenticated users can read system status
+      allow read: if isAuthenticated();
+      
+      // Only Cloud Functions and admins can write system data
+      allow write: if isAdmin();
+    }
+    
+    // Analytics collection rules
+    match /analytics/{analyticsId} {
+      // Only admins and teachers can read analytics
+      allow read: if isAdminOrTeacher();
+      
+      // Only Cloud Functions can write analytics
+      allow write: if false;
+    }
+    
+    // User sessions and tokens (for FCM management)
+    match /userSessions/{sessionId} {
+      // Users can manage their own sessions
+      allow read, write: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Admins can read all sessions
+      allow read: if isAdmin();
+    }
+    
+    // Event-specific attendance tracking
+    match /eventos/{eventId}/asistencias/{attendanceId} {
+      // Same rules as global attendance collection
+      allow read: if isAuthenticated() && 
+        (resource.data.usuarioId == request.auth.uid || isAdminOrTeacher());
+      
+      allow create: if isAuthenticated() && 
+        request.resource.data.usuarioId == request.auth.uid;
+      
+      allow update: if isAuthenticated() && 
+        (resource.data.usuarioId == request.auth.uid || isAdminOrTeacher());
+      
+      allow delete: if isAdmin();
+    }
+    
+    // Geofencing logs (for debugging and monitoring)
+    match /geofencingLogs/{logId} {
+      // Users can read their own logs, admins can read all
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Only Cloud Functions can write logs
+      allow write: if false;
+    }
+    
+    // App configuration and settings
+    match /appConfig/{configId} {
+      // All authenticated users can read configuration
+      allow read: if isAuthenticated();
+      
+      // Only admins can modify configuration
+      allow write: if isAdmin();
+    }
+    
+    // Backup and maintenance collections
+    match /backups/{backupId} {
+      // Only admins can access backups
+      allow read, write: if isAdmin();
+    }
+    
+    // Error logs and monitoring
+    match /errorLogs/{logId} {
+      // Only admins can read error logs
+      allow read: if isAdmin();
+      
+      // Only Cloud Functions can write error logs
+      allow write: if false;
+    }
+    
+    // Performance metrics
+    match /performanceMetrics/{metricId} {
+      // Only admins and teachers can read metrics
+      allow read: if isAdminOrTeacher();
+      
+      // Only Cloud Functions can write metrics
+      allow write: if false;
+    }
+    
+    // Default deny rule for any unmatched paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

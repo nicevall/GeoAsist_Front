@@ -1,5 +1,6 @@
 // lib/utils/notification_helper.dart
 // 🎯 HELPER DE NOTIFICACIONES FASE C - Sistema básico funcional
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -20,14 +21,14 @@ class NotificationHelper {
 
   // 🎯 INICIALIZACIÓN
   Future<void> initialize() async {
-    debugPrint('🔔 Inicializando NotificationHelper');
+    logger.d('🔔 Inicializando NotificationHelper');
 
     try {
       // Inicialización básica - implementación real en Fase C
       _isInitialized = true;
-      debugPrint('✅ NotificationHelper inicializado');
+      logger.d('✅ NotificationHelper inicializado');
     } catch (e) {
-      debugPrint('❌ Error inicializando notificaciones: $e');
+      logger.d('❌ Error inicializando notificaciones: $e');
     }
   }
 
@@ -38,11 +39,11 @@ class NotificationHelper {
     required String eventId,
   }) async {
     if (!_isInitialized) {
-      debugPrint('⚠️ NotificationHelper no inicializado');
+      logger.d('⚠️ NotificationHelper no inicializado');
       return;
     }
 
-    debugPrint('🔔 Mostrando notificación de evento activo: $eventName');
+    logger.d('🔔 Mostrando notificación de evento activo: $eventName');
 
     // Vibración háptica
     _triggerHapticFeedback('medium');
@@ -55,7 +56,7 @@ class NotificationHelper {
   }) async {
     if (!_isInitialized) return;
 
-    debugPrint('🔔 Usuario ingresó al geofence: $eventName');
+    logger.d('🔔 Usuario ingresó al geofence: $eventName');
 
     _triggerHapticFeedback('medium');
     _logNotification('Área del Evento', 'Has ingresado al área de $eventName');
@@ -67,7 +68,7 @@ class NotificationHelper {
   }) async {
     if (!_isInitialized) return;
 
-    debugPrint('🔔 Usuario salió del geofence: $eventName');
+    logger.d('🔔 Usuario salió del geofence: $eventName');
 
     _triggerHapticFeedback('heavy');
     _logNotification(
@@ -82,7 +83,7 @@ class NotificationHelper {
   }) async {
     if (!_isInitialized) return;
 
-    debugPrint('🔔 Período de gracia iniciado: ${gracePeriodSeconds}s');
+    logger.d('🔔 Período de gracia iniciado: ${gracePeriodSeconds}s');
 
     _triggerHapticFeedback('heavy');
     _logNotification(
@@ -96,7 +97,7 @@ class NotificationHelper {
   }) async {
     if (!_isInitialized) return;
 
-    debugPrint('🔔 Período de gracia expirado: $eventName');
+    logger.d('🔔 Período de gracia expirado: $eventName');
 
     _triggerHapticFeedback('error');
     _logNotification(
@@ -108,7 +109,7 @@ class NotificationHelper {
   Future<void> showTrackingPausedNotification() async {
     if (!_isInitialized) return;
 
-    debugPrint('🔔 Tracking pausado para receso');
+    logger.d('🔔 Tracking pausado para receso');
 
     _triggerHapticFeedback('light');
     _logNotification('Receso Iniciado', 'El tracking ha sido pausado');
@@ -117,7 +118,7 @@ class NotificationHelper {
   Future<void> showTrackingResumedNotification() async {
     if (!_isInitialized) return;
 
-    debugPrint('🔔 Tracking reanudado después del receso');
+    logger.d('🔔 Tracking reanudado después del receso');
 
     _triggerHapticFeedback('light');
     _logNotification('Receso Terminado', 'El tracking ha sido reanudado');
@@ -128,7 +129,7 @@ class NotificationHelper {
   }) async {
     if (!_isInitialized) return;
 
-    debugPrint('🔔 Asistencia registrada: $eventName');
+    logger.d('🔔 Asistencia registrada: $eventName');
 
     _triggerHapticFeedback('success');
     _logNotification(
@@ -140,7 +141,7 @@ class NotificationHelper {
   Future<void> showConnectionErrorNotification() async {
     if (!_isInitialized) return;
 
-    debugPrint('🔔 Error de conexión detectado');
+    logger.d('🔔 Error de conexión detectado');
 
     _triggerHapticFeedback('error');
     _logNotification('Error de Conexión', 'Problema conectando al servidor');
@@ -149,12 +150,12 @@ class NotificationHelper {
   // 🎯 LIMPIEZA DE NOTIFICACIONES
 
   Future<void> clearAllNotifications() async {
-    debugPrint('🧹 Limpiando todas las notificaciones');
+    logger.d('🧹 Limpiando todas las notificaciones');
     // Implementación real será agregada en Fase C
   }
 
   Future<void> clearNotification(int notificationId) async {
-    debugPrint('🧹 Limpiando notificación: $notificationId');
+    logger.d('🧹 Limpiando notificación: $notificationId');
     // Implementación real será agregada en Fase C
   }
 
@@ -184,7 +185,7 @@ class NotificationHelper {
 
   void _logNotification(String title, String body) {
     final timestamp = DateTime.now().toIso8601String();
-    debugPrint('📱 [$timestamp] $title: $body');
+    logger.d('📱 [$timestamp] $title: $body');
   }
 
   // 🎯 GETTERS PÚBLICOS

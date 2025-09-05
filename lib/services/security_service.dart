@@ -1,7 +1,7 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/security_service.dart
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:encrypt/encrypt.dart' show Encrypter, AES, IV, Encrypted;
 import 'package:encrypt/encrypt.dart' as encrypt_lib;
@@ -32,7 +32,7 @@ class SecurityService {
   /// Initialize security service with encryption and signing
   static Future<void> initialize({String? encryptionKey, String? signingKey}) async {
     try {
-      debugPrint('$_tag: Initializing security service...');
+      logger.d('$_tag: Initializing security service...');
       
       // Initialize encryption
       await _initializeEncryption(encryptionKey);
@@ -40,9 +40,9 @@ class SecurityService {
       // Initialize request signing
       await _initializeSigning(signingKey);
       
-      debugPrint('$_tag: Security service initialized successfully');
+      logger.d('$_tag: Security service initialized successfully');
     } catch (e) {
-      debugPrint('$_tag: Failed to initialize security service: $e');
+      logger.d('$_tag: Failed to initialize security service: $e');
       rethrow;
     }
   }
@@ -65,9 +65,9 @@ class SecurityService {
       final key = encrypt_lib.Key.fromBase64(encryptionKey);
       _encrypter = Encrypter(AES(key));
       
-      debugPrint('$_tag: Encryption initialized');
+      logger.d('$_tag: Encryption initialized');
     } catch (e) {
-      debugPrint('$_tag: Failed to initialize encryption: $e');
+      logger.d('$_tag: Failed to initialize encryption: $e');
       rethrow;
     }
   }
@@ -89,9 +89,9 @@ class SecurityService {
       
       _signingKey = encrypt_lib.Key.fromBase64(signingKeyStr);
       
-      debugPrint('$_tag: Request signing initialized');
+      logger.d('$_tag: Request signing initialized');
     } catch (e) {
-      debugPrint('$_tag: Failed to initialize signing: $e');
+      logger.d('$_tag: Failed to initialize signing: $e');
       rethrow;
     }
   }
@@ -120,9 +120,9 @@ class SecurityService {
         await _secureStorage.write(key: 'refresh_token', value: refreshToken);
       }
       
-      debugPrint('$_tag: Authentication tokens stored securely');
+      logger.d('$_tag: Authentication tokens stored securely');
     } catch (e) {
-      debugPrint('$_tag: Failed to store auth tokens: $e');
+      logger.d('$_tag: Failed to store auth tokens: $e');
       rethrow;
     }
   }
@@ -132,7 +132,7 @@ class SecurityService {
     try {
       return await _secureStorage.read(key: 'auth_token');
     } catch (e) {
-      debugPrint('$_tag: Failed to retrieve auth token: $e');
+      logger.d('$_tag: Failed to retrieve auth token: $e');
       return null;
     }
   }
@@ -142,7 +142,7 @@ class SecurityService {
     try {
       return await _secureStorage.read(key: 'refresh_token');
     } catch (e) {
-      debugPrint('$_tag: Failed to retrieve refresh token: $e');
+      logger.d('$_tag: Failed to retrieve refresh token: $e');
       return null;
     }
   }
@@ -153,9 +153,9 @@ class SecurityService {
       await _secureStorage.delete(key: 'auth_token');
       await _secureStorage.delete(key: 'refresh_token');
       
-      debugPrint('$_tag: Authentication tokens cleared');
+      logger.d('$_tag: Authentication tokens cleared');
     } catch (e) {
-      debugPrint('$_tag: Failed to clear auth tokens: $e');
+      logger.d('$_tag: Failed to clear auth tokens: $e');
       rethrow;
     }
   }
@@ -173,7 +173,7 @@ class SecurityService {
       
       await _secureStorage.write(key: 'user_$key', value: encryptedData);
     } catch (e) {
-      debugPrint('$_tag: Failed to store user data: $e');
+      logger.d('$_tag: Failed to store user data: $e');
       rethrow;
     }
   }
@@ -196,7 +196,7 @@ class SecurityService {
       
       return _encrypter!.decrypt(encrypted, iv: iv);
     } catch (e) {
-      debugPrint('$_tag: Failed to retrieve user data: $e');
+      logger.d('$_tag: Failed to retrieve user data: $e');
       return null;
     }
   }
@@ -205,9 +205,9 @@ class SecurityService {
   static Future<void> removeUserData(String key) async {
     try {
       await _secureStorage.delete(key: 'user_$key');
-      debugPrint('$_tag: Removed user data for key: $key');
+      logger.d('$_tag: Removed user data for key: $key');
     } catch (e) {
-      debugPrint('$_tag: Failed to remove user data: $e');
+      logger.d('$_tag: Failed to remove user data: $e');
       rethrow;
     }
   }
@@ -247,7 +247,7 @@ class SecurityService {
       
       return 'GeoAsist-HMAC-SHA256 $signature:$timestamp:$nonce';
     } catch (e) {
-      debugPrint('$_tag: Failed to sign request: $e');
+      logger.d('$_tag: Failed to sign request: $e');
       throw SecurityException('Request signing failed: $e');
     }
   }
@@ -313,7 +313,7 @@ class SecurityService {
         isAuthenticated: hasStoredToken,
       );
     } catch (e) {
-      debugPrint('$_tag: Failed to get security configuration: $e');
+      logger.d('$_tag: Failed to get security configuration: $e');
       return SecurityStatus(
         isEncryptionInitialized: false,
         isSigningInitialized: false,
@@ -338,7 +338,7 @@ class SecurityService {
   static bool validateResponseSignature(dynamic responseData, String signature) {
     try {
       if (_signingKey == null) {
-        debugPrint('$_tag: Cannot validate response signature - signing not initialized');
+        logger.d('$_tag: Cannot validate response signature - signing not initialized');
         return false;
       }
       
@@ -348,7 +348,7 @@ class SecurityService {
       // Extract signature components
       final parts = signature.split(':');
       if (parts.length < 2) {
-        debugPrint('$_tag: Invalid signature format');
+        logger.d('$_tag: Invalid signature format');
         return false;
       }
       
@@ -365,11 +365,11 @@ class SecurityService {
       final expectedSignature = base64Encode(digest.bytes);
       
       final isValid = signatureValue == expectedSignature;
-      debugPrint('$_tag: Response signature validation: ${isValid ? "PASS" : "FAIL"}');
+      logger.d('$_tag: Response signature validation: ${isValid ? "PASS" : "FAIL"}');
       
       return isValid;
     } catch (e) {
-      debugPrint('$_tag: Response signature validation error: $e');
+      logger.d('$_tag: Response signature validation error: $e');
       return false;
     }
   }

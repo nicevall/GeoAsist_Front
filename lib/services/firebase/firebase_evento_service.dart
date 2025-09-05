@@ -1,6 +1,7 @@
 // lib/services/firebase/firebase_evento_service.dart
 // Servicio de eventos Firebase compatible con híbrido
 
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/api_response_model.dart';
 import '../../models/evento_model.dart';
@@ -21,24 +22,24 @@ class FirebaseEventoService {
   
   // Métodos adicionales para compatibilidad
   Future<Map<String, dynamic>?> getEventoActivo() async {
-    debugPrint('💡 getEventoActivo redirigido al backend híbrido');
+    logger.d('💡 getEventoActivo redirigido al backend híbrido');
     return null;
   }
   
   Future<void> refreshEventos() async {
-    debugPrint('💡 refreshEventos redirigido al backend híbrido');
+    logger.d('💡 refreshEventos redirigido al backend híbrido');
   }
 
   // Additional methods for compatibility
   List<Map<String, dynamic>> get cachedEventos => [];
   
   Future<List<Map<String, dynamic>>> searchEventos(String query) async {
-    debugPrint('💡 searchEventos redirigido al backend híbrido');
+    logger.d('💡 searchEventos redirigido al backend híbrido');
     return [];
   }
   
   void initializeStreams() {
-    debugPrint('💡 initializeStreams redirigido al backend híbrido');
+    logger.d('💡 initializeStreams redirigido al backend híbrido');
   }
   
   String get currentUserId => '';
@@ -50,37 +51,37 @@ class FirebaseEventoService {
     try {
       // El backend híbrido maneja los eventos
       _isInitialized = true;
-      debugPrint('✅ FirebaseEventoService inicializado (modo híbrido)');
+      logger.d('✅ FirebaseEventoService inicializado (modo híbrido)');
     } catch (e) {
-      debugPrint('❌ Error inicializando FirebaseEventoService: $e');
+      logger.d('❌ Error inicializando FirebaseEventoService: $e');
       rethrow;
     }
   }
 
   // Métodos placeholder para compatibilidad
   Future<List<Map<String, dynamic>>> getEventos() async {
-    debugPrint('💡 getEventos redirigido al backend híbrido');
+    logger.d('💡 getEventos redirigido al backend híbrido');
     return [];
   }
 
   Future<Map<String, dynamic>?> createEvento(Map<String, dynamic> evento) async {
-    debugPrint('💡 createEvento redirigido al backend híbrido');
+    logger.d('💡 createEvento redirigido al backend híbrido');
     return null;
   }
 
   Future<bool> updateEvento(String eventoId, Map<String, dynamic> updates) async {
-    debugPrint('💡 updateEvento redirigido al backend híbrido');
+    logger.d('💡 updateEvento redirigido al backend híbrido');
     return false;
   }
 
   Future<bool> deleteEvento(String eventoId) async {
-    debugPrint('💡 deleteEvento redirigido al backend híbrido');
+    logger.d('💡 deleteEvento redirigido al backend híbrido');
     return false;
   }
 
   // Métodos requeridos por attendance_service_adapter
   Future<ApiResponse<Evento?>?> getEventoById(String eventoId) async {
-    debugPrint('💡 getEventoById redirigido al backend híbrido');
+    logger.d('💡 getEventoById redirigido al backend híbrido');
     
     final now = DateTime.now();
     
@@ -107,7 +108,7 @@ class FirebaseEventoService {
   }
 
   Future<ApiResponse<Evento?>?> getActiveEvent() async {
-    debugPrint('💡 getActiveEvent redirigido al backend híbrido');
+    logger.d('💡 getActiveEvent redirigido al backend híbrido');
     
     final now = DateTime.now();
     

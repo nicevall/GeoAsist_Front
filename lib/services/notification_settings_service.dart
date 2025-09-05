@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/notification_settings_service.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -25,11 +26,11 @@ class NotificationSettingsService {
   /// 📥 CARGAR CONFIGURACIONES
   Future<ApiResponse<NotificationSettings>> loadSettings() async {
     try {
-      debugPrint('⚙️ Cargando configuraciones de notificaciones');
+      logger.d('⚙️ Cargando configuraciones de notificaciones');
 
       // Intentar cargar desde caché primero
       if (_cachedSettings != null) {
-        debugPrint('✅ Configuraciones cargadas desde caché');
+        logger.d('✅ Configuraciones cargadas desde caché');
         return ApiResponse.success(_cachedSettings!);
       }
 
@@ -37,7 +38,7 @@ class NotificationSettingsService {
       final localSettings = await _loadFromLocal();
       if (localSettings != null) {
         _cachedSettings = localSettings;
-        debugPrint('✅ Configuraciones cargadas desde almacenamiento local');
+        logger.d('✅ Configuraciones cargadas desde almacenamiento local');
         
         // Sincronizar con servidor en background (sin esperar)
         _syncWithServer();
@@ -50,7 +51,7 @@ class NotificationSettingsService {
       if (serverResponse.success) {
         _cachedSettings = serverResponse.data!;
         await _saveToLocal(serverResponse.data!);
-        debugPrint('✅ Configuraciones cargadas desde servidor');
+        logger.d('✅ Configuraciones cargadas desde servidor');
         return serverResponse;
       }
 
@@ -58,11 +59,11 @@ class NotificationSettingsService {
       final defaultSettings = NotificationSettings.defaultSettings();
       _cachedSettings = defaultSettings;
       await _saveToLocal(defaultSettings);
-      debugPrint('✅ Usando configuraciones por defecto');
+      logger.d('✅ Usando configuraciones por defecto');
       
       return ApiResponse.success(defaultSettings);
     } catch (e) {
-      debugPrint('❌ Error cargando configuraciones: $e');
+      logger.d('❌ Error cargando configuraciones: $e');
       
       // En caso de error, usar configuraciones por defecto
       final defaultSettings = NotificationSettings.defaultSettings();
@@ -73,7 +74,7 @@ class NotificationSettingsService {
   /// 💾 GUARDAR CONFIGURACIONES
   Future<ApiResponse<bool>> saveSettings(NotificationSettings settings) async {
     try {
-      debugPrint('💾 Guardando configuraciones de notificaciones');
+      logger.d('💾 Guardando configuraciones de notificaciones');
 
       // Validar configuraciones
       final validationErrors = _validateSettings(settings);
@@ -86,20 +87,20 @@ class NotificationSettingsService {
 
       // Guardar localmente
       await _saveToLocal(settings);
-      debugPrint('✅ Configuraciones guardadas localmente');
+      logger.d('✅ Configuraciones guardadas localmente');
 
       // Intentar sincronizar con servidor
       final syncResult = await _saveToServer(settings);
       if (syncResult.success) {
-        debugPrint('✅ Configuraciones sincronizadas con servidor');
+        logger.d('✅ Configuraciones sincronizadas con servidor');
       } else {
-        debugPrint('⚠️ No se pudo sincronizar con servidor: ${syncResult.error}');
+        logger.d('⚠️ No se pudo sincronizar con servidor: ${syncResult.error}');
         // No es un error crítico, las configuraciones locales funcionan
       }
 
       return ApiResponse.success(true, message: 'Configuraciones guardadas');
     } catch (e) {
-      debugPrint('❌ Error guardando configuraciones: $e');
+      logger.d('❌ Error guardando configuraciones: $e');
       return ApiResponse.error('Error guardando configuraciones: $e');
     }
   }
@@ -107,19 +108,19 @@ class NotificationSettingsService {
   /// 🔄 SINCRONIZAR CON SERVIDOR
   Future<ApiResponse<bool>> syncSettings() async {
     try {
-      debugPrint('🔄 Sincronizando configuraciones con servidor');
+      logger.d('🔄 Sincronizando configuraciones con servidor');
 
       final serverSettings = await _loadFromServer();
       if (serverSettings.success) {
         _cachedSettings = serverSettings.data!;
         await _saveToLocal(serverSettings.data!);
-        debugPrint('✅ Configuraciones sincronizadas');
+        logger.d('✅ Configuraciones sincronizadas');
         return ApiResponse.success(true, message: 'Configuraciones sincronizadas');
       } else {
         return ApiResponse.error(serverSettings.error ?? 'Error sincronizando');
       }
     } catch (e) {
-      debugPrint('❌ Error sincronizando configuraciones: $e');
+      logger.d('❌ Error sincronizando configuraciones: $e');
       return ApiResponse.error('Error de sincronización: $e');
     }
   }
@@ -127,19 +128,19 @@ class NotificationSettingsService {
   /// 🔄 RESTABLECER A VALORES POR DEFECTO
   Future<ApiResponse<bool>> resetToDefaults() async {
     try {
-      debugPrint('🔄 Restableciendo configuraciones por defecto');
+      logger.d('🔄 Restableciendo configuraciones por defecto');
 
       final defaultSettings = NotificationSettings.defaultSettings();
       final result = await saveSettings(defaultSettings);
       
       if (result.success) {
-        debugPrint('✅ Configuraciones restablecidas');
+        logger.d('✅ Configuraciones restablecidas');
         return ApiResponse.success(true, message: 'Configuraciones restablecidas');
       } else {
         return result;
       }
     } catch (e) {
-      debugPrint('❌ Error restableciendo configuraciones: $e');
+      logger.d('❌ Error restableciendo configuraciones: $e');
       return ApiResponse.error('Error restableciendo configuraciones: $e');
     }
   }
@@ -171,7 +172,7 @@ class NotificationSettingsService {
         'lastModified': await _storageService.getData(_lastSyncKey),
       };
     } catch (e) {
-      debugPrint('❌ Error obteniendo estadísticas: $e');
+      logger.d('❌ Error obteniendo estadísticas: $e');
       return {};
     }
   }
@@ -227,7 +228,7 @@ class NotificationSettingsService {
           return true; // Permitir por defecto para categorías no reconocidas
       }
     } catch (e) {
-      debugPrint('❌ Error verificando notificación: $e');
+      logger.d('❌ Error verificando notificación: $e');
       return true; // Permitir por defecto en caso de error
     }
   }
@@ -249,7 +250,7 @@ class NotificationSettingsService {
       final exportString = jsonEncode(exportData);
       return ApiResponse.success(exportString, message: 'Configuraciones exportadas');
     } catch (e) {
-      debugPrint('❌ Error exportando configuraciones: $e');
+      logger.d('❌ Error exportando configuraciones: $e');
       return ApiResponse.error('Error exportando configuraciones: $e');
     }
   }
@@ -257,7 +258,7 @@ class NotificationSettingsService {
   /// 📥 IMPORTAR CONFIGURACIONES
   Future<ApiResponse<bool>> importSettings(String importData) async {
     try {
-      debugPrint('📥 Importando configuraciones');
+      logger.d('📥 Importando configuraciones');
 
       final data = jsonDecode(importData);
       
@@ -273,13 +274,13 @@ class NotificationSettingsService {
       final saveResult = await saveSettings(settings);
       
       if (saveResult.success) {
-        debugPrint('✅ Configuraciones importadas exitosamente');
+        logger.d('✅ Configuraciones importadas exitosamente');
         return ApiResponse.success(true, message: 'Configuraciones importadas');
       } else {
         return saveResult;
       }
     } catch (e) {
-      debugPrint('❌ Error importando configuraciones: $e');
+      logger.d('❌ Error importando configuraciones: $e');
       return ApiResponse.error('Error importando configuraciones: $e');
     }
   }
@@ -295,7 +296,7 @@ class NotificationSettingsService {
         return NotificationSettings.fromJson(data);
       }
     } catch (e) {
-      debugPrint('❌ Error cargando configuraciones locales: $e');
+      logger.d('❌ Error cargando configuraciones locales: $e');
     }
     return null;
   }
@@ -307,7 +308,7 @@ class NotificationSettingsService {
       await _storageService.saveData(_settingsKey, settingsJson);
       await _storageService.saveData(_lastSyncKey, DateTime.now().toIso8601String());
     } catch (e) {
-      debugPrint('❌ Error guardando configuraciones locales: $e');
+      logger.d('❌ Error guardando configuraciones locales: $e');
     }
   }
 
@@ -331,7 +332,7 @@ class NotificationSettingsService {
         return ApiResponse.error(response.error ?? 'Error cargando desde servidor');
       }
     } catch (e) {
-      debugPrint('❌ Error cargando desde servidor: $e');
+      logger.d('❌ Error cargando desde servidor: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -356,7 +357,7 @@ class NotificationSettingsService {
         return ApiResponse.error(response.error ?? 'Error guardando en servidor');
       }
     } catch (e) {
-      debugPrint('❌ Error guardando en servidor: $e');
+      logger.d('❌ Error guardando en servidor: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -367,7 +368,7 @@ class NotificationSettingsService {
       try {
         await syncSettings();
       } catch (e) {
-        debugPrint('❌ Error sincronizando en background: $e');
+        logger.d('❌ Error sincronizando en background: $e');
       }
     });
   }

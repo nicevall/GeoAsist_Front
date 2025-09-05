@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/register_screen.dart - SOLO ESTUDIANTES
 import 'package:flutter/material.dart';
 import '../widgets/custom_text_field.dart';
@@ -388,7 +389,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       // Debug en desarrollo
-      debugPrint('Error de registro: $e');
+      logger.d('Error de registro: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

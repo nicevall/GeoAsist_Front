@@ -1,9 +1,9 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/biometric_service.dart
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
-import 'package:local_auth_ios/local_auth_ios.dart';
+// iOS import removed for Android-only build
 import 'security_service.dart';
 
 /// ✅ PRODUCTION READY: Biometric Authentication Service
@@ -31,10 +31,10 @@ class BiometricService {
       final canAuthenticate = await _localAuth.canCheckBiometrics;
       final isEnrolled = await _localAuth.getAvailableBiometrics();
       
-      debugPrint('$_tag: Device supported: $isAvailable, Can authenticate: $canAuthenticate, Enrolled: ${isEnrolled.isNotEmpty}');
+      logger.d('$_tag: Device supported: $isAvailable, Can authenticate: $canAuthenticate, Enrolled: ${isEnrolled.isNotEmpty}');
       return canAuthenticate && isEnrolled.isNotEmpty;
     } catch (e) {
-      debugPrint('$_tag: Error checking biometric availability: $e');
+      logger.d('$_tag: Error checking biometric availability: $e');
       return false;
     }
   }
@@ -44,7 +44,7 @@ class BiometricService {
     try {
       return await _localAuth.getAvailableBiometrics();
     } catch (e) {
-      debugPrint('$_tag: Error getting available biometrics: $e');
+      logger.d('$_tag: Error getting available biometrics: $e');
       return [];
     }
   }
@@ -92,7 +92,7 @@ class BiometricService {
       
       return authResult;
     } catch (e) {
-      debugPrint('$_tag: Biometric authentication error: $e');
+      logger.d('$_tag: Biometric authentication error: $e');
       return BiometricAuthResult(
         success: false,
         errorType: BiometricErrorType.unknown,
@@ -129,20 +129,14 @@ class BiometricService {
             goToSettingsButton: 'Go to Settings',
             goToSettingsDescription: 'Biometric authentication is not set up on your device. Go to Settings to set it up.',
           ),
-          const IOSAuthMessages(
-            cancelButton: 'Cancel',
-            goToSettingsButton: 'Go to Settings',
-            goToSettingsDescription: 'Biometric authentication is not configured. Please go to Settings to set it up.',
-            lockOut: 'Biometric authentication is disabled. Please lock and unlock your screen to enable it.',
-          ),
         ],
       );
       
       if (authenticated) {
-        debugPrint('$_tag: Biometric authentication successful');
+        logger.d('$_tag: Biometric authentication successful');
         return BiometricAuthResult(success: true);
       } else {
-        debugPrint('$_tag: Biometric authentication failed');
+        logger.d('$_tag: Biometric authentication failed');
         return BiometricAuthResult(
           success: false,
           errorType: BiometricErrorType.authenticationFailed,
@@ -150,7 +144,7 @@ class BiometricService {
         );
       }
     } on PlatformException catch (e) {
-      debugPrint('$_tag: Platform exception during biometric auth: ${e.code} - ${e.message}');
+      logger.d('$_tag: Platform exception during biometric auth: ${e.code} - ${e.message}');
       return _handlePlatformException(e);
     }
   }
@@ -214,7 +208,7 @@ class BiometricService {
     try {
       // Check if biometric is available
       if (!await isBiometricAvailable()) {
-        debugPrint('$_tag: Cannot enable biometric - not available');
+        logger.d('$_tag: Cannot enable biometric - not available');
         return false;
       }
       
@@ -236,14 +230,14 @@ class BiometricService {
           );
         }
         
-        debugPrint('$_tag: Biometric authentication enabled successfully');
+        logger.d('$_tag: Biometric authentication enabled successfully');
         return true;
       } else {
-        debugPrint('$_tag: Failed to enable biometric authentication: ${testResult.errorMessage}');
+        logger.d('$_tag: Failed to enable biometric authentication: ${testResult.errorMessage}');
         return false;
       }
     } catch (e) {
-      debugPrint('$_tag: Error enabling biometric authentication: $e');
+      logger.d('$_tag: Error enabling biometric authentication: $e');
       return false;
     }
   }
@@ -252,9 +246,9 @@ class BiometricService {
   static Future<void> disableBiometricAuth() async {
     try {
       await SecurityService.storeUserData(_biometricEnabledKey, 'false');
-      debugPrint('$_tag: Biometric authentication disabled');
+      logger.d('$_tag: Biometric authentication disabled');
     } catch (e) {
-      debugPrint('$_tag: Error disabling biometric authentication: $e');
+      logger.d('$_tag: Error disabling biometric authentication: $e');
     }
   }
   
@@ -264,7 +258,7 @@ class BiometricService {
       final enabled = await SecurityService.getUserData(_biometricEnabledKey);
       return enabled == 'true';
     } catch (e) {
-      debugPrint('$_tag: Error checking if biometric is enabled: $e');
+      logger.d('$_tag: Error checking if biometric is enabled: $e');
       return false;
     }
   }
@@ -278,13 +272,13 @@ class BiometricService {
   static Future<bool> _promptEnableBiometric() async {
     // This would typically show a dialog to the user
     // For now, return false to require explicit enabling
-    debugPrint('$_tag: User needs to explicitly enable biometric authentication');
+    logger.d('$_tag: User needs to explicitly enable biometric authentication');
     return false;
   }
   
   /// Handle successful biometric authentication
   static Future<void> _onBiometricSuccess() async {
-    debugPrint('$_tag: Biometric authentication successful');
+    logger.d('$_tag: Biometric authentication successful');
     
     // Clear any lockout data on successful authentication
     await _clearLockoutData();
@@ -292,7 +286,7 @@ class BiometricService {
   
   /// Handle failed biometric authentication
   static Future<void> _onBiometricFailure(BiometricErrorType errorType) async {
-    debugPrint('$_tag: Biometric authentication failed: ${errorType.name}');
+    logger.d('$_tag: Biometric authentication failed: ${errorType.name}');
     
     // Only track failed attempts for authentication failures, not cancellations
     if (errorType == BiometricErrorType.authenticationFailed) {
@@ -313,12 +307,12 @@ class BiometricService {
       if (newAttempts >= _maxBiometricAttempts) {
         final lockoutTime = DateTime.now().add(_lockoutDuration);
         await SecurityService.storeUserData(_lockoutTimeKey, lockoutTime.toIso8601String());
-        debugPrint('$_tag: Max biometric attempts reached. Locked out until $lockoutTime');
+        logger.d('$_tag: Max biometric attempts reached. Locked out until $lockoutTime');
       }
       
-      debugPrint('$_tag: Failed attempts: $newAttempts/$_maxBiometricAttempts');
+      logger.d('$_tag: Failed attempts: $newAttempts/$_maxBiometricAttempts');
     } catch (e) {
-      debugPrint('$_tag: Error tracking failed attempts: $e');
+      logger.d('$_tag: Error tracking failed attempts: $e');
     }
   }
   
@@ -340,7 +334,7 @@ class BiometricService {
       
       return isLockedOut;
     } catch (e) {
-      debugPrint('$_tag: Error checking lockout status: $e');
+      logger.d('$_tag: Error checking lockout status: $e');
       return false;
     }
   }
@@ -350,9 +344,9 @@ class BiometricService {
     try {
       await SecurityService.removeUserData(_failedAttemptsKey);
       await SecurityService.removeUserData(_lockoutTimeKey);
-      debugPrint('$_tag: Cleared biometric lockout data');
+      logger.d('$_tag: Cleared biometric lockout data');
     } catch (e) {
-      debugPrint('$_tag: Error clearing lockout data: $e');
+      logger.d('$_tag: Error clearing lockout data: $e');
     }
   }
   
@@ -378,7 +372,7 @@ class BiometricService {
             .any((type) => type.name == storedBiometricType);
         
         if (!hasStoredType) {
-          debugPrint('$_tag: Biometric configuration changed - disabling');
+          logger.d('$_tag: Biometric configuration changed - disabling');
           await disableBiometricAuth();
           return false;
         }
@@ -386,7 +380,7 @@ class BiometricService {
       
       return true;
     } catch (e) {
-      debugPrint('$_tag: Error validating biometric integrity: $e');
+      logger.d('$_tag: Error validating biometric integrity: $e');
       return false;
     }
   }
@@ -396,9 +390,9 @@ class BiometricService {
     try {
       await SecurityService.storeUserData(_biometricEnabledKey, 'false');
       await SecurityService.storeUserData(_biometricTypeKey, '');
-      debugPrint('$_tag: Biometric configuration reset');
+      logger.d('$_tag: Biometric configuration reset');
     } catch (e) {
-      debugPrint('$_tag: Error resetting biometric configuration: $e');
+      logger.d('$_tag: Error resetting biometric configuration: $e');
     }
   }
 }

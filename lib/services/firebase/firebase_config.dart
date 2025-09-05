@@ -1,4 +1,5 @@
 // lib/services/firebase/firebase_config.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,7 @@ class FirebaseConfig {
       
       // Verificar si Firebase ya está inicializado
       if (_isInitialized) {
-        debugPrint('⚠️ Firebase ya está inicializado, omitiendo...');
+        logger.d('⚠️ Firebase ya está inicializado, omitiendo...');
         return;
       }
       
@@ -23,37 +24,37 @@ class FirebaseConfig {
       try {
         _app = Firebase.app();
         _isInitialized = true;
-        debugPrint('✅ Firebase ya estaba inicializado automáticamente');
+        logger.d('✅ Firebase ya estaba inicializado automáticamente');
         
         // Solo configurar FCM si no está configurado
         FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
         return;
       } catch (e) {
         // No existe, intentamos inicializarlo manualmente
-        debugPrint('🔄 Inicializando Firebase manualmente...');
+        logger.d('🔄 Inicializando Firebase manualmente...');
       }
       
       // Intentar inicialización manual solo si no existe
       try {
         _app = await Firebase.initializeApp();
         _isInitialized = true;
-        debugPrint('✅ Firebase inicializado manualmente sin opciones específicas');
+        logger.d('✅ Firebase inicializado manualmente sin opciones específicas');
       } catch (e) {
         // Si falla sin opciones, intentar con opciones específicas
-        debugPrint('🔄 Intentando con opciones específicas...');
+        logger.d('🔄 Intentando con opciones específicas...');
         _app = await Firebase.initializeApp(
           options: _getFirebaseOptions(),
         );
         _isInitialized = true;
-        debugPrint('✅ Firebase inicializado con opciones específicas');
+        logger.d('✅ Firebase inicializado con opciones específicas');
       }
       
       // Configurar FCM background handler
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
       
     } catch (e) {
-      debugPrint('❌ Error inicializando Firebase: $e');
-      debugPrint('⚠️ Continuando en modo de recuperación...');
+      logger.d('❌ Error inicializando Firebase: $e');
+      logger.d('⚠️ Continuando en modo de recuperación...');
       // No relanzar el error, permitir que la app funcione en modo offline
       _isInitialized = false;
     }
@@ -85,10 +86,10 @@ class FirebaseConfig {
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // No inicializar Firebase aquí, ya está inicializado
   
-  debugPrint('📱 Mensaje FCM recibido en background: ${message.messageId}');
-  debugPrint('📱 Título: ${message.notification?.title}');
-  debugPrint('📱 Cuerpo: ${message.notification?.body}');
-  debugPrint('📱 Data: ${message.data}');
+  logger.d('📱 Mensaje FCM recibido en background: ${message.messageId}');
+  logger.d('📱 Título: ${message.notification?.title}');
+  logger.d('📱 Cuerpo: ${message.notification?.body}');
+  logger.d('📱 Data: ${message.data}');
 
   // Procesar mensaje según tipo
   final tipo = message.data['tipo'];
@@ -103,7 +104,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       await _procesarEventoIniciado(message);
       break;
     default:
-      debugPrint('📱 Tipo de mensaje no reconocido: $tipo');
+      logger.d('📱 Tipo de mensaje no reconocido: $tipo');
   }
 }
 
@@ -111,7 +112,7 @@ Future<void> _procesarAsistenciaAutomatica(RemoteMessage message) async {
   final eventoId = message.data['eventoId'];
   final estado = message.data['estado'];
   
-  debugPrint('✅ Procesando asistencia automática: $estado para evento $eventoId');
+  logger.d('✅ Procesando asistencia automática: $estado para evento $eventoId');
   
   // Aquí podrías actualizar datos locales, mostrar notificación personalizada, etc.
 }
@@ -120,13 +121,13 @@ Future<void> _procesarRecordatorio(RemoteMessage message) async {
   final eventoId = message.data['eventoId'];
   final minutosRestantes = message.data['minutosRestantes'];
   
-  debugPrint('⏰ Recordatorio: $minutosRestantes minutos para evento $eventoId');
+  logger.d('⏰ Recordatorio: $minutosRestantes minutos para evento $eventoId');
 }
 
 Future<void> _procesarEventoIniciado(RemoteMessage message) async {
   final eventoId = message.data['eventoId'];
   
-  debugPrint('🚀 Evento iniciado: $eventoId');
+  logger.d('🚀 Evento iniciado: $eventoId');
   
   // Aquí podrías iniciar tracking automático si está habilitado
 }

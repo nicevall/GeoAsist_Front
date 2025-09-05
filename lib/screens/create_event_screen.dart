@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/create_event_screen.dart - HORARIOS ESPECÍFICOS POR DÍA
 import 'package:flutter/material.dart';
 import '../widgets/custom_text_field.dart';
@@ -827,10 +828,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     });
     
     try {
-      debugPrint('🔍 Validando coordenadas del evento...');
-      debugPrint('   - Latitud: $_selectedLatitude');
-      debugPrint('   - Longitud: $_selectedLongitude');
-      debugPrint('   - Radio: $_selectedRadius metros');
+      logger.d('🔍 Validando coordenadas del evento...');
+      logger.d('   - Latitud: $_selectedLatitude');
+      logger.d('   - Longitud: $_selectedLongitude');
+      logger.d('   - Radio: $_selectedRadius metros');
       
       // 1. Validar rango de coordenadas
       if (_selectedLatitude! < -90 || _selectedLatitude! > 90) {
@@ -856,7 +857,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       }
       
       // 3. ✅ ENHANCED: Test connectivity with backend using LocationService
-      debugPrint('🌍 Testing coordinate connectivity with backend...');
+      logger.d('🌍 Testing coordinate connectivity with backend...');
       
       final testResponse = await _locationService.testCoordinates(
         _selectedLatitude!,
@@ -864,7 +865,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       );
       
       if (testResponse.success) {
-        debugPrint('✅ Backend coordinate test successful');
+        logger.d('✅ Backend coordinate test successful');
         setState(() {
           _coordinatesValidated = true;
           _coordinateValidationError = null;
@@ -877,7 +878,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       }
       
     } catch (e) {
-      debugPrint('❌ Error validando coordenadas: $e');
+      logger.d('❌ Error validando coordenadas: $e');
       setState(() {
         _coordinatesValidated = false;
         _coordinateValidationError = e.toString();
@@ -1112,12 +1113,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   /// ✅ NUEVO: Método para abrir el selector de ubicación
   Future<void> _openLocationPicker() async {
-    debugPrint('=== DEPURACIÓN UBICACIÓN FRONTEND ===');
-    debugPrint('Ubicación inicial antes del picker:');
-    debugPrint('  - Lat: $_selectedLatitude');
-    debugPrint('  - Lng: $_selectedLongitude');
-    debugPrint('  - Range: $_selectedRadius');
-    debugPrint('  - Name: $_selectedLocationName');
+    logger.d('=== DEPURACIÓN UBICACIÓN FRONTEND ===');
+    logger.d('Ubicación inicial antes del picker:');
+    logger.d('  - Lat: $_selectedLatitude');
+    logger.d('  - Lng: $_selectedLongitude');
+    logger.d('  - Range: $_selectedRadius');
+    logger.d('  - Name: $_selectedLocationName');
     
     final result = await Navigator.of(context).pushNamed(
       AppConstants.locationPickerRoute,
@@ -1129,8 +1130,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       },
     );
 
-    debugPrint('Resultado del LocationPicker: $result');
-    debugPrint('Tipo del resultado: ${result.runtimeType}');
+    logger.d('Resultado del LocationPicker: $result');
+    logger.d('Tipo del resultado: ${result.runtimeType}');
 
     // Actualizar las variables si el usuario seleccionó una ubicación
     if (result != null && result is Map<String, dynamic>) {
@@ -1150,25 +1151,25 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           _coordinateValidationError = null;
         });
 
-        debugPrint('Ubicación después de la selección:');
-        debugPrint('  - Lat: $_selectedLatitude (anterior: $previousLat)');
-        debugPrint('  - Lng: $_selectedLongitude (anterior: $previousLng)');
-        debugPrint('  - Range: $_selectedRadius');
-        debugPrint('  - Name: $_selectedLocationName (anterior: $previousName)');
+        logger.d('Ubicación después de la selección:');
+        logger.d('  - Lat: $_selectedLatitude (anterior: $previousLat)');
+        logger.d('  - Lng: $_selectedLongitude (anterior: $previousLng)');
+        logger.d('  - Range: $_selectedRadius');
+        logger.d('  - Name: $_selectedLocationName (anterior: $previousName)');
         
         final bool locationChanged = (previousLat != _selectedLatitude || 
                                     previousLng != _selectedLongitude ||
                                     previousName != _selectedLocationName);
-        debugPrint('¿Ubicación cambió?: $locationChanged');
+        logger.d('¿Ubicación cambió?: $locationChanged');
         
         AppRouter.showSnackBar('✅ Ubicación actualizada correctamente');
       } else {
-        debugPrint('❌ Datos de ubicación inválidos recibidos del picker');
+        logger.d('❌ Datos de ubicación inválidos recibidos del picker');
       }
-      debugPrint('=====================================');
+      logger.d('=====================================');
     } else {
-      debugPrint('❌ Resultado del picker es null o formato inválido');
-      debugPrint('=====================================');
+      logger.d('❌ Resultado del picker es null o formato inválido');
+      logger.d('=====================================');
     }
   }
 
@@ -1402,8 +1403,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           AppRouter.showSnackBar('¡Evento creado exitosamente!');
           if (mounted) Navigator.of(context).pop(true);
         } else {
-          debugPrint('❌ Error del backend: ${response.error}');
-          debugPrint('❌ Mensaje del backend: ${response.message}');
+          logger.d('❌ Error del backend: ${response.error}');
+          logger.d('❌ Mensaje del backend: ${response.message}');
           AppRouter.showSnackBar(
             response.error ?? response.message,
             isError: true,
@@ -1411,7 +1412,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         }
       }
     } catch (e) {
-      debugPrint('❌ Error completo: $e');
+      logger.d('❌ Error completo: $e');
       AppRouter.showSnackBar(
         'Error: ${e.toString()}',
         isError: true,

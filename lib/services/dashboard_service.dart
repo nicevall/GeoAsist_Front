@@ -1,5 +1,5 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/dashboard_service.dart
-import 'package:flutter/foundation.dart';
 import '../core/app_constants.dart';
 import '../models/dashboard_metric_model.dart';
 import 'api_service.dart';
@@ -45,8 +45,8 @@ class DashboardService {
       }
       return null;
     } catch (e) {
-      // ✅ CORREGIDO: Usar debugPrint en lugar de print
-      debugPrint('Error al obtener métricas: $e');
+      // ✅ CORREGIDO: Usar logger en lugar de debugPrint
+      logger.d('Error al obtener métricas: $e');
       return null;
     }
   }
@@ -76,8 +76,8 @@ class DashboardService {
       }
       return null;
     } catch (e) {
-      // ✅ CORREGIDO: Usar debugPrint en lugar de print
-      debugPrint('Error al obtener métricas: $e');
+      // ✅ CORREGIDO: Usar logger en lugar de debugPrint
+      logger.d('Error al obtener métricas: $e');
       return null;
     }
   }
@@ -98,8 +98,8 @@ class DashboardService {
 
       return response.success;
     } catch (e) {
-      // ✅ CORREGIDO: Usar debugPrint en lugar de print
-      debugPrint('Error al actualizar métrica: $e');
+      // ✅ CORREGIDO: Usar logger en lugar de debugPrint
+      logger.d('Error al actualizar métrica: $e');
       return false;
     }
   }
@@ -120,7 +120,7 @@ class DashboardService {
       }
       return null;
     } catch (e) {
-      debugPrint('Error obteniendo métricas del evento: $e');
+      logger.d('Error obteniendo métricas del evento: $e');
       return null;
     }
   }
@@ -141,7 +141,7 @@ class DashboardService {
       }
       return null;
     } catch (e) {
-      debugPrint('Error obteniendo overview del dashboard: $e');
+      logger.d('Error obteniendo overview del dashboard: $e');
       return null;
     }
   }

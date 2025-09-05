@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/location_picker_screen.dart - VERSIÓN CORREGIDA
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -64,7 +65,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         await _getCurrentLocationSafe();
       }
     } catch (e) {
-      debugPrint('Error en inicialización: $e');
+      logger.d('Error en inicialización: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -91,7 +92,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         }
       }
     } catch (e) {
-      debugPrint('Error obteniendo ubicación: $e');
+      logger.d('Error obteniendo ubicación: $e');
     }
   }
 
@@ -386,14 +387,14 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     };
     
     // Debug: Log datos que se van a retornar
-    debugPrint('=== LOCATION PICKER SAVING ===');
-    debugPrint('Datos a retornar:');
-    debugPrint('  - latitude: ${result['latitude']}');
-    debugPrint('  - longitude: ${result['longitude']}');
-    debugPrint('  - range: ${result['range']}');
-    debugPrint('  - locationName: ${result['locationName']}');
-    debugPrint('Resultado completo: $result');
-    debugPrint('==============================');
+    logger.d('=== LOCATION PICKER SAVING ===');
+    logger.d('Datos a retornar:');
+    logger.d('  - latitude: ${result['latitude']}');
+    logger.d('  - longitude: ${result['longitude']}');
+    logger.d('  - range: ${result['range']}');
+    logger.d('  - locationName: ${result['locationName']}');
+    logger.d('Resultado completo: $result');
+    logger.d('==============================');
     
     Navigator.of(context).pop(result);
   }

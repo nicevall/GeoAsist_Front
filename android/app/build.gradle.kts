@@ -26,20 +26,30 @@ android {
         jvmTarget = "21"
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "ec.edu.uide.geo_asist_front"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        minSdk = flutter.minSdkVersion  // Android 5.0+ for location services
+        targetSdk = 34  // Android 14 for Play Store compliance
+        compileSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
         
-        // ⚡ OPTIMIZED: Filtrar arquitecturas soportadas por Flutter según BUENAS_PRACTICAS_FLUTTER.md
+        // Android-specific optimizations
+        multiDexEnabled = true
+        vectorDrawables.useSupportLibrary = true
+        
+        // Architecture filters for Play Store optimization
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
         }
+        
+        // Build config fields for runtime optimization
+        buildConfigField("boolean", "ENABLE_PERFORMANCE_MONITORING", "true")
+        buildConfigField("String", "BUILD_VARIANT", "\"debug\"")
     }
 
     buildTypes {

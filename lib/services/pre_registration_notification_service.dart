@@ -1,7 +1,7 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/pre_registration_notification_service.dart
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import '../models/evento_model.dart';
 import '../models/usuario_model.dart';
 import '../services/storage_service.dart';
@@ -30,7 +30,7 @@ class PreRegistrationNotificationService {
     if (_isInitialized) return;
     
     try {
-      debugPrint('📝 Inicializando PreRegistrationNotificationService');
+      logger.d('📝 Inicializando PreRegistrationNotificationService');
       
       // Cargar pre-registros existentes
       await _loadPreRegistrations();
@@ -39,16 +39,16 @@ class PreRegistrationNotificationService {
       _startPeriodicCheck();
       
       _isInitialized = true;
-      debugPrint('✅ PreRegistrationNotificationService inicializado');
+      logger.d('✅ PreRegistrationNotificationService inicializado');
     } catch (e) {
-      debugPrint('❌ Error inicializando PreRegistrationNotificationService: $e');
+      logger.d('❌ Error inicializando PreRegistrationNotificationService: $e');
     }
   }
 
   /// Agregar un nuevo pre-registro
   Future<void> addPreRegistration(Evento evento, Usuario usuario) async {
     try {
-      debugPrint('📝 Agregando pre-registro: ${evento.titulo} para ${usuario.nombre}');
+      logger.d('📝 Agregando pre-registro: ${evento.titulo} para ${usuario.nombre}');
 
       final preRegItem = PreRegistrationItem(
         eventId: evento.id!,
@@ -66,9 +66,9 @@ class PreRegistrationNotificationService {
       _preRegistrations.add(preRegItem);
       await _savePreRegistrations();
 
-      debugPrint('✅ Pre-registro agregado exitosamente');
+      logger.d('✅ Pre-registro agregado exitosamente');
     } catch (e) {
-      debugPrint('❌ Error agregando pre-registro: $e');
+      logger.d('❌ Error agregando pre-registro: $e');
       throw Exception('Error agregando pre-registro: $e');
     }
   }
@@ -78,9 +78,9 @@ class PreRegistrationNotificationService {
     try {
       _preRegistrations.removeWhere((item) => item.eventId == eventId);
       await _savePreRegistrations();
-      debugPrint('✅ Pre-registro removido: $eventId');
+      logger.d('✅ Pre-registro removido: $eventId');
     } catch (e) {
-      debugPrint('❌ Error removiendo pre-registro: $e');
+      logger.d('❌ Error removiendo pre-registro: $e');
     }
   }
 
@@ -109,7 +109,7 @@ class PreRegistrationNotificationService {
     _checkTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       _checkEventsThatShouldNotify();
     });
-    debugPrint('⏱️ Verificación periódica de pre-registros iniciada');
+    logger.d('⏱️ Verificación periódica de pre-registros iniciada');
   }
 
   /// Verificar eventos que deben generar notificación
@@ -130,20 +130,20 @@ class PreRegistrationNotificationService {
       }
 
       if (eventsToNotify.isNotEmpty) {
-        debugPrint('📢 ${eventsToNotify.length} eventos requieren notificación');
+        logger.d('📢 ${eventsToNotify.length} eventos requieren notificación');
         for (final event in eventsToNotify) {
           await _sendEventStartNotification(event);
         }
       }
     } catch (e) {
-      debugPrint('❌ Error verificando eventos: $e');
+      logger.d('❌ Error verificando eventos: $e');
     }
   }
 
   /// Enviar notificación de inicio de evento
   Future<void> _sendEventStartNotification(PreRegistrationItem preReg) async {
     try {
-      debugPrint('📢 Enviando notificación para: ${preReg.eventTitle}');
+      logger.d('📢 Enviando notificación para: ${preReg.eventTitle}');
 
       final notificationId = _preRegistrationBaseId + preReg.eventId.hashCode.abs() % 1000;
       
@@ -166,9 +166,9 @@ class PreRegistrationNotificationService {
       preReg.isNotified = true;
       await _savePreRegistrations();
 
-      debugPrint('✅ Notificación enviada para: ${preReg.eventTitle}');
+      logger.d('✅ Notificación enviada para: ${preReg.eventTitle}');
     } catch (e) {
-      debugPrint('❌ Error enviando notificación: $e');
+      logger.d('❌ Error enviando notificación: $e');
     }
   }
 
@@ -182,7 +182,7 @@ class PreRegistrationNotificationService {
         final eventId = data['eventId'] as String;
         final eventTitle = data['eventTitle'] as String;
         
-        debugPrint('🎯 Navegando a attendance para evento: $eventTitle');
+        logger.d('🎯 Navegando a attendance para evento: $eventTitle');
         
         // Navegar directamente al attendance tracking
         AppRouter.goToAttendanceTracking(
@@ -190,7 +190,7 @@ class PreRegistrationNotificationService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Error manejando tap de notificación: $e');
+      logger.d('❌ Error manejando tap de notificación: $e');
     }
   }
 
@@ -206,10 +206,10 @@ class PreRegistrationNotificationService {
             .map((json) => PreRegistrationItem.fromJson(json))
             .toList();
         
-        debugPrint('📋 Cargados ${_preRegistrations.length} pre-registros');
+        logger.d('📋 Cargados ${_preRegistrations.length} pre-registros');
       }
     } catch (e) {
-      debugPrint('❌ Error cargando pre-registros: $e');
+      logger.d('❌ Error cargando pre-registros: $e');
       _preRegistrations = [];
     }
   }
@@ -221,7 +221,7 @@ class PreRegistrationNotificationService {
       final jsonList = _preRegistrations.map((item) => item.toJson()).toList();
       await _storageService.saveData(key, json.encode(jsonList));
     } catch (e) {
-      debugPrint('❌ Error guardando pre-registros: $e');
+      logger.d('❌ Error guardando pre-registros: $e');
     }
   }
 
@@ -239,10 +239,10 @@ class PreRegistrationNotificationService {
 
       if (_preRegistrations.length != originalCount) {
         await _savePreRegistrations();
-        debugPrint('🧹 Limpieza completada: ${originalCount - _preRegistrations.length} pre-registros expirados removidos');
+        logger.d('🧹 Limpieza completada: ${originalCount - _preRegistrations.length} pre-registros expirados removidos');
       }
     } catch (e) {
-      debugPrint('❌ Error en limpieza: $e');
+      logger.d('❌ Error en limpieza: $e');
     }
   }
 
@@ -250,7 +250,7 @@ class PreRegistrationNotificationService {
   void dispose() {
     _checkTimer?.cancel();
     _isInitialized = false;
-    debugPrint('🔄 PreRegistrationNotificationService detenido');
+    logger.d('🔄 PreRegistrationNotificationService detenido');
   }
 }
 

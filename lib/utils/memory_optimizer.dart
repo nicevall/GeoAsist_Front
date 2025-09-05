@@ -1,4 +1,5 @@
 // lib/utils/memory_optimizer.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -25,7 +26,7 @@ class MemoryOptimizer {
   static Future<void> initialize() async {
     if (_isInitialized) return;
     
-    debugPrint('$_tag: Initializing memory optimization systems...');
+    logger.d('$_tag: Initializing memory optimization systems...');
     
     try {
       // Configure image cache limits
@@ -44,26 +45,26 @@ class MemoryOptimizer {
       await _configurePlatformOptimizations();
       
       _isInitialized = true;
-      debugPrint('$_tag: Memory optimization systems initialized successfully');
+      logger.d('$_tag: Memory optimization systems initialized successfully');
     } catch (e) {
-      debugPrint('$_tag: Failed to initialize memory optimization: $e');
+      logger.d('$_tag: Failed to initialize memory optimization: $e');
     }
   }
 
   /// Configure image cache for optimal memory usage
   static void optimizeImageCache() {
-    debugPrint('$_tag: Configuring image cache optimization...');
+    logger.d('$_tag: Configuring image cache optimization...');
     
     PaintingBinding.instance.imageCache.maximumSize = _maxImageCacheSize;
     PaintingBinding.instance.imageCache.maximumSizeBytes = _maxImageCacheBytes;
     PaintingBinding.instance.imageCache.currentSizeBytes;
     
-    debugPrint('$_tag: Image cache configured - Max size: $_maxImageCacheSize, Max bytes: ${_maxImageCacheBytes ~/ (1024 * 1024)}MB');
+    logger.d('$_tag: Image cache configured - Max size: $_maxImageCacheSize, Max bytes: ${_maxImageCacheBytes ~/ (1024 * 1024)}MB');
   }
 
   /// Configure instruction cache
   static void optimizeInstructionCache() {
-    debugPrint('$_tag: Configuring instruction cache optimization...');
+    logger.d('$_tag: Configuring instruction cache optimization...');
     
     // Limit the number of cached instructions for UI performance
     if (PaintingBinding.instance.imageCache.currentSize > _maxInstructionCacheSize) {
@@ -73,7 +74,7 @@ class MemoryOptimizer {
 
   /// Clear unused resources and caches
   static void clearUnusedResources({bool aggressive = false}) {
-    debugPrint('$_tag: Clearing unused resources (aggressive: $aggressive)...');
+    logger.d('$_tag: Clearing unused resources (aggressive: $aggressive)...');
     
     // Clear image cache
     PaintingBinding.instance.imageCache.clear();
@@ -91,12 +92,12 @@ class MemoryOptimizer {
       }
     }
     
-    debugPrint('$_tag: Resource cleanup completed');
+    logger.d('$_tag: Resource cleanup completed');
   }
 
   /// Clear instruction cache
   static void clearInstructionCache() {
-    debugPrint('$_tag: Clearing instruction cache...');
+    logger.d('$_tag: Clearing instruction cache...');
     
     // Clear display lists and cached instructions
     PaintingBinding.instance.imageCache.evict(Object());
@@ -108,7 +109,7 @@ class MemoryOptimizer {
       _checkMemoryUsage();
     });
     
-    debugPrint('$_tag: Started memory monitoring (interval: ${_memoryCheckInterval.inMinutes}min)');
+    logger.d('$_tag: Started memory monitoring (interval: ${_memoryCheckInterval.inMinutes}min)');
   }
 
   /// Start periodic cache cleanup
@@ -117,7 +118,7 @@ class MemoryOptimizer {
       _performPeriodicCleanup();
     });
     
-    debugPrint('$_tag: Started periodic cache cleanup (interval: ${_cacheCleanupInterval.inMinutes}min)');
+    logger.d('$_tag: Started periodic cache cleanup (interval: ${_cacheCleanupInterval.inMinutes}min)');
   }
 
   /// Check current memory usage and take action if needed
@@ -131,26 +132,26 @@ class MemoryOptimizer {
       // Calculate memory usage percentage
       final memoryUsagePercent = (currentSizeBytes / maxSizeBytes * 100).round();
       
-      debugPrint('$_tag: Memory check - Images: $currentSize/${imageCache.maximumSize}, '
+      logger.d('$_tag: Memory check - Images: $currentSize/${imageCache.maximumSize}, '
           'Bytes: ${(currentSizeBytes / (1024 * 1024)).toStringAsFixed(1)}MB/'
           '${(maxSizeBytes / (1024 * 1024)).round()}MB ($memoryUsagePercent%)');
       
       // Take action if memory usage is high
       if (memoryUsagePercent > 80) {
-        debugPrint('$_tag: High memory usage detected ($memoryUsagePercent%) - performing cleanup');
+        logger.d('$_tag: High memory usage detected ($memoryUsagePercent%) - performing cleanup');
         _performEmergencyCleanup();
       } else if (memoryUsagePercent > 60) {
-        debugPrint('$_tag: Moderate memory usage detected ($memoryUsagePercent%) - performing light cleanup');
+        logger.d('$_tag: Moderate memory usage detected ($memoryUsagePercent%) - performing light cleanup');
         _performLightCleanup();
       }
     } catch (e) {
-      debugPrint('$_tag: Error checking memory usage: $e');
+      logger.d('$_tag: Error checking memory usage: $e');
     }
   }
 
   /// Perform periodic maintenance cleanup
   static void _performPeriodicCleanup() {
-    debugPrint('$_tag: Performing periodic cache cleanup...');
+    logger.d('$_tag: Performing periodic cache cleanup...');
     
     final imageCache = PaintingBinding.instance.imageCache;
     final sizeBefore = imageCache.currentSizeBytes;
@@ -162,7 +163,7 @@ class MemoryOptimizer {
     final bytesFreed = sizeBefore - sizeAfter;
     
     if (bytesFreed > 0) {
-      debugPrint('$_tag: Periodic cleanup freed ${(bytesFreed / (1024 * 1024)).toStringAsFixed(1)}MB');
+      logger.d('$_tag: Periodic cleanup freed ${(bytesFreed / (1024 * 1024)).toStringAsFixed(1)}MB');
     }
   }
 
@@ -173,19 +174,19 @@ class MemoryOptimizer {
     // Clear some cached images but keep live ones
     imageCache.clear();
     
-    debugPrint('$_tag: Light cleanup completed');
+    logger.d('$_tag: Light cleanup completed');
   }
 
   /// Perform emergency cleanup for high memory usage
   static void _performEmergencyCleanup() {
-    debugPrint('$_tag: Performing emergency memory cleanup...');
+    logger.d('$_tag: Performing emergency memory cleanup...');
     
     clearUnusedResources(aggressive: true);
     
     // Additional emergency measures
     SystemChannels.platform.invokeMethod('System.requestGarbageCollection');
     
-    debugPrint('$_tag: Emergency cleanup completed');
+    logger.d('$_tag: Emergency cleanup completed');
   }
 
   /// Configure platform-specific optimizations
@@ -199,7 +200,7 @@ class MemoryOptimizer {
 
   /// Configure Android-specific memory optimizations
   static Future<void> _configureAndroidOptimizations() async {
-    debugPrint('$_tag: Configuring Android memory optimizations...');
+    logger.d('$_tag: Configuring Android memory optimizations...');
     
     try {
       // Enable hardware acceleration
@@ -208,36 +209,36 @@ class MemoryOptimizer {
       // Configure Android-specific memory settings
       await SystemChannels.platform.invokeMethod('Android.optimizeMemory');
       
-      debugPrint('$_tag: Android optimizations configured');
+      logger.d('$_tag: Android optimizations configured');
     } catch (e) {
-      debugPrint('$_tag: Android optimization configuration failed: $e');
+      logger.d('$_tag: Android optimization configuration failed: $e');
     }
   }
 
   /// Configure iOS-specific memory optimizations
   static Future<void> _configureIOSOptimizations() async {
-    debugPrint('$_tag: Configuring iOS memory optimizations...');
+    logger.d('$_tag: Configuring iOS memory optimizations...');
     
     try {
       // Configure iOS-specific settings
       await SystemChannels.platform.invokeMethod('iOS.optimizeMemory');
       
-      debugPrint('$_tag: iOS optimizations configured');
+      logger.d('$_tag: iOS optimizations configured');
     } catch (e) {
-      debugPrint('$_tag: iOS optimization configuration failed: $e');
+      logger.d('$_tag: iOS optimization configuration failed: $e');
     }
   }
 
   /// Force garbage collection (debug mode only)
   static void _forceGarbageCollection() {
     if (kDebugMode) {
-      debugPrint('$_tag: Forcing garbage collection...');
+      logger.d('$_tag: Forcing garbage collection...');
       
       // This is a debug-only operation
       try {
         SystemChannels.platform.invokeMethod('System.gc');
       } catch (e) {
-        debugPrint('$_tag: Failed to force garbage collection: $e');
+        logger.d('$_tag: Failed to force garbage collection: $e');
       }
     }
   }
@@ -257,7 +258,7 @@ class MemoryOptimizer {
 
   /// Optimize memory for specific use cases
   static void optimizeForUseCase(MemoryOptimizationMode mode) {
-    debugPrint('$_tag: Optimizing memory for use case: ${mode.name}');
+    logger.d('$_tag: Optimizing memory for use case: ${mode.name}');
     
     switch (mode) {
       case MemoryOptimizationMode.lowMemory:
@@ -277,7 +278,7 @@ class MemoryOptimizer {
 
   /// Optimize for low memory devices
   static void _optimizeForLowMemory() {
-    debugPrint('$_tag: Configuring for low memory mode...');
+    logger.d('$_tag: Configuring for low memory mode...');
     
     PaintingBinding.instance.imageCache.maximumSize = 20;
     PaintingBinding.instance.imageCache.maximumSizeBytes = 20 << 20; // 20 MB
@@ -288,7 +289,7 @@ class MemoryOptimizer {
 
   /// Optimize for high performance
   static void _optimizeForHighPerformance() {
-    debugPrint('$_tag: Configuring for high performance mode...');
+    logger.d('$_tag: Configuring for high performance mode...');
     
     PaintingBinding.instance.imageCache.maximumSize = 100;
     PaintingBinding.instance.imageCache.maximumSizeBytes = 100 << 20; // 100 MB
@@ -296,14 +297,14 @@ class MemoryOptimizer {
 
   /// Optimize for balanced performance
   static void _optimizeForBalanced() {
-    debugPrint('$_tag: Configuring for balanced mode...');
+    logger.d('$_tag: Configuring for balanced mode...');
     
     optimizeImageCache(); // Use default settings
   }
 
   /// Optimize for background mode
   static void _optimizeForBackground() {
-    debugPrint('$_tag: Configuring for background mode...');
+    logger.d('$_tag: Configuring for background mode...');
     
     // Aggressive cleanup for background mode
     clearUnusedResources(aggressive: true);
@@ -315,7 +316,7 @@ class MemoryOptimizer {
 
   /// Handle memory warning from system
   static void handleMemoryWarning() {
-    debugPrint('$_tag: Received memory warning - performing emergency cleanup');
+    logger.d('$_tag: Received memory warning - performing emergency cleanup');
     
     _performEmergencyCleanup();
     
@@ -325,7 +326,7 @@ class MemoryOptimizer {
 
   /// Dispose memory optimization systems
   static void dispose() {
-    debugPrint('$_tag: Disposing memory optimization systems...');
+    logger.d('$_tag: Disposing memory optimization systems...');
     
     _memoryMonitorTimer?.cancel();
     _memoryMonitorTimer = null;
@@ -335,7 +336,7 @@ class MemoryOptimizer {
     
     _isInitialized = false;
     
-    debugPrint('$_tag: Memory optimization systems disposed');
+    logger.d('$_tag: Memory optimization systems disposed');
   }
 
   /// Print memory usage report
@@ -344,12 +345,12 @@ class MemoryOptimizer {
     
     final stats = getMemoryUsageStats();
     
-    debugPrint('$_tag: ========== MEMORY USAGE REPORT ==========');
-    debugPrint('$_tag: Image Cache: ${stats.imageCacheSize}/${stats.imageCacheMaxSize} items');
-    debugPrint('$_tag: Cache Size: ${(stats.imageCacheSizeBytes / (1024 * 1024)).toStringAsFixed(1)}MB/'
+    logger.d('$_tag: ========== MEMORY USAGE REPORT ==========');
+    logger.d('$_tag: Image Cache: ${stats.imageCacheSize}/${stats.imageCacheMaxSize} items');
+    logger.d('$_tag: Cache Size: ${(stats.imageCacheSizeBytes / (1024 * 1024)).toStringAsFixed(1)}MB/'
         '${(stats.imageCacheMaxSizeBytes / (1024 * 1024)).round()}MB');
-    debugPrint('$_tag: Usage: ${stats.memoryUsagePercent}%');
-    debugPrint('$_tag: =========================================');
+    logger.d('$_tag: Usage: ${stats.memoryUsagePercent}%');
+    logger.d('$_tag: =========================================');
   }
 }
 

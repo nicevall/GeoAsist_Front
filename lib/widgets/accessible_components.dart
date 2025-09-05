@@ -370,7 +370,7 @@ class _AccessibleTextFieldState extends State<AccessibleTextField> {
         if (error != null) {
           SemanticsService.announce(
             'Validation error: $error',
-            TextDirection.ltr,
+            Directionality.of(context),
           );
         }
       }
@@ -534,7 +534,7 @@ class AccessibleDrawer extends StatelessWidget {
                       title: Text(item.title),
                       onTap: item.onTap,
                       selected: item.isSelected,
-                      selectedTileColor: AppColors.primaryOrange.withOpacity(0.1),
+                      selectedTileColor: AppColors.primaryOrange.withValues(alpha: 0.1),
                     ),
                   );
                 },

@@ -1,6 +1,7 @@
 // lib/widgets/animated_components.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart'; // For HapticFeedback and SystemSound
+import 'package:flutter/scheduler.dart'; // For Ticker and TickerCallback
 
 /// ✅ PRODUCTION READY: Animated UI Components Collection
 /// Provides smooth animations and micro-interactions for better UX
@@ -32,7 +33,7 @@ class AnimatedLoadingIndicators {
               height: size,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: (color ?? Theme.of(context).primaryColor).withOpacity(
+                color: (color ?? Theme.of(context).primaryColor).withValues(alpha: 
                   _createPulseAnimation(
                     duration: duration,
                     delay: Duration(milliseconds: index * 200),
@@ -88,7 +89,7 @@ class AnimatedLoadingIndicators {
             child: CircularProgressIndicator(
               strokeWidth: strokeWidth,
               color: color ?? Theme.of(context).primaryColor,
-              backgroundColor: (color ?? Theme.of(context).primaryColor).withOpacity(0.2),
+              backgroundColor: (color ?? Theme.of(context).primaryColor).withValues(alpha: 0.2),
             ),
           ),
         );
@@ -244,7 +245,7 @@ class _AnimatedButtonState extends State<AnimatedButton>
       }
       
       if (widget.enableSoundFeedback) {
-        SystemSound.play(SystemSound.click);
+        SystemSound.play(SystemSoundType.click);
       }
       
       widget.onPressed!();
@@ -275,7 +276,7 @@ class _AnimatedButtonState extends State<AnimatedButton>
                 borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
                 boxShadow: _isPressed ? [] : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     offset: const Offset(0, 2),
                     blurRadius: 4,
                   ),
@@ -733,13 +734,13 @@ class MicroInteractions {
   
   /// Sound feedback utilities
   static void playClickSound() {
-    SystemSound.play(SystemSound.click);
+    SystemSound.play(SystemSoundType.click);
   }
   
   /// Combined feedback
   static void buttonPress() {
     HapticFeedback.lightImpact();
-    SystemSound.play(SystemSound.click);
+    SystemSound.play(SystemSoundType.click);
   }
   
   static void success() {

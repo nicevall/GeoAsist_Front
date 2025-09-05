@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../models/api_response_model.dart';
 import '../../models/asistencia_model.dart';
 import '../../models/ubicacion_model.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 
 class FirebaseAsistenciaService {
   static final FirebaseAsistenciaService _instance = FirebaseAsistenciaService._internal();
@@ -20,17 +21,17 @@ class FirebaseAsistenciaService {
   
   // Métodos adicionales para compatibilidad
   Future<Map<String, dynamic>?> getQuickSummary() async {
-    debugPrint('💡 getQuickSummary redirigido al backend híbrido');
+    logger.d('💡 getQuickSummary redirigido al backend híbrido');
     return null;
   }
   
   Future<void> refreshAsistencias() async {
-    debugPrint('💡 refreshAsistencias redirigido al backend híbrido');
+    logger.d('💡 refreshAsistencias redirigido al backend híbrido');
   }
   
   // Additional methods for compatibility
   void initializeForUser(String userId) {
-    debugPrint('💡 initializeForUser redirigido al backend híbrido');
+    logger.d('💡 initializeForUser redirigido al backend híbrido');
   }
   
   String get currentUserId => '';
@@ -39,37 +40,37 @@ class FirebaseAsistenciaService {
     try {
       // El backend híbrido maneja las asistencias
       _isInitialized = true;
-      debugPrint('✅ FirebaseAsistenciaService inicializado (modo híbrido)');
+      logger.d('✅ FirebaseAsistenciaService inicializado (modo híbrido)');
     } catch (e) {
-      debugPrint('❌ Error inicializando FirebaseAsistenciaService: $e');
+      logger.d('❌ Error inicializando FirebaseAsistenciaService: $e');
       rethrow;
     }
   }
 
   // Métodos placeholder para compatibilidad
   Future<List<Map<String, dynamic>>> getAsistencias(String userId) async {
-    debugPrint('💡 getAsistencias redirigido al backend híbrido');
+    logger.d('💡 getAsistencias redirigido al backend híbrido');
     return [];
   }
 
   Future<Map<String, dynamic>?> registrarAsistencia(Map<String, dynamic> asistencia) async {
-    debugPrint('💡 registrarAsistencia redirigido al backend híbrido');
+    logger.d('💡 registrarAsistencia redirigido al backend híbrido');
     return null;
   }
 
   Future<bool> updateAsistencia(String asistenciaId, Map<String, dynamic> updates) async {
-    debugPrint('💡 updateAsistencia redirigido al backend híbrido');
+    logger.d('💡 updateAsistencia redirigido al backend híbrido');
     return false;
   }
 
   Future<List<Map<String, dynamic>>> getAsistenciasByEvento(String eventoId) async {
-    debugPrint('💡 getAsistenciasByEvento redirigido al backend híbrido');
+    logger.d('💡 getAsistenciasByEvento redirigido al backend híbrido');
     return [];
   }
 
   // Métodos requeridos por attendance_service_adapter
   Future<ApiResponse<Asistencia?>> checkExistingAttendance(String userId, String eventoId) async {
-    debugPrint('💡 checkExistingAttendance redirigido al backend híbrido');
+    logger.d('💡 checkExistingAttendance redirigido al backend híbrido');
     return ApiResponse<Asistencia?>(
       success: true,
       data: null,
@@ -78,7 +79,7 @@ class FirebaseAsistenciaService {
   }
 
   Future<ApiResponse<Asistencia>> registerAttendance(String userId, String eventoId, Ubicacion ubicacion, String estado) async {
-    debugPrint('💡 registerAttendance redirigido al backend híbrido');
+    logger.d('💡 registerAttendance redirigido al backend híbrido');
     
     final now = DateTime.now();
     
@@ -110,7 +111,7 @@ class FirebaseAsistenciaService {
   }
 
   Future<ApiResponse<List<Asistencia>>> getAttendanceByUser(String userId) async {
-    debugPrint('💡 getAttendanceByUser redirigido al backend híbrido');
+    logger.d('💡 getAttendanceByUser redirigido al backend híbrido');
     return ApiResponse<List<Asistencia>>(
       success: true,
       data: [],
@@ -119,7 +120,7 @@ class FirebaseAsistenciaService {
   }
 
   Future<ApiResponse<List<Asistencia>>> getAttendanceByEvent(String eventoId) async {
-    debugPrint('💡 getAttendanceByEvent redirigido al backend híbrido');
+    logger.d('💡 getAttendanceByEvent redirigido al backend híbrido');
     return ApiResponse<List<Asistencia>>(
       success: true,
       data: [],
@@ -128,7 +129,7 @@ class FirebaseAsistenciaService {
   }
 
   Future<ApiResponse<bool>> updateUserLocation(String userId, Ubicacion ubicacion) async {
-    debugPrint('💡 updateUserLocation redirigido al backend híbrido');
+    logger.d('💡 updateUserLocation redirigido al backend híbrido');
     return ApiResponse<bool>(
       success: true,
       data: true,

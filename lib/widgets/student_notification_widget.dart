@@ -1,5 +1,6 @@
 // lib/widgets/student_notification_widget.dart
 // 🔔 WIDGET PARA MOSTRAR NOTIFICACIONES FLOTANTES DE ESTUDIANTES
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../models/student_notification_model.dart';
@@ -57,7 +58,7 @@ class _StudentNotificationWidgetState extends State<StudentNotificationWidget>
         _notificationService.newNotificationStream.listen(
       _showNotification,
       onError: (error) {
-        debugPrint('❌ Error en stream de notificaciones: $error');
+        logger.d('❌ Error en stream de notificaciones: $error');
       },
     );
   }

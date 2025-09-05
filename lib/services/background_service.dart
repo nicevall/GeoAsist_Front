@@ -1,7 +1,7 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/background_service.dart
 // 🔥 SERVICIO COMPLETO - FOREGROUNDSERVICE NATIVO + WORKMANAGER + LIFECYCLE MANAGEMENT
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:workmanager/workmanager.dart';
 import '../services/notifications/notification_manager.dart';
@@ -60,7 +60,7 @@ class BackgroundService {
     if (_isInitialized) return;
 
     try {
-      debugPrint(
+      logger.d(
           '🚀 Inicializando BackgroundService con ForegroundService nativo');
 
       _notificationManager = NotificationManager();
@@ -76,24 +76,24 @@ class BackgroundService {
       await _checkBatteryOptimizationStatus();
 
       _isInitialized = true;
-      debugPrint('✅ BackgroundService inicializado con soporte nativo');
+      logger.d('✅ BackgroundService inicializado con soporte nativo');
     } catch (e) {
-      debugPrint('❌ Error inicializando BackgroundService: $e');
+      logger.d('❌ Error inicializando BackgroundService: $e');
       rethrow;
     }
   }
 
   Future<void> _initializeWorkManager() async {
     try {
-      debugPrint('⚙️ Configurando WorkManager');
+      logger.d('⚙️ Configurando WorkManager');
 
       await Workmanager().initialize(
         callbackDispatcher,
       );
 
-      debugPrint('✅ WorkManager configurado');
+      logger.d('✅ WorkManager configurado');
     } catch (e) {
-      debugPrint('❌ Error configurando WorkManager: $e');
+      logger.d('❌ Error configurando WorkManager: $e');
       rethrow;
     }
   }
@@ -106,10 +106,10 @@ class BackgroundService {
     required String eventId,
   }) async {
     try {
-      debugPrint('🚀 Iniciando ForegroundService nativo completo');
+      logger.d('🚀 Iniciando ForegroundService nativo completo');
 
       if (_isForegroundServiceActive) {
-        debugPrint('⚠️ ForegroundService ya está activo');
+        logger.d('⚠️ ForegroundService ya está activo');
         return;
       }
 
@@ -120,7 +120,7 @@ class BackgroundService {
       // 2. 🔥 NUEVO: Iniciar ForegroundService nativo de Android
       final nativeSuccess = await _startNativeForegroundService();
       if (!nativeSuccess) {
-        debugPrint('❌ No se pudo iniciar ForegroundService nativo');
+        logger.d('❌ No se pudo iniciar ForegroundService nativo');
         // Continuar con WorkManager aunque falle el nativo
       }
 
@@ -142,9 +142,9 @@ class BackgroundService {
       _isForegroundServiceActive = true;
       _lastHeartbeat = DateTime.now();
 
-      debugPrint('✅ ForegroundService COMPLETO iniciado (Nativo + Flutter)');
+      logger.d('✅ ForegroundService COMPLETO iniciado (Nativo + Flutter)');
     } catch (e) {
-      debugPrint('❌ Error iniciando ForegroundService completo: $e');
+      logger.d('❌ Error iniciando ForegroundService completo: $e');
       rethrow;
     }
   }
@@ -152,7 +152,7 @@ class BackgroundService {
   /// 🔥 NUEVO: Iniciar el ForegroundService nativo de Android
   Future<bool> _startNativeForegroundService() async {
     try {
-      debugPrint('📱 Iniciando ForegroundService nativo de Android');
+      logger.d('📱 Iniciando ForegroundService nativo de Android');
 
       final success =
           await _nativeChannel.invokeMethod<bool>('startForegroundService') ??
@@ -160,14 +160,14 @@ class BackgroundService {
 
       if (success) {
         _isNativeForegroundActive = true;
-        debugPrint('✅ ForegroundService nativo iniciado exitosamente');
+        logger.d('✅ ForegroundService nativo iniciado exitosamente');
       } else {
-        debugPrint('❌ ForegroundService nativo falló al iniciar');
+        logger.d('❌ ForegroundService nativo falló al iniciar');
       }
 
       return success;
     } catch (e) {
-      debugPrint('❌ Error comunicándose con ForegroundService nativo: $e');
+      logger.d('❌ Error comunicándose con ForegroundService nativo: $e');
       return false;
     }
   }
@@ -175,7 +175,7 @@ class BackgroundService {
   /// Detener ForegroundService nativo + WorkManager
   Future<void> stopForegroundService() async {
     try {
-      debugPrint('🛑 Deteniendo ForegroundService completo');
+      logger.d('🛑 Deteniendo ForegroundService completo');
 
       // 1. 🔥 NUEVO: Detener ForegroundService nativo
       await _stopNativeForegroundService();
@@ -202,9 +202,9 @@ class BackgroundService {
       _currentEventId = null;
       _lastHeartbeat = null;
 
-      debugPrint('✅ ForegroundService COMPLETO detenido');
+      logger.d('✅ ForegroundService COMPLETO detenido');
     } catch (e) {
-      debugPrint('❌ Error deteniendo ForegroundService: $e');
+      logger.d('❌ Error deteniendo ForegroundService: $e');
     }
   }
 
@@ -213,26 +213,26 @@ class BackgroundService {
     try {
       if (!_isNativeForegroundActive) return;
 
-      debugPrint('📱 Deteniendo ForegroundService nativo de Android');
+      logger.d('📱 Deteniendo ForegroundService nativo de Android');
 
       await _nativeChannel.invokeMethod('stopForegroundService');
       _isNativeForegroundActive = false;
 
-      debugPrint('✅ ForegroundService nativo detenido');
+      logger.d('✅ ForegroundService nativo detenido');
     } catch (e) {
-      debugPrint('❌ Error deteniendo ForegroundService nativo: $e');
+      logger.d('❌ Error deteniendo ForegroundService nativo: $e');
     }
   }
 
   Future<void> _createPersistentTrackingNotification() async {
     try {
-      debugPrint('📱 Creando notificación persistente');
+      logger.d('📱 Creando notificación persistente');
 
       await _notificationManager.showTrackingActiveNotification();
 
-      debugPrint('✅ Notificación persistente creada');
+      logger.d('✅ Notificación persistente creada');
     } catch (e) {
-      debugPrint('❌ Error creando notificación persistente: $e');
+      logger.d('❌ Error creando notificación persistente: $e');
       rethrow;
     }
   }
@@ -244,17 +244,17 @@ class BackgroundService {
     try {
       if (_isWakeLockActive) return;
 
-      debugPrint('🔋 Activando Wake Lock nativo (Android permissions)');
+      logger.d('🔋 Activando Wake Lock nativo (Android permissions)');
 
       // El permiso WAKE_LOCK ya está en AndroidManifest.xml
       // El sistema Android gestiona automáticamente el wake lock
       // con ForegroundService + WorkManager
       _isWakeLockActive = true;
 
-      debugPrint(
+      logger.d(
           '✅ Wake Lock nativo activado - CPU mantenida activa por sistema');
     } catch (e) {
-      debugPrint('❌ Error activando Wake Lock nativo: $e');
+      logger.d('❌ Error activando Wake Lock nativo: $e');
       // No es crítico, continuamos sin wake lock específico
     }
   }
@@ -264,15 +264,15 @@ class BackgroundService {
     try {
       if (!_isWakeLockActive) return;
 
-      debugPrint('🔋 Desactivando Wake Lock nativo');
+      logger.d('🔋 Desactivando Wake Lock nativo');
 
       // El sistema Android libera automáticamente el wake lock
       // cuando se detiene el ForegroundService
       _isWakeLockActive = false;
 
-      debugPrint('✅ Wake Lock nativo desactivado');
+      logger.d('✅ Wake Lock nativo desactivado');
     } catch (e) {
-      debugPrint('❌ Error desactivando Wake Lock nativo: $e');
+      logger.d('❌ Error desactivando Wake Lock nativo: $e');
     }
   }
 
@@ -281,21 +281,21 @@ class BackgroundService {
   /// Verificar y solicitar exención de optimización de batería
   Future<void> _checkBatteryOptimizationStatus() async {
     try {
-      debugPrint('🔋 Verificando optimización de batería');
+      logger.d('🔋 Verificando optimización de batería');
 
       final isIgnored = await _nativeChannel
               .invokeMethod<bool>('isBatteryOptimizationIgnored') ??
           false;
 
       if (!isIgnored) {
-        debugPrint('⚡ Solicitando exención de optimización de batería');
+        logger.d('⚡ Solicitando exención de optimización de batería');
         await _nativeChannel
             .invokeMethod('requestBatteryOptimizationExemption');
       } else {
-        debugPrint('✅ App ya está exenta de optimización de batería');
+        logger.d('✅ App ya está exenta de optimización de batería');
       }
     } catch (e) {
-      debugPrint('❌ Error verificando battery optimization: $e');
+      logger.d('❌ Error verificando battery optimization: $e');
     }
   }
 
@@ -304,13 +304,13 @@ class BackgroundService {
     try {
       if (!_isNativeForegroundActive) return;
 
-      debugPrint('📱 Actualizando notificación nativa: $status');
+      logger.d('📱 Actualizando notificación nativa: $status');
 
       await _nativeChannel.invokeMethod('updateNotificationStatus', {
         'status': status,
       });
     } catch (e) {
-      debugPrint('❌ Error actualizando notificación nativa: $e');
+      logger.d('❌ Error actualizando notificación nativa: $e');
     }
   }
 
@@ -318,7 +318,7 @@ class BackgroundService {
   Future<void> _startGracePeriod() async {
     if (_isInGracePeriod) return;
 
-    debugPrint('⏳ Iniciando grace period de 30 segundos');
+    logger.d('⏳ Iniciando grace period de 30 segundos');
 
     _isInGracePeriod = true;
     _gracePeriodSeconds = 30;
@@ -350,7 +350,7 @@ class BackgroundService {
   void _cancelGracePeriod() {
     if (!_isInGracePeriod) return;
 
-    debugPrint('✅ Cancelando grace period - App reactivada');
+    logger.d('✅ Cancelando grace period - App reactivada');
 
     _gracePeriodTimer?.cancel();
     _gracePeriodTimer = null;
@@ -366,7 +366,7 @@ class BackgroundService {
   /// Registrar todas las tareas de background
   Future<void> _registerBackgroundTasks() async {
     try {
-      debugPrint('📋 Registrando tareas de background');
+      logger.d('📋 Registrando tareas de background');
 
       // 1. Tarea principal de tracking
       await _registerTrackingTask();
@@ -380,9 +380,9 @@ class BackgroundService {
       // 4. Tarea de monitoreo de lifecycle
       await _registerLifecycleMonitorTask();
 
-      debugPrint('✅ Todas las tareas de background registradas');
+      logger.d('✅ Todas las tareas de background registradas');
     } catch (e) {
-      debugPrint('❌ Error registrando tareas: $e');
+      logger.d('❌ Error registrando tareas: $e');
       rethrow;
     }
   }
@@ -406,7 +406,7 @@ class BackgroundService {
       },
     );
 
-    debugPrint('📍 Tarea de tracking registrada');
+    logger.d('📍 Tarea de tracking registrada');
   }
 
   Future<void> _registerHeartbeatTask() async {
@@ -424,7 +424,7 @@ class BackgroundService {
       },
     );
 
-    debugPrint('💓 Tarea de heartbeat registrada');
+    logger.d('💓 Tarea de heartbeat registrada');
   }
 
   Future<void> _registerLocationUpdateTask() async {
@@ -442,7 +442,7 @@ class BackgroundService {
       },
     );
 
-    debugPrint('🌍 Tarea de ubicación registrada');
+    logger.d('🌍 Tarea de ubicación registrada');
   }
 
   Future<void> _registerLifecycleMonitorTask() async {
@@ -457,22 +457,22 @@ class BackgroundService {
       },
     );
 
-    debugPrint('🔄 Tarea de lifecycle registrada');
+    logger.d('🔄 Tarea de lifecycle registrada');
   }
 
   /// Cancelar todas las tareas de background
   Future<void> _cancelAllBackgroundTasks() async {
     try {
-      debugPrint('🚫 Cancelando todas las tareas de background');
+      logger.d('🚫 Cancelando todas las tareas de background');
 
       await Workmanager().cancelByUniqueName(_trackingTaskName);
       await Workmanager().cancelByUniqueName(_heartbeatTaskName);
       await Workmanager().cancelByUniqueName(_locationUpdateTaskName);
       await Workmanager().cancelByUniqueName(_lifecycleMonitorTaskName);
 
-      debugPrint('✅ Todas las tareas canceladas');
+      logger.d('✅ Todas las tareas canceladas');
     } catch (e) {
-      debugPrint('❌ Error cancelando tareas: $e');
+      logger.d('❌ Error cancelando tareas: $e');
     }
   }
 
@@ -480,7 +480,7 @@ class BackgroundService {
 
   /// Iniciar timers críticos del foreground
   void _startCriticalTimers() {
-    debugPrint('⏰ Iniciando timers críticos');
+    logger.d('⏰ Iniciando timers críticos');
 
     // Heartbeat cada 30 segundos (complementa WorkManager)
     _heartbeatTimer = Timer.periodic(
@@ -506,12 +506,12 @@ class BackgroundService {
       },
     );
 
-    debugPrint('✅ Timers críticos iniciados');
+    logger.d('✅ Timers críticos iniciados');
   }
 
   /// Detener timers críticos
   void _stopCriticalTimers() {
-    debugPrint('⏰ Deteniendo timers críticos');
+    logger.d('⏰ Deteniendo timers críticos');
 
     _heartbeatTimer?.cancel();
     _locationTimer?.cancel();
@@ -521,7 +521,7 @@ class BackgroundService {
     _locationTimer = null;
     _lifecycleTimer = null;
 
-    debugPrint('✅ Timers detenidos');
+    logger.d('✅ Timers detenidos');
   }
 
   // 🎯 EJECUCIÓN DE TAREAS - MEJORADAS
@@ -530,11 +530,11 @@ class BackgroundService {
   Future<void> _performHeartbeat() async {
     try {
       if (_currentUserId == null || _currentEventId == null) {
-        debugPrint('⚠️ Heartbeat cancelado - Sin usuario/evento activo');
+        logger.d('⚠️ Heartbeat cancelado - Sin usuario/evento activo');
         return;
       }
 
-      debugPrint(
+      logger.d(
           '💓 Enviando heartbeat crítico mejorado (#$_totalHeartbeatsSent)');
 
       // 1. ✅ NUEVO: Obtener ubicación real para heartbeat si está disponible
@@ -570,9 +570,9 @@ class BackgroundService {
       await updateNativeNotificationStatus('💓 Heartbeat OK $timeString');
       await _notificationManager.updateTrackingNotificationStatus(
           'Heartbeat #$_totalHeartbeatsSent - $timeString');
-      debugPrint('💓 Heartbeat #$_totalHeartbeatsSent enviado exitosamente');
+      logger.d('💓 Heartbeat #$_totalHeartbeatsSent enviado exitosamente');
     } catch (e) {
-      debugPrint('❌ Error crítico en heartbeat #$_totalHeartbeatsSent: $e');
+      logger.d('❌ Error crítico en heartbeat #$_totalHeartbeatsSent: $e');
       await _handleHeartbeatFailure(e.toString());
     }
   }
@@ -588,7 +588,7 @@ class BackgroundService {
         'accuracy': null,
       };
     } catch (e) {
-      debugPrint('⚠️ Error obteniendo ubicación para heartbeat: $e');
+      logger.d('⚠️ Error obteniendo ubicación para heartbeat: $e');
       return {'latitude': null, 'longitude': null, 'accuracy': null};
     }
   }
@@ -599,13 +599,13 @@ class BackgroundService {
     try {
       if (responseData == null) return;
 
-      debugPrint('📊 Procesando respuesta de heartbeat exitoso');
+      logger.d('📊 Procesando respuesta de heartbeat exitoso');
 
       // 1. ✅ Verificar si el evento sigue activo según el backend
       final eventStillActive =
           responseData['eventoActivo'] ?? responseData['eventActive'] ?? true;
       if (!eventStillActive) {
-        debugPrint('🏁 Backend reporta evento terminado - deteniendo tracking');
+        logger.d('🏁 Backend reporta evento terminado - deteniendo tracking');
         await _handleEventEndedByBackend();
         return;
       }
@@ -614,7 +614,7 @@ class BackgroundService {
       final attendanceStatus = responseData['estadoAsistencia'] ??
           responseData['attendanceStatus'] as String?;
       if (attendanceStatus == 'lost' || attendanceStatus == 'ausente') {
-        debugPrint(
+        logger.d(
             '❌ Backend reporta asistencia perdida - activando protocolo');
         await triggerAttendanceLossProtocol(
             'Backend reportó pérdida de asistencia');
@@ -625,7 +625,7 @@ class BackgroundService {
       final inBreak =
           responseData['enReceso'] ?? responseData['inBreak'] ?? false;
       if (inBreak) {
-        debugPrint('⏸️ Backend reporta receso activo');
+        logger.d('⏸️ Backend reporta receso activo');
         await _notificationManager.showBreakStartedNotification();
       }
 
@@ -640,10 +640,10 @@ class BackgroundService {
       final metrics = responseData['metricas'] ??
           responseData['metrics'] as Map<String, dynamic>?;
       if (metrics != null) {
-        debugPrint('📈 Métricas recibidas del backend: ${metrics.keys}');
+        logger.d('📈 Métricas recibidas del backend: ${metrics.keys}');
       }
     } catch (e) {
-      debugPrint('⚠️ Error procesando respuesta de heartbeat: $e');
+      logger.d('⚠️ Error procesando respuesta de heartbeat: $e');
     }
   }
 
@@ -651,19 +651,19 @@ class BackgroundService {
     try {
       if (_currentUserId == null || _currentEventId == null) return;
 
-      debugPrint('🌍 Actualizando ubicación desde timer');
+      logger.d('🌍 Actualizando ubicación desde timer');
 
       // En una implementación real, aquí se obtendría la ubicación GPS
       // y se enviaría al backend
     } catch (e) {
-      debugPrint('❌ Error actualizando ubicación: $e');
+      logger.d('❌ Error actualizando ubicación: $e');
     }
   }
 
   /// 🔥 MODIFICADO: Lifecycle check con validación nativa
   Future<void> _performLifecycleCheck() async {
     try {
-      debugPrint('🔄 Verificando estado de app lifecycle');
+      logger.d('🔄 Verificando estado de app lifecycle');
 
       // Verificar que ambos servicios siguen activos
       if (_isForegroundServiceActive && _lastHeartbeat != null) {
@@ -671,7 +671,7 @@ class BackgroundService {
             DateTime.now().difference(_lastHeartbeat!);
 
         if (timeSinceLastHeartbeat.inSeconds > 60) {
-          debugPrint('⚠️ Heartbeat perdido - reiniciando');
+          logger.d('⚠️ Heartbeat perdido - reiniciando');
           await _performHeartbeat();
         }
 
@@ -681,7 +681,7 @@ class BackgroundService {
         }
       }
     } catch (e) {
-      debugPrint('❌ Error en lifecycle check: $e');
+      logger.d('❌ Error en lifecycle check: $e');
     }
   }
 
@@ -690,9 +690,9 @@ class BackgroundService {
     _consecutiveHeartbeatFailures++;
     _totalHeartbeatFailures++;
 
-    debugPrint(
+    logger.d(
         '💔 Fallo de heartbeat #$_consecutiveHeartbeatFailures/$_maxConsecutiveFailures');
-    debugPrint('💔 Error: $error');
+    logger.d('💔 Error: $error');
 
     // 1. ✅ Actualizar tus notificaciones existentes
     await updateNativeNotificationStatus(
@@ -701,12 +701,12 @@ class BackgroundService {
 
     // 2. ✅ Escalación según número de fallos consecutivos
     if (_consecutiveHeartbeatFailures == 1) {
-      debugPrint('⚠️ Primer fallo de heartbeat - monitoreando...');
+      logger.d('⚠️ Primer fallo de heartbeat - monitoreando...');
     } else if (_consecutiveHeartbeatFailures == 2) {
-      debugPrint('🚨 Segundo fallo de heartbeat - advertencia crítica');
+      logger.d('🚨 Segundo fallo de heartbeat - advertencia crítica');
       await _notificationManager.showCriticalAppLifecycleWarning();
     } else if (_consecutiveHeartbeatFailures >= _maxConsecutiveFailures) {
-      debugPrint(
+      logger.d(
           '❌ FALLOS CRÍTICOS DE HEARTBEAT - Activando protocolo de pérdida');
       _isHeartbeatCriticalFailure = true;
 
@@ -728,27 +728,27 @@ class BackgroundService {
   /// 🔥 NUEVO: Intentar recuperación automática del heartbeat
   Future<void> _attemptHeartbeatRecovery() async {
     try {
-      debugPrint('🔄 Intentando recuperación automática de heartbeat...');
+      logger.d('🔄 Intentando recuperación automática de heartbeat...');
 
       // 1. ✅ Verificar conectividad usando tu AsistenciaService mejorado
       final isConnected = await _asistenciaService.testConnection();
       if (!isConnected.success) {
-        debugPrint('❌ Sin conectividad - no se puede recuperar heartbeat');
+        logger.d('❌ Sin conectividad - no se puede recuperar heartbeat');
         return;
       }
 
       // 2. ✅ Verificar que tus servicios básicos funcionen
       final servicesHealthy = await _validateCoreServices();
       if (!servicesHealthy) {
-        debugPrint('❌ Servicios core no están saludables');
+        logger.d('❌ Servicios core no están saludables');
         return;
       }
 
       // 3. ✅ Reintentrar heartbeat inmediatamente
-      debugPrint('🔄 Reintentando heartbeat después de fallo...');
+      logger.d('🔄 Reintentando heartbeat después de fallo...');
       await _performHeartbeat();
     } catch (e) {
-      debugPrint('❌ Error en recuperación de heartbeat: $e');
+      logger.d('❌ Error en recuperación de heartbeat: $e');
     }
   }
 
@@ -763,10 +763,10 @@ class BackgroundService {
       final allServicesOk =
           asistenciaServiceOk && notificationManagerOk && nativeServiceOk;
 
-      debugPrint('🔍 Validación servicios core: $allServicesOk');
+      logger.d('🔍 Validación servicios core: $allServicesOk');
       return allServicesOk;
     } catch (e) {
-      debugPrint('❌ Error validando servicios core: $e');
+      logger.d('❌ Error validando servicios core: $e');
       return false;
     }
   }
@@ -778,7 +778,7 @@ class BackgroundService {
         if (command is! Map<String, dynamic>) continue;
 
         final commandType = command['type'] as String?;
-        debugPrint('📨 Procesando comando del backend: $commandType');
+        logger.d('📨 Procesando comando del backend: $commandType');
 
         switch (commandType) {
           case 'start_break':
@@ -797,17 +797,17 @@ class BackgroundService {
             }
             break;
           default:
-            debugPrint('⚠️ Comando desconocido del backend: $commandType');
+            logger.d('⚠️ Comando desconocido del backend: $commandType');
         }
       }
     } catch (e) {
-      debugPrint('❌ Error procesando comandos del backend: $e');
+      logger.d('❌ Error procesando comandos del backend: $e');
     }
   }
 
   /// 🔥 NUEVO: Manejar evento terminado por el backend
   Future<void> _handleEventEndedByBackend() async {
-    debugPrint('🏁 El backend reporta que el evento ha terminado');
+    logger.d('🏁 El backend reporta que el evento ha terminado');
 
     await _notificationManager
         .showEventEndedNotification(_currentEventId ?? '');
@@ -823,18 +823,18 @@ class BackgroundService {
       await updateNativeNotificationStatus(
           status); // 🔥 NUEVO: Actualizar ambas
     } catch (e) {
-      debugPrint('❌ Error actualizando notificación: $e');
+      logger.d('❌ Error actualizando notificación: $e');
     }
   }
 
   /// Mostrar notificación de advertencia crítica
   Future<void> showCriticalAppLifecycleWarning() async {
     try {
-      debugPrint('🚨 Mostrando advertencia crítica de lifecycle');
+      logger.d('🚨 Mostrando advertencia crítica de lifecycle');
 
       await _notificationManager.showCriticalAppLifecycleWarning();
     } catch (e) {
-      debugPrint('❌ Error mostrando advertencia crítica: $e');
+      logger.d('❌ Error mostrando advertencia crítica: $e');
     }
   }
 
@@ -842,7 +842,7 @@ class BackgroundService {
 
   /// Manejar eventos de lifecycle de la aplicación
   Future<void> handleAppLifecycleEvents(String state) async {
-    debugPrint('📱 App lifecycle cambió a: $state');
+    logger.d('📱 App lifecycle cambió a: $state');
 
     switch (state) {
       case 'resumed':
@@ -865,7 +865,7 @@ class BackgroundService {
 
   /// 🔥 MODIFICADO: App resumed con grace period
   Future<void> _handleAppResumed() async {
-    debugPrint('✅ App resumed - Cancelando grace period');
+    logger.d('✅ App resumed - Cancelando grace period');
 
     // 🔥 NUEVO: Cancelar grace period si estaba activo
     if (_isInGracePeriod) {
@@ -881,7 +881,7 @@ class BackgroundService {
 
   /// 🔥 MODIFICADO: App paused con grace period
   Future<void> _handleAppPaused() async {
-    debugPrint('⏸️ App paused - Iniciando grace period');
+    logger.d('⏸️ App paused - Iniciando grace period');
 
     if (_isForegroundServiceActive) {
       await updateNativeNotificationStatus('Tracking en Background');
@@ -893,18 +893,18 @@ class BackgroundService {
 
   /// 🔥 MODIFICADO: App detached sin grace period
   Future<void> _handleAppDetached() async {
-    debugPrint('❌ App detached - Activando protocolo de pérdida inmediata');
+    logger.d('❌ App detached - Activando protocolo de pérdida inmediata');
 
     // 🔥 NUEVO: Sin grace period para detached
     await triggerAttendanceLossProtocol('App cerrada completamente');
   }
 
   Future<void> _handleAppInactive() async {
-    debugPrint('⚠️ App inactive - Monitoreando...');
+    logger.d('⚠️ App inactive - Monitoreando...');
   }
 
   Future<void> _handleAppHidden() async {
-    debugPrint('🙈 App hidden - Tracking pausado temporalmente');
+    logger.d('🙈 App hidden - Tracking pausado temporalmente');
 
     if (_isForegroundServiceActive) {
       await _updateTrackingNotificationStatus('Tracking Pausado');
@@ -914,7 +914,7 @@ class BackgroundService {
   /// 🔥 ACTUALIZAR tu método triggerAttendanceLossProtocol() existente:
   Future<void> triggerAttendanceLossProtocol(String reason) async {
     try {
-      debugPrint('❌ ACTIVANDO PROTOCOLO DE PÉRDIDA: $reason');
+      logger.d('❌ ACTIVANDO PROTOCOLO DE PÉRDIDA: $reason');
 
       if (_currentUserId != null && _currentEventId != null) {
         // ✅ Usar tu AsistenciaService mejorado
@@ -929,9 +929,9 @@ class BackgroundService {
       await stopForegroundService();
       await _notificationManager.clearAllNotifications();
 
-      debugPrint('✅ Protocolo de pérdida ejecutado');
+      logger.d('✅ Protocolo de pérdida ejecutado');
     } catch (e) {
-      debugPrint('❌ Error en protocolo de pérdida: $e');
+      logger.d('❌ Error en protocolo de pérdida: $e');
     }
   }
 
@@ -940,7 +940,7 @@ class BackgroundService {
   /// 🔥 ACTUALIZAR tu método setupTrackingForEvent() existente:
   Future<void> setupTrackingForEvent(String eventId, String userId) async {
     try {
-      debugPrint('⚙️ Configurando tracking para evento: $eventId');
+      logger.d('⚙️ Configurando tracking para evento: $eventId');
 
       _currentEventId = eventId;
       _currentUserId = userId;
@@ -953,9 +953,9 @@ class BackgroundService {
         await _registerBackgroundTasks();
       }
 
-      debugPrint('✅ Tracking configurado para evento: $eventId');
+      logger.d('✅ Tracking configurado para evento: $eventId');
     } catch (e) {
-      debugPrint('❌ Error configurando tracking: $e');
+      logger.d('❌ Error configurando tracking: $e');
       rethrow;
     }
   }
@@ -1024,7 +1024,7 @@ class BackgroundService {
 
   /// 🔥 NUEVO: Reset de estadísticas de heartbeat (para nuevos eventos)
   void resetHeartbeatStatistics() {
-    debugPrint('🔄 Reseteando estadísticas de heartbeat');
+    logger.d('🔄 Reseteando estadísticas de heartbeat');
 
     _consecutiveHeartbeatFailures = 0;
     _totalHeartbeatsSent = 0;
@@ -1043,7 +1043,7 @@ class BackgroundService {
 
   /// Limpiar configuración
   void clearConfiguration() {
-    debugPrint('🧹 Limpiando configuración de BackgroundService');
+    logger.d('🧹 Limpiando configuración de BackgroundService');
 
     _currentEventId = null;
     _currentUserId = null;
@@ -1052,7 +1052,7 @@ class BackgroundService {
   /// Reiniciar servicio completo
   Future<void> restart() async {
     try {
-      debugPrint('🔄 Reiniciando BackgroundService');
+      logger.d('🔄 Reiniciando BackgroundService');
 
       await stopForegroundService();
       await Future.delayed(const Duration(seconds: 2));
@@ -1064,9 +1064,9 @@ class BackgroundService {
         );
       }
 
-      debugPrint('✅ BackgroundService reiniciado');
+      logger.d('✅ BackgroundService reiniciado');
     } catch (e) {
-      debugPrint('❌ Error reiniciando servicio: $e');
+      logger.d('❌ Error reiniciando servicio: $e');
       rethrow;
     }
   }
@@ -1079,8 +1079,8 @@ class BackgroundService {
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
-      debugPrint('🔄 Ejecutando tarea de background: $task');
-      debugPrint('📦 Datos de entrada: $inputData');
+      logger.d('🔄 Ejecutando tarea de background: $task');
+      logger.d('📦 Datos de entrada: $inputData');
 
       // Obtener tipo de tarea
       final taskType = inputData?['task_type'] as String?;
@@ -1088,7 +1088,7 @@ void callbackDispatcher() {
       final userId = inputData?['user_id'] as String?;
 
       if (taskType == null || eventId == null || userId == null) {
-        debugPrint('❌ Datos insuficientes para ejecutar tarea');
+        logger.d('❌ Datos insuficientes para ejecutar tarea');
         return Future.value(false);
       }
 
@@ -1107,14 +1107,14 @@ void callbackDispatcher() {
           await _executeLifecycleMonitorTask(eventId, userId);
           break;
         default:
-          debugPrint('❌ Tipo de tarea desconocido: $taskType');
+          logger.d('❌ Tipo de tarea desconocido: $taskType');
           return Future.value(false);
       }
 
-      debugPrint('✅ Tarea completada: $task');
+      logger.d('✅ Tarea completada: $task');
       return Future.value(true);
     } catch (e) {
-      debugPrint('❌ Error ejecutando tarea de background: $e');
+      logger.d('❌ Error ejecutando tarea de background: $e');
       return Future.value(false);
     }
   });
@@ -1124,30 +1124,30 @@ void callbackDispatcher() {
 
 Future<void> _executeTrackingTask(String eventId, String userId) async {
   try {
-    debugPrint('📍 Ejecutando tarea de tracking');
+    logger.d('📍 Ejecutando tarea de tracking');
 
     // Verificar que el tracking sigue siendo necesario
     final storageService = StorageService();
     final user = await storageService.getUser();
 
     if (user?.id != userId) {
-      debugPrint('⚠️ Usuario cambió, cancelando tracking');
+      logger.d('⚠️ Usuario cambió, cancelando tracking');
       return;
     }
 
     // Realizar verificaciones de tracking
     await _performBackgroundTrackingCheck(eventId, userId);
 
-    debugPrint('✅ Tarea de tracking completada');
+    logger.d('✅ Tarea de tracking completada');
   } catch (e) {
-    debugPrint('❌ Error en tarea de tracking: $e');
+    logger.d('❌ Error en tarea de tracking: $e');
     rethrow;
   }
 }
 
 Future<void> _executeHeartbeatTask(String eventId, String userId) async {
   try {
-    debugPrint('💓 Ejecutando tarea de heartbeat');
+    logger.d('💓 Ejecutando tarea de heartbeat');
 
     final asistenciaService = AsistenciaService();
 
@@ -1159,16 +1159,16 @@ Future<void> _executeHeartbeatTask(String eventId, String userId) async {
       longitud: 0.0,
     );
 
-    debugPrint('✅ Heartbeat enviado desde background');
+    logger.d('✅ Heartbeat enviado desde background');
   } catch (e) {
-    debugPrint('❌ Error en heartbeat background: $e');
+    logger.d('❌ Error en heartbeat background: $e');
     rethrow;
   }
 }
 
 Future<void> _executeLocationUpdateTask(String eventId, String userId) async {
   try {
-    debugPrint('🌍 Ejecutando tarea de actualización de ubicación');
+    logger.d('🌍 Ejecutando tarea de actualización de ubicación');
 
     // En una implementación real, aquí se obtendría la ubicación GPS actual
     // y se enviaría al backend usando AsistenciaService
@@ -1183,16 +1183,16 @@ Future<void> _executeLocationUpdateTask(String eventId, String userId) async {
       longitud: 0.0,
     );
 
-    debugPrint('✅ Ubicación actualizada desde background');
+    logger.d('✅ Ubicación actualizada desde background');
   } catch (e) {
-    debugPrint('❌ Error actualizando ubicación background: $e');
+    logger.d('❌ Error actualizando ubicación background: $e');
     rethrow;
   }
 }
 
 Future<void> _executeLifecycleMonitorTask(String eventId, String userId) async {
   try {
-    debugPrint('🔄 Ejecutando tarea de monitoreo de lifecycle');
+    logger.d('🔄 Ejecutando tarea de monitoreo de lifecycle');
 
     // Verificar que la app no haya sido terminada abruptamente
     final notificationManager = NotificationManager();
@@ -1201,9 +1201,9 @@ Future<void> _executeLifecycleMonitorTask(String eventId, String userId) async {
     await notificationManager.updateTrackingNotificationStatus(
         'Background Activo - ${DateTime.now().toString().substring(11, 19)}');
 
-    debugPrint('✅ Monitoreo de lifecycle completado');
+    logger.d('✅ Monitoreo de lifecycle completado');
   } catch (e) {
-    debugPrint('❌ Error en monitoreo lifecycle: $e');
+    logger.d('❌ Error en monitoreo lifecycle: $e');
     rethrow;
   }
 }
@@ -1211,7 +1211,7 @@ Future<void> _executeLifecycleMonitorTask(String eventId, String userId) async {
 Future<void> _performBackgroundTrackingCheck(
     String eventId, String userId) async {
   try {
-    debugPrint('🔍 Verificando estado de tracking en background');
+    logger.d('🔍 Verificando estado de tracking en background');
 
     final asistenciaService = AsistenciaService();
 
@@ -1220,21 +1220,21 @@ Future<void> _performBackgroundTrackingCheck(
         await asistenciaService.validarEstadoAsistencia(userId, eventId);
 
     if (estado == null) {
-      debugPrint('⚠️ No hay asistencia registrada para verificar');
+      logger.d('⚠️ No hay asistencia registrada para verificar');
       return;
     }
 
     if (estado == 'ausente') {
-      debugPrint('❌ Usuario ya marcado como ausente, deteniendo tracking');
+      logger.d('❌ Usuario ya marcado como ausente, deteniendo tracking');
 
       // Cancelar todas las tareas si ya está ausente
       await Workmanager().cancelAll();
       return;
     }
 
-    debugPrint('✅ Estado de tracking verificado: $estado');
+    logger.d('✅ Estado de tracking verificado: $estado');
   } catch (e) {
-    debugPrint('❌ Error verificando tracking: $e');
+    logger.d('❌ Error verificando tracking: $e');
     rethrow;
   }
 }
@@ -1248,7 +1248,7 @@ Future<bool> isWorkManagerHealthy() async {
     // Por ahora, simplemente retornamos true
     return true;
   } catch (e) {
-    debugPrint('❌ Error verificando WorkManager: $e');
+    logger.d('❌ Error verificando WorkManager: $e');
     return false;
   }
 }
@@ -1265,7 +1265,7 @@ Future<Map<String, dynamic>> getBackgroundTaskStats() async {
       'average_execution_time': 0,
     };
   } catch (e) {
-    debugPrint('❌ Error obteniendo estadísticas: $e');
+    logger.d('❌ Error obteniendo estadísticas: $e');
     return {'error': e.toString()};
   }
 }
@@ -1273,15 +1273,15 @@ Future<Map<String, dynamic>> getBackgroundTaskStats() async {
 /// Cleanup de recursos al terminar
 Future<void> cleanupBackgroundResources() async {
   try {
-    debugPrint('🧹 Limpiando recursos de background');
+    logger.d('🧹 Limpiando recursos de background');
 
     // Cancelar todas las tareas de WorkManager
     await Workmanager().cancelAll();
 
     // El sistema Android libera automáticamente los recursos al terminar ForegroundService
 
-    debugPrint('✅ Recursos de background limpiados');
+    logger.d('✅ Recursos de background limpiados');
   } catch (e) {
-    debugPrint('❌ Error limpiando recursos: $e');
+    logger.d('❌ Error limpiando recursos: $e');
   }
 }

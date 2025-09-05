@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/available_events_screen.dart - INTEGRACIÓN COMPLETA EVENTOS-ASISTENCIA
 import 'package:flutter/material.dart';
 import 'dart:math';
@@ -40,7 +41,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
     setState(() => _isValidatingPermissions = true);
 
     try {
-      debugPrint('🎯 Uniéndose al evento: ${evento.titulo}');
+      logger.d('🎯 Uniéndose al evento: ${evento.titulo}');
       
       // 1. Validar datos del evento
       if (evento.id == null || evento.id!.isEmpty) {
@@ -64,7 +65,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
       await _showEventJoinDialog(evento);
       
     } catch (e) {
-      debugPrint('❌ Error joining event: $e');
+      logger.d('❌ Error joining event: $e');
       AppRouter.showSnackBar(
         '❌ Error accediendo al evento. Verifica tus permisos de ubicación.', 
         isError: true
@@ -83,14 +84,14 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
       // Cargar usuario actual
       _currentUser = await _storageService.getUser();
       
-      debugPrint('📋 Cargando eventos disponibles...');
+      logger.d('📋 Cargando eventos disponibles...');
       final eventos = await _eventoService.obtenerEventos();
       
-      debugPrint('✅ Eventos cargados: ${eventos.length}');
+      logger.d('✅ Eventos cargados: ${eventos.length}');
       for (var evento in eventos) {
-        debugPrint('📅 Evento: ${evento.titulo} - ID: ${evento.id} - Activo: ${evento.isActive}');
-        debugPrint('📍 Ubicación: ${evento.ubicacion.latitud}, ${evento.ubicacion.longitud}');
-        debugPrint('🎯 Rango: ${evento.rangoPermitido}m');
+        logger.d('📅 Evento: ${evento.titulo} - ID: ${evento.id} - Activo: ${evento.isActive}');
+        logger.d('📍 Ubicación: ${evento.ubicacion.latitud}, ${evento.ubicacion.longitud}');
+        logger.d('🎯 Rango: ${evento.rangoPermitido}m');
       }
       
       setState(() {
@@ -102,7 +103,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
         AppRouter.showSnackBar('No hay eventos disponibles', isError: false);
       }
     } catch (e) {
-      debugPrint('❌ Error cargando eventos: $e');
+      logger.d('❌ Error cargando eventos: $e');
       setState(() => _isLoading = false);
       AppRouter.showSnackBar('Error al cargar eventos: $e', isError: true);
     }
@@ -409,7 +410,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
       e.id != evento.id && _areEventsAtSameLocation(e, evento)
     ).toList();
 
-    debugPrint('🎯 Eventos en misma ubicación: ${eventosEnMismaUbicacion.length}');
+    logger.d('🎯 Eventos en misma ubicación: ${eventosEnMismaUbicacion.length}');
 
     // 2. Si hay múltiples eventos en la misma ubicación, mostrar selector
     if (eventosEnMismaUbicacion.isNotEmpty) {
@@ -651,7 +652,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
     final deltaLng = (lng1 - lng2) * 111000 * cos(lat1 * pi / 180);
     final distancia = sqrt(deltaLat * deltaLat + deltaLng * deltaLng);
     
-    debugPrint('📏 Distancia entre ${evento1.titulo} y ${evento2.titulo}: ${distancia.toStringAsFixed(1)}m');
+    logger.d('📏 Distancia entre ${evento1.titulo} y ${evento2.titulo}: ${distancia.toStringAsFixed(1)}m');
     
     return distancia <= toleranciaMetros;
   }
@@ -659,7 +660,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
   /// ✅ Pre-registra al estudiante para el evento (con notificaciones automáticas)
   Future<void> _preRegisterToEvent(Evento evento) async {
     try {
-      debugPrint('📝 Pre-registrando para evento: ${evento.titulo}');
+      logger.d('📝 Pre-registrando para evento: ${evento.titulo}');
       
       if (_currentUser == null) {
         AppRouter.showSnackBar('❌ Error: Usuario no encontrado', isError: true);
@@ -684,7 +685,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
       );
       
     } catch (e) {
-      debugPrint('❌ Error en inscripción: $e');
+      logger.d('❌ Error en inscripción: $e');
       AppRouter.showSnackBar('❌ Error al inscribirse: $e', isError: true);
     }
   }
@@ -692,7 +693,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
   /// ✅ Une al estudiante inmediatamente al evento activo
   Future<void> _joinEventImmediately(Evento evento) async {
     try {
-      debugPrint('🎯 Uniéndose inmediatamente al evento: ${evento.titulo}');
+      logger.d('🎯 Uniéndose inmediatamente al evento: ${evento.titulo}');
       
       // Navegar al tracking del evento
       AppRouter.goToAttendanceTracking(
@@ -700,7 +701,7 @@ class _AvailableEventsScreenState extends State<AvailableEventsScreen> {
       );
       
     } catch (e) {
-      debugPrint('❌ Error joining immediately: $e');
+      logger.d('❌ Error joining immediately: $e');
       AppRouter.showSnackBar('❌ Error accediendo al evento', isError: true);
     }
   }

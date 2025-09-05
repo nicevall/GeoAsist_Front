@@ -1,8 +1,8 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/websocket_student_service.dart
 // 🔔 SERVICIO WEBSOCKET PARA NOTIFICACIONES A ESTUDIANTES
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 import '../services/notifications/notification_manager.dart';
@@ -84,14 +84,14 @@ class WebSocketStudentService {
   /// Inicializar el servicio
   Future<void> initialize() async {
     try {
-      debugPrint('🚀 Inicializando WebSocketStudentService');
+      logger.d('🚀 Inicializando WebSocketStudentService');
 
       _notificationManager = NotificationManager();
       await _notificationManager.initialize();
 
-      debugPrint('✅ WebSocketStudentService inicializado');
+      logger.d('✅ WebSocketStudentService inicializado');
     } catch (e) {
-      debugPrint('❌ Error inicializando WebSocketStudentService: $e');
+      logger.d('❌ Error inicializando WebSocketStudentService: $e');
       rethrow;
     }
   }
@@ -102,11 +102,11 @@ class WebSocketStudentService {
     required String userId,
   }) async {
     if (_isConnecting) {
-      debugPrint('⏳ Ya se está conectando al WebSocket');
+      logger.d('⏳ Ya se está conectando al WebSocket');
       return;
     }
 
-    debugPrint('🔌 Conectando a WebSocket para evento: $eventId');
+    logger.d('🔌 Conectando a WebSocket para evento: $eventId');
 
     _currentEventId = eventId;
     _currentUserId = userId;
@@ -117,7 +117,7 @@ class WebSocketStudentService {
 
   /// Desconectar del WebSocket
   Future<void> disconnect() async {
-    debugPrint('🔌 Desconectando WebSocket');
+    logger.d('🔌 Desconectando WebSocket');
 
     _cancelTimers();
     await _closeConnection();
@@ -128,7 +128,7 @@ class WebSocketStudentService {
 
     _updateConnectionState(WebSocketConnectionState.disconnected);
 
-    debugPrint('✅ WebSocket desconectado');
+    logger.d('✅ WebSocket desconectado');
   }
 
   /// Conectar al WebSocket
@@ -141,7 +141,7 @@ class WebSocketStudentService {
 
       // Configurar timeout de conexión
       _connectionTimeoutTimer = Timer(_connectionTimeout, () {
-        debugPrint('⏰ Timeout de conexión WebSocket');
+        logger.d('⏰ Timeout de conexión WebSocket');
         _handleConnectionTimeout();
       });
 
@@ -154,7 +154,7 @@ class WebSocketStudentService {
       // Construir URL con parámetros
       final wsUrl =
           '$_wsBaseUrl?token=$token&eventId=$_currentEventId&userId=$_currentUserId&type=student';
-      debugPrint('📡 Conectando a: $wsUrl');
+      logger.d('📡 Conectando a: $wsUrl');
 
       // Crear conexión WebSocket
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
@@ -181,7 +181,7 @@ class WebSocketStudentService {
       // Iniciar heartbeat
       _startHeartbeat();
 
-      debugPrint('✅ WebSocket conectado exitosamente');
+      logger.d('✅ WebSocket conectado exitosamente');
 
       // Enviar notificación de conexión exitosa
       _emitLocalNotification(
@@ -191,7 +191,7 @@ class WebSocketStudentService {
         ),
       );
     } catch (e) {
-      debugPrint('❌ Error conectando WebSocket: $e');
+      logger.d('❌ Error conectando WebSocket: $e');
       _isConnecting = false;
       _connectionTimeoutTimer?.cancel();
       _updateConnectionState(WebSocketConnectionState.error);
@@ -212,9 +212,9 @@ class WebSocketStudentService {
       };
 
       _channel?.sink.add(jsonEncode(subscriptionMessage));
-      debugPrint('📤 Mensaje de suscripción enviado');
+      logger.d('📤 Mensaje de suscripción enviado');
     } catch (e) {
-      debugPrint('❌ Error enviando suscripción: $e');
+      logger.d('❌ Error enviando suscripción: $e');
       rethrow;
     }
   }
@@ -222,7 +222,7 @@ class WebSocketStudentService {
   /// Manejar mensajes recibidos del WebSocket
   void _handleMessage(dynamic message) {
     try {
-      debugPrint('📨 Mensaje WebSocket recibido: $message');
+      logger.d('📨 Mensaje WebSocket recibido: $message');
 
       final data = jsonDecode(message as String);
       final messageType = data['type'] as String?;
@@ -256,16 +256,16 @@ class WebSocketStudentService {
           _handleServerError(data);
           break;
         default:
-          debugPrint('📋 Tipo de mensaje no manejado: $messageType');
+          logger.d('📋 Tipo de mensaje no manejado: $messageType');
       }
     } catch (e) {
-      debugPrint('❌ Error procesando mensaje WebSocket: $e');
+      logger.d('❌ Error procesando mensaje WebSocket: $e');
     }
   }
 
   /// Manejar evento iniciado
   void _handleEventStarted(Map<String, dynamic> data) {
-    debugPrint('🎯 Evento iniciado recibido');
+    logger.d('🎯 Evento iniciado recibido');
 
     final notification = StudentNotificationFactory.eventStarted(
       eventTitle: data['eventTitle'] as String? ?? 'Evento',
@@ -278,7 +278,7 @@ class WebSocketStudentService {
 
   /// Manejar receso iniciado
   void _handleBreakStarted(Map<String, dynamic> data) {
-    debugPrint('⏸️ Receso iniciado recibido');
+    logger.d('⏸️ Receso iniciado recibido');
 
     final notification = StudentNotificationFactory.breakStarted(
       eventTitle: data['eventTitle'] as String? ?? 'Evento',
@@ -291,7 +291,7 @@ class WebSocketStudentService {
 
   /// Manejar receso terminado
   void _handleBreakEnded(Map<String, dynamic> data) {
-    debugPrint('▶️ Receso terminado recibido');
+    logger.d('▶️ Receso terminado recibido');
 
     final notification = StudentNotificationFactory.breakEnded(
       eventTitle: data['eventTitle'] as String? ?? 'Evento',
@@ -303,7 +303,7 @@ class WebSocketStudentService {
 
   /// Manejar evento finalizado
   void _handleEventFinalized(Map<String, dynamic> data) {
-    debugPrint('🏁 Evento finalizado recibido');
+    logger.d('🏁 Evento finalizado recibido');
 
     final notification = StudentNotificationFactory.eventFinalized(
       eventTitle: data['eventTitle'] as String? ?? 'Evento',
@@ -321,7 +321,7 @@ class WebSocketStudentService {
 
   /// Manejar anuncio del profesor
   void _handleProfessorAnnouncement(Map<String, dynamic> data) {
-    debugPrint('📢 Anuncio del profesor recibido');
+    logger.d('📢 Anuncio del profesor recibido');
 
     final notification = StudentNotificationFactory.professorAnnouncement(
       message: data['message'] as String? ?? 'Sin mensaje',
@@ -335,7 +335,7 @@ class WebSocketStudentService {
 
   /// Manejar evento actualizado
   void _handleEventUpdated(Map<String, dynamic> data) {
-    debugPrint('🔄 Evento actualizado recibido');
+    logger.d('🔄 Evento actualizado recibido');
 
     final notification = StudentNotificationFactory.eventUpdated(
       eventTitle: data['eventTitle'] as String? ?? 'Evento',
@@ -348,7 +348,7 @@ class WebSocketStudentService {
 
   /// Manejar confirmación de conexión
   void _handleConnectionAck(Map<String, dynamic> data) {
-    debugPrint('✅ Confirmación de conexión recibida');
+    logger.d('✅ Confirmación de conexión recibida');
 
     final eventTitle = data['eventTitle'] as String?;
     if (eventTitle != null) {
@@ -362,14 +362,14 @@ class WebSocketStudentService {
 
   /// Manejar respuesta de heartbeat
   void _handleHeartbeatResponse(Map<String, dynamic> data) {
-    debugPrint('💓 Heartbeat response recibido');
+    logger.d('💓 Heartbeat response recibido');
     // Heartbeat confirmado - conexión saludable
   }
 
   /// Manejar error del servidor
   void _handleServerError(Map<String, dynamic> data) {
     final errorMessage = data['message'] as String? ?? 'Error del servidor';
-    debugPrint('❌ Error del servidor: $errorMessage');
+    logger.d('❌ Error del servidor: $errorMessage');
 
     final notification = StudentNotificationFactory.connectivityLost(
       eventTitle: 'Evento $_currentEventId',
@@ -393,7 +393,7 @@ class WebSocketStudentService {
 
   /// Manejar error de conexión
   Future<void> _handleError(dynamic error) async {
-    debugPrint('❌ Error en WebSocket: $error');
+    logger.d('❌ Error en WebSocket: $error');
     _updateConnectionState(WebSocketConnectionState.error);
 
     // ✅ FIXED: Verificar internet real antes de mostrar error de conectividad
@@ -401,11 +401,11 @@ class WebSocketStudentService {
     
     if (hasInternet) {
       // Internet OK - problema del servidor WebSocket
-      debugPrint('🌐 Internet OK - problema del servidor WebSocket, no mostrando error de conectividad');
+      logger.d('🌐 Internet OK - problema del servidor WebSocket, no mostrando error de conectividad');
       // No mostrar notificación de conectividad cuando el problema es del servidor
     } else {
       // Sin internet real - mostrar notificación de conectividad
-      debugPrint('❌ Sin internet real - mostrando error de conectividad');
+      logger.d('❌ Sin internet real - mostrando error de conectividad');
       final notification = StudentNotificationFactory.connectivityLost(
         eventTitle: 'Evento $_currentEventId',
         eventId: _currentEventId,
@@ -418,7 +418,7 @@ class WebSocketStudentService {
 
   /// Manejar desconexión
   void _handleDisconnection() {
-    debugPrint('🔌 WebSocket desconectado');
+    logger.d('🔌 WebSocket desconectado');
 
     if (_connectionState != WebSocketConnectionState.disconnected) {
       _updateConnectionState(WebSocketConnectionState.disconnected);
@@ -428,7 +428,7 @@ class WebSocketStudentService {
 
   /// Manejar timeout de conexión
   void _handleConnectionTimeout() {
-    debugPrint('⏰ Timeout de conexión WebSocket');
+    logger.d('⏰ Timeout de conexión WebSocket');
     _isConnecting = false;
     _updateConnectionState(WebSocketConnectionState.error);
     _scheduleReconnect();
@@ -436,7 +436,7 @@ class WebSocketStudentService {
 
   /// Manejar error de conexión
   Future<void> _handleConnectionError(dynamic error) async {
-    debugPrint('❌ Error de conexión: $error');
+    logger.d('❌ Error de conexión: $error');
 
     // ✅ FIXED: Verificar internet real antes de mostrar error de conectividad
     final hasInternet = await _connectivityManager.hasInternetAccess();
@@ -450,7 +450,7 @@ class WebSocketStudentService {
       );
       _emitLocalNotification(notification);
     } else {
-      debugPrint('🌐 Internet OK - problema del servidor, no mostrando error de conectividad');
+      logger.d('🌐 Internet OK - problema del servidor, no mostrando error de conectividad');
     }
 
     _scheduleReconnect();
@@ -459,7 +459,7 @@ class WebSocketStudentService {
   /// Programar reconexión automática
   void _scheduleReconnect() {
     if (_reconnectAttempts >= _maxReconnectAttempts) {
-      debugPrint('❌ Máximo de intentos de reconexión alcanzado');
+      logger.d('❌ Máximo de intentos de reconexión alcanzado');
       _updateConnectionState(WebSocketConnectionState.error);
       return;
     }
@@ -469,7 +469,7 @@ class WebSocketStudentService {
       seconds: _baseReconnectDelay.inSeconds * _reconnectAttempts,
     );
 
-    debugPrint(
+    logger.d(
         '🔄 Programando reconexión en ${delay.inSeconds}s (intento $_reconnectAttempts)');
     _updateConnectionState(WebSocketConnectionState.reconnecting);
 
@@ -501,9 +501,9 @@ class WebSocketStudentService {
       };
 
       _channel?.sink.add(jsonEncode(heartbeatMessage));
-      debugPrint('💓 Heartbeat enviado');
+      logger.d('💓 Heartbeat enviado');
     } catch (e) {
-      debugPrint('❌ Error enviando heartbeat: $e');
+      logger.d('❌ Error enviando heartbeat: $e');
     }
   }
 
@@ -512,7 +512,7 @@ class WebSocketStudentService {
     if (_connectionState != newState) {
       _connectionState = newState;
       _connectionStateController.add(newState);
-      debugPrint('🔄 Estado WebSocket: $newState');
+      logger.d('🔄 Estado WebSocket: $newState');
     }
   }
 
@@ -522,7 +522,7 @@ class WebSocketStudentService {
       _subscription?.cancel();
       await _channel?.sink.close(status.normalClosure);
     } catch (e) {
-      debugPrint('❌ Error cerrando conexión: $e');
+      logger.d('❌ Error cerrando conexión: $e');
     } finally {
       _subscription = null;
       _channel = null;
@@ -547,7 +547,7 @@ class WebSocketStudentService {
   }) async {
     try {
       if (!isConnected) {
-        debugPrint('⚠️ No conectado - no se puede enviar acción');
+        logger.d('⚠️ No conectado - no se puede enviar acción');
         return false;
       }
 
@@ -560,17 +560,17 @@ class WebSocketStudentService {
       };
 
       _channel?.sink.add(jsonEncode(message));
-      debugPrint('📤 Acción enviada: $action');
+      logger.d('📤 Acción enviada: $action');
       return true;
     } catch (e) {
-      debugPrint('❌ Error enviando acción: $e');
+      logger.d('❌ Error enviando acción: $e');
       return false;
     }
   }
 
   /// Forzar reconexión manual
   Future<void> forceReconnect() async {
-    debugPrint('🔄 Forzando reconexión manual');
+    logger.d('🔄 Forzando reconexión manual');
 
     await _closeConnection();
     _reconnectAttempts = 0;
@@ -594,7 +594,7 @@ class WebSocketStudentService {
 
   /// Limpiar recursos
   Future<void> dispose() async {
-    debugPrint('🧹 Limpiando WebSocketStudentService');
+    logger.d('🧹 Limpiando WebSocketStudentService');
 
     _cancelTimers();
     await _closeConnection();
@@ -606,6 +606,6 @@ class WebSocketStudentService {
     _currentUserId = null;
     _reconnectAttempts = 0;
 
-    debugPrint('✅ WebSocketStudentService limpiado');
+    logger.d('✅ WebSocketStudentService limpiado');
   }
 }

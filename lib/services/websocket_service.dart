@@ -1,9 +1,9 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/websocket_service.dart
 // ✅ WEBSOCKET ROBUSTO CON HEARTBEAT Y FILTRADO DE MENSAJES
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 import '../core/app_constants.dart';
@@ -81,7 +81,7 @@ class WebSocketService {
         userRole: _currentUserRole,
       );
     }
-    debugPrint('❌ Cannot connect: eventId or userId not set');
+    logger.d('❌ Cannot connect: eventId or userId not set');
     return false;
   }
 
@@ -91,7 +91,7 @@ class WebSocketService {
     String? userRole,
   }) async {
     if (_isConnecting) {
-      debugPrint('⚠️ Ya hay una conexión en progreso');
+      logger.d('⚠️ Ya hay una conexión en progreso');
       return false;
     }
     
@@ -101,8 +101,8 @@ class WebSocketService {
       _currentUserId = userId;
       _currentUserRole = userRole ?? 'student';
       
-      debugPrint('🔌 Conectando WebSocket al evento: $eventId');
-      debugPrint('👤 Usuario: $userId (rol: $_currentUserRole)');
+      logger.d('🔌 Conectando WebSocket al evento: $eventId');
+      logger.d('👤 Usuario: $userId (rol: $_currentUserRole)');
       
       // Obtener token
       final token = await _storageService.getToken();
@@ -136,11 +136,11 @@ class WebSocketService {
       // ✅ INICIAR CLEANUP DE MENSAJES
       _startMessageCleanup();
       
-      debugPrint('✅ WebSocket conectado exitosamente');
+      logger.d('✅ WebSocket conectado exitosamente');
       return true;
       
     } catch (e) {
-      debugPrint('❌ Error conectando WebSocket: $e');
+      logger.d('❌ Error conectando WebSocket: $e');
       _isConnecting = false;
       _isConnected = false;
       _scheduleReconnect();
@@ -162,15 +162,15 @@ class WebSocketService {
           }
           
         } catch (e) {
-          debugPrint('❌ Error procesando mensaje WebSocket: $e');
+          logger.d('❌ Error procesando mensaje WebSocket: $e');
         }
       },
       onError: (error) {
-        debugPrint('❌ WebSocket error: $error');
+        logger.d('❌ WebSocket error: $error');
         _handleConnectionError();
       },
       onDone: () {
-        debugPrint('📪 WebSocket conexión cerrada');
+        logger.d('📪 WebSocket conexión cerrada');
         _handleConnectionClosed();
       },
     );
@@ -189,7 +189,7 @@ class WebSocketService {
     
     // ✅ EVITAR DUPLICADAS
     if (_processedMessages.contains(messageId)) {
-      debugPrint('⚠️ Mensaje duplicado evitado: $messageId');
+      logger.d('⚠️ Mensaje duplicado evitado: $messageId');
       return false;
     }
     _processedMessages.add(messageId);
@@ -202,7 +202,7 @@ class WebSocketService {
     
     // Mensajes específicos del evento
     if (messageEventId != null && messageEventId != _currentEventId) {
-      debugPrint('⚠️ Mensaje para evento diferente: $messageEventId vs $_currentEventId');
+      logger.d('⚠️ Mensaje para evento diferente: $messageEventId vs $_currentEventId');
       return false;
     }
     
@@ -221,7 +221,7 @@ class WebSocketService {
   /// ⚠️ HEARTBEAT COMPLETAMENTE DESHABILITADO
   void _startHeartbeat() {
     // ⚠️ Backend solo maneja 'change-event-status', no heartbeat
-    debugPrint('⚠️ WebSocket Heartbeat DISABLED - Backend no compatible');
+    logger.d('⚠️ WebSocket Heartbeat DISABLED - Backend no compatible');
     // No iniciar timer - backend no soporta heartbeats
   }
   
@@ -229,11 +229,11 @@ class WebSocketService {
   
   void _processIncomingMessage(Map<String, dynamic> data) {
     final messageType = data['type'] as String?;
-    debugPrint('📨 Procesando mensaje: $messageType');
+    logger.d('📨 Procesando mensaje: $messageType');
     
     switch (messageType) {
       case 'connection_established':
-        debugPrint('✅ Conexión WebSocket establecida');
+        logger.d('✅ Conexión WebSocket establecida');
         break;
         
       case 'attendance_update':
@@ -250,7 +250,7 @@ class WebSocketService {
         
       case 'heartbeat_response':
         _lastHeartbeat = DateTime.now();
-        debugPrint('💓 Heartbeat response recibido');
+        logger.d('💓 Heartbeat response recibido');
         break;
         
       case 'student_joined':
@@ -278,7 +278,7 @@ class WebSocketService {
         break;
         
       default:
-        debugPrint('📋 Mensaje no manejado: $messageType');
+        logger.d('📋 Mensaje no manejado: $messageType');
     }
   }
   
@@ -288,7 +288,7 @@ class WebSocketService {
     final attendanceStatus = data['attendanceStatus'] as String? ?? 'presente';
     final timestamp = data['timestamp'] as String?;
     
-    debugPrint('📝 Actualización de asistencia: $studentName -> $attendanceStatus (${timestamp ?? 'now'})');
+    logger.d('📝 Actualización de asistencia: $studentName -> $attendanceStatus (${timestamp ?? 'now'})');
     
     // Mostrar notificación para profesores
     if (_currentUserRole == 'teacher' || _currentUserRole == 'admin') {
@@ -304,20 +304,20 @@ class WebSocketService {
     final newStatus = data['estado'] as String? ?? 'unknown';
     final eventId = data['evento'] as String?;
     
-    debugPrint('📢 Estado de evento cambiado: ID $eventId -> $newStatus');
+    logger.d('📢 Estado de evento cambiado: ID $eventId -> $newStatus');
     
     // ✅ LÓGICA AUTOMÁTICA DE ASISTENCIA SEGÚN ESTADO
     switch (newStatus) {
       case 'En proceso':
-        debugPrint('🟢 Evento iniciado automáticamente - Estudiantes pueden registrar asistencia');
+        logger.d('🟢 Evento iniciado automáticamente - Estudiantes pueden registrar asistencia');
         _notificationManager.showEventStartedNotification('El evento ha iniciado');
         break;
       case 'finalizado':
-        debugPrint('🔴 Evento finalizado automáticamente - No más asistencias');
+        logger.d('🔴 Evento finalizado automáticamente - No más asistencias');
         _notificationManager.showEventEndedNotification('El evento ha finalizado');
         break;
       case 'En espera':
-        debugPrint('⏸️ Evento pausado - Continuará mañana');
+        logger.d('⏸️ Evento pausado - Continuará mañana');
         break;
     }
     
@@ -331,7 +331,7 @@ class WebSocketService {
     final gracePeriodSeconds = data['gracePeriodSeconds'] as int? ?? 60;
     final eventName = data['eventName'] as String?;
     
-    debugPrint('⚠️ Violación de geofence: $gracePeriodSeconds segundos de gracia');
+    logger.d('⚠️ Violación de geofence: $gracePeriodSeconds segundos de gracia');
     
     _notificationManager.showGeofenceViolationNotification(
       gracePeriodSeconds: gracePeriodSeconds,
@@ -341,7 +341,7 @@ class WebSocketService {
   
   void _handleStudentJoined(Map<String, dynamic> data) {
     final studentName = data['studentName'] as String? ?? 'Estudiante';
-    debugPrint('👋 Estudiante se unió: $studentName');
+    logger.d('👋 Estudiante se unió: $studentName');
   }
   
   void _handleLocationUpdate(Map<String, dynamic> data) {
@@ -349,28 +349,28 @@ class WebSocketService {
     final latitude = data['latitude'] as double?;
     final longitude = data['longitude'] as double?;
     
-    debugPrint('📍 Actualización de ubicación: $studentName ($latitude, $longitude)');
+    logger.d('📍 Actualización de ubicación: $studentName ($latitude, $longitude)');
   }
   
   void _handleMetricsUpdate(Map<String, dynamic> data) {
     final totalStudents = data['totalStudents'] as int? ?? 0;
     final presentStudents = data['presentStudents'] as int? ?? 0;
     
-    debugPrint('📊 Métricas actualizadas: $presentStudents/$totalStudents estudiantes');
+    logger.d('📊 Métricas actualizadas: $presentStudents/$totalStudents estudiantes');
   }
   
   void _handleGracePeriodStarted(Map<String, dynamic> data) {
     final gracePeriodSeconds = data['gracePeriodSeconds'] as int? ?? 60;
-    debugPrint('⏰ Período de gracia iniciado: ${gracePeriodSeconds}s');
+    logger.d('⏰ Período de gracia iniciado: ${gracePeriodSeconds}s');
   }
   
   void _handleForcedAttendanceCheck(Map<String, dynamic> data) {
-    debugPrint('🔍 Verificación forzada de asistencia solicitada');
+    logger.d('🔍 Verificación forzada de asistencia solicitada');
   }
   
   void _handleServerError(Map<String, dynamic> data) {
     final errorMessage = data['message'] as String? ?? 'Error del servidor';
-    debugPrint('❌ Error del servidor: $errorMessage');
+    logger.d('❌ Error del servidor: $errorMessage');
     
     _notificationManager.showConnectionErrorNotification();
   }
@@ -383,7 +383,7 @@ class WebSocketService {
     if (_reconnectAttempts < maxReconnectAttempts) {
       _scheduleReconnect();
     } else {
-      debugPrint('❌ Máximo de reconexiones alcanzado');
+      logger.d('❌ Máximo de reconexiones alcanzado');
       _notifyConnectionFailed();
     }
   }
@@ -392,7 +392,7 @@ class WebSocketService {
     _reconnectAttempts++;
     final delay = Duration(seconds: math.pow(2, _reconnectAttempts).toInt().clamp(1, 30));
     
-    debugPrint('🔄 Reintentando conexión en ${delay.inSeconds}s (intento $_reconnectAttempts)');
+    logger.d('🔄 Reintentando conexión en ${delay.inSeconds}s (intento $_reconnectAttempts)');
     
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(delay, () {
@@ -407,7 +407,7 @@ class WebSocketService {
   }
   
   void _handleConnectionClosed() {
-    debugPrint('📪 Conexión WebSocket cerrada');
+    logger.d('📪 Conexión WebSocket cerrada');
     if (_isConnected) {
       _isConnected = false;
       _scheduleReconnect();
@@ -415,14 +415,14 @@ class WebSocketService {
   }
   
   void _notifyConnectionFailed() {
-    debugPrint('❌ Conexión WebSocket falló definitivamente');
+    logger.d('❌ Conexión WebSocket falló definitivamente');
     _notificationManager.showConnectionErrorNotification();
   }
   
   /// ✅ ENVIAR MENSAJES CON VALIDACIÓN
   Future<bool> sendMessage(Map<String, dynamic> message) async {
     if (!_isConnected || _wsChannel == null) {
-      debugPrint('⚠️ No conectado - mensaje no enviado: ${message['type']}');
+      logger.d('⚠️ No conectado - mensaje no enviado: ${message['type']}');
       return false;
     }
     
@@ -434,11 +434,11 @@ class WebSocketService {
       message['id'] = message['id'] ?? '${message['type']}_${DateTime.now().millisecondsSinceEpoch}';
       
       _wsChannel!.sink.add(jsonEncode(message));
-      debugPrint('📤 Mensaje enviado: ${message['type']}');
+      logger.d('📤 Mensaje enviado: ${message['type']}');
       return true;
       
     } catch (e) {
-      debugPrint('❌ Error enviando mensaje: $e');
+      logger.d('❌ Error enviando mensaje: $e');
       return false;
     }
   }
@@ -463,7 +463,7 @@ class WebSocketService {
     _messageCleanupTimer?.cancel();
     _messageCleanupTimer = Timer.periodic(const Duration(minutes: 10), (_) {
       _processedMessages.clear();
-      debugPrint('🧹 Cache de mensajes limpiado');
+      logger.d('🧹 Cache de mensajes limpiado');
     });
   }
   
@@ -476,7 +476,7 @@ class WebSocketService {
   
   /// ✅ DESCONEXIÓN LIMPIA
   Future<void> disconnect() async {
-    debugPrint('🔌 Desconectando WebSocket');
+    logger.d('🔌 Desconectando WebSocket');
     
     _isConnected = false;
     _stopHeartbeat();
@@ -488,7 +488,7 @@ class WebSocketService {
       try {
         await _wsChannel!.sink.close(status.normalClosure);
       } catch (e) {
-        debugPrint('❌ Error cerrando WebSocket: $e');
+        logger.d('❌ Error cerrando WebSocket: $e');
       }
     }
     
@@ -502,7 +502,7 @@ class WebSocketService {
     _reconnectAttempts = 0;
     _processedMessages.clear();
     
-    debugPrint('✅ WebSocket desconectado completamente');
+    logger.d('✅ WebSocket desconectado completamente');
   }
   
   /// ✅ INFORMACIÓN DE ESTADO
@@ -522,7 +522,7 @@ class WebSocketService {
   
   /// ✅ FORZAR RECONEXIÓN
   Future<void> forceReconnect() async {
-    debugPrint('🔄 Forzando reconexión manual');
+    logger.d('🔄 Forzando reconexión manual');
     
     await disconnect();
     

@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/attendance/attendance_tracking_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -114,7 +115,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    debugPrint('📱 App lifecycle cambió a: $state');
+    logger.d('📱 App lifecycle cambió a: $state');
 
     switch (state) {
       case AppLifecycleState.resumed:
@@ -156,7 +157,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
 
   /// 🚀 INICIAR FLUJO DE PERMISOS CRÍTICOS
   Future<void> _startCriticalPermissionsFlow() async {
-    debugPrint('🔐 Iniciando flujo de permisos críticos...');
+    logger.d('🔐 Iniciando flujo de permisos críticos...');
     await _permissionFlowManager.initializeCriticalPermissionsFlow();
   }
 
@@ -199,7 +200,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
 
   /// 🚀 INICIAR TRACKING AUTOMÁTICO
   Future<void> _startAutomaticTracking() async {
-    debugPrint('🚀 Iniciando tracking automático con permisos completos...');
+    logger.d('🚀 Iniciando tracking automático con permisos completos...');
     
     setState(() {
       _isLoading = true;
@@ -219,9 +220,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         });
       }
       
-      debugPrint('✅ Tracking automático activado exitosamente');
+      logger.d('✅ Tracking automático activado exitosamente');
     } catch (e) {
-      debugPrint('❌ Error en tracking automático: $e');
+      logger.d('❌ Error en tracking automático: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -261,7 +262,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
 
   /// ✅ NUEVO: Obtener ubicación inicial para mostrar siempre
   Future<void> _startInitialLocationUpdate() async {
-    debugPrint('📍 Obteniendo ubicación inicial...');
+    logger.d('📍 Obteniendo ubicación inicial...');
     try {
       // Intentar obtener ubicación inicial sin permisos especiales
       final position = await Geolocator.getCurrentPosition(
@@ -277,10 +278,10 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
           _currentAccuracy = position.accuracy;
           _lastUpdateTime = DateTime.now().toString().substring(11, 19);
         });
-        debugPrint('✅ Ubicación inicial obtenida: ${position.latitude}, ${position.longitude}');
+        logger.d('✅ Ubicación inicial obtenida: ${position.latitude}, ${position.longitude}');
       }
     } catch (e) {
-      debugPrint('⚠️ No se pudo obtener ubicación inicial: $e');
+      logger.d('⚠️ No se pudo obtener ubicación inicial: $e');
       // No es crítico, el usuario verá "Obteniendo ubicación..."
     }
   }
@@ -312,11 +313,11 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         _checkEventStatus();
         _setupEventStartTimer();
         setState(() {
-          debugPrint('✅ Evento cargado: ${_activeEvent!.titulo}');
+          logger.d('✅ Evento cargado: ${_activeEvent!.titulo}');
         });
       }
     } catch (e) {
-      debugPrint('❌ Error cargando evento: $e');
+      logger.d('❌ Error cargando evento: $e');
       rethrow;
     }
   }
@@ -334,9 +335,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         });
       }
 
-      debugPrint('✅ Historial cargado: ${history.length} asistencias');
+      logger.d('✅ Historial cargado: ${history.length} asistencias');
     } catch (e) {
-      debugPrint('❌ Error cargando historial: $e');
+      logger.d('❌ Error cargando historial: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -349,7 +350,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     }
 
     try {
-      debugPrint('▶️ Activando tracking automático');
+      logger.d('▶️ Activando tracking automático');
 
       _startPositionUpdates();
       _startHeartbeat();
@@ -362,9 +363,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
 
       _trackingController.forward();
       _pulseController.repeat(reverse: true);
-      debugPrint('✅ Tracking automático activado');
+      logger.d('✅ Tracking automático activado');
     } catch (e) {
-      debugPrint('❌ Error activando tracking: $e');
+      logger.d('❌ Error activando tracking: $e');
       rethrow;
     }
   }
@@ -381,7 +382,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     }
 
     try {
-      debugPrint('▶️ Iniciando tracking manual');
+      logger.d('▶️ Iniciando tracking manual');
 
       _startPositionUpdates();
       _startHeartbeat();
@@ -394,16 +395,16 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       _trackingController.forward();
       _pulseController.repeat(reverse: true);
 
-      debugPrint('✅ Tracking iniciado');
+      logger.d('✅ Tracking iniciado');
     } catch (e) {
-      debugPrint('❌ Error iniciando tracking: $e');
+      logger.d('❌ Error iniciando tracking: $e');
       _showErrorDialog('Error iniciando tracking: $e');
     }
   }
 
   Future<void> _stopTracking() async {
     try {
-      debugPrint('⏹️ Deteniendo tracking');
+      logger.d('⏹️ Deteniendo tracking');
 
       _positionUpdateTimer?.cancel();
       _heartbeatTimer?.cancel();
@@ -419,9 +420,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       _trackingController.reverse();
       _pulseController.stop();
 
-      debugPrint('✅ Tracking detenido');
+      logger.d('✅ Tracking detenido');
     } catch (e) {
-      debugPrint('❌ Error deteniendo tracking: $e');
+      logger.d('❌ Error deteniendo tracking: $e');
     }
   }
 
@@ -487,11 +488,11 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
             precision: position.accuracy,
           );
         } else {
-          debugPrint('❌ Error: Usuario o evento es null - Usuario: ${currentUser?.id}, Evento: ${_activeEvent?.id}');
+          logger.d('❌ Error: Usuario o evento es null - Usuario: ${currentUser?.id}, Evento: ${_activeEvent?.id}');
         }
       }
     } catch (e) {
-      debugPrint('❌ Error actualizando posición: $e');
+      logger.d('❌ Error actualizando posición: $e');
     }
   }
 
@@ -529,18 +530,18 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
           gracePeriodRemaining: 0,
         );
 
-        debugPrint('💓 Heartbeat enviado');
+        logger.d('💓 Heartbeat enviado');
       } else {
-        debugPrint('❌ Error en heartbeat: Usuario o evento es null - Usuario: ${currentUser?.id}, Evento: ${_activeEvent?.id}');
+        logger.d('❌ Error en heartbeat: Usuario o evento es null - Usuario: ${currentUser?.id}, Evento: ${_activeEvent?.id}');
       }
     } catch (e) {
-      debugPrint('❌ Error enviando heartbeat: $e');
+      logger.d('❌ Error enviando heartbeat: $e');
       _handleConnectivityLoss();
     }
   }
 
   void _handleGeofenceEntered() {
-    debugPrint('✅ Usuario entró al geofence');
+    logger.d('✅ Usuario entró al geofence');
 
     setState(() {
       _exitWarningCount = 0;
@@ -566,12 +567,12 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     if (_currentPosition == null ||
         _activeEvent == null ||
         currentUser?.id == null) {
-      debugPrint('❌ Faltan datos para registro automático - Usuario: ${currentUser?.id}, Evento: ${_activeEvent?.id}');
+      logger.d('❌ Faltan datos para registro automático - Usuario: ${currentUser?.id}, Evento: ${_activeEvent?.id}');
       return;
     }
 
     try {
-      debugPrint('📝 Registrando asistencia automáticamente');
+      logger.d('📝 Registrando asistencia automáticamente');
 
       await _notificationManager.showGeofenceEnteredWithAutoRegistration(_activeEvent!.titulo);
 
@@ -593,13 +594,13 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
               _attendanceHistory.insert(0, nuevaAsistencia);
             });
           } catch (e) {
-            debugPrint('❌ Error parsing asistencia automática: $e');
+            logger.d('❌ Error parsing asistencia automática: $e');
           }
         }
 
         await _notificationManager.showAttendanceRegisteredAutomaticallyNotification(
           eventName: _activeEvent!.titulo,
-          studentName: currentUser!.nombre,
+          studentName: currentUser.nombre,
         );
 
         if (mounted) {
@@ -622,7 +623,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
           );
         }
 
-        debugPrint('✅ Asistencia automática registrada exitosamente');
+        logger.d('✅ Asistencia automática registrada exitosamente');
       } else {
         if (response.error?.contains('ya registró') == true) {
           if (mounted) {
@@ -655,7 +656,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         }
       }
     } catch (e) {
-      debugPrint('❌ Excepción en registro automático: $e');
+      logger.d('❌ Excepción en registro automático: $e');
       await _notificationManager.showConnectionErrorNotification();
       
       if (mounted) {
@@ -671,7 +672,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   }
 
   void _handleGeofenceExited() {
-    debugPrint('⚠️ Usuario salió del geofence');
+    logger.d('⚠️ Usuario salió del geofence');
 
     setState(() {
       _exitWarningCount++;
@@ -693,7 +694,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
 
   // 🎯 APP LIFECYCLE HANDLERS PRESERVADOS
   void _handleAppResumed() {
-    debugPrint('✅ App resumed');
+    logger.d('✅ App resumed');
 
     if (_appClosedGraceTimer != null) {
       _appClosedGraceTimer!.cancel();
@@ -711,7 +712,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   }
 
   void _handleAppPaused() {
-    debugPrint('⏸️ App paused');
+    logger.d('⏸️ App paused');
 
     if (_isTrackingActive) {
       _startAppClosedGracePeriod();
@@ -719,16 +720,16 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   }
 
   void _handleAppDetached() {
-    debugPrint('❌ App detached');
+    logger.d('❌ App detached');
     _triggerAttendanceLoss('App cerrada');
   }
 
   void _handleAppInactive() {
-    debugPrint('⚠️ App inactive');
+    logger.d('⚠️ App inactive');
   }
 
   void _handleAppHidden() {
-    debugPrint('🙈 App hidden');
+    logger.d('🙈 App hidden');
 
     setState(() {
       _trackingStatus = 'paused';
@@ -795,7 +796,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   }
 
   void _triggerAttendanceLoss(String reason) async {
-    debugPrint('❌ PÉRDIDA DE ASISTENCIA: $reason');
+    logger.d('❌ PÉRDIDA DE ASISTENCIA: $reason');
 
     // ✅ FIXED: Always get fresh user from storage to ensure userId is not null
     final currentUser = await _storageService.getUser();
@@ -829,7 +830,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     }
 
     try {
-      debugPrint('📝 Registrando asistencia manualmente');
+      logger.d('📝 Registrando asistencia manualmente');
 
       final response = await _asistenciaService.registrarAsistencia(
         eventoId: _activeEvent!.id!,
@@ -848,7 +849,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
               _attendanceHistory.insert(0, nuevaAsistencia);
             });
           } catch (e) {
-            debugPrint('❌ Error parsing asistencia response: $e');
+            logger.d('❌ Error parsing asistencia response: $e');
           }
         }
 
@@ -865,7 +866,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         _showErrorDialog(response.error ?? 'Error registrando asistencia');
       }
     } catch (e) {
-      debugPrint('❌ Error en registro manual: $e');
+      logger.d('❌ Error en registro manual: $e');
       _showErrorDialog('Error registrando asistencia: $e');
     }
   }
@@ -1329,7 +1330,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       _isEventCompleted = now.isAfter(eventEnd);
     });
     
-    debugPrint('📅 Estado del evento: iniciado=$_isEventStarted, completado=$_isEventCompleted');
+    logger.d('📅 Estado del evento: iniciado=$_isEventStarted, completado=$_isEventCompleted');
   }
   
   /// Configurar timer para inicio del evento y notificación 5 min antes
@@ -1366,7 +1367,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
           setState(() {
             _isEventStarted = true;
           });
-          debugPrint('🚀 ¡El evento ha iniciado!');
+          logger.d('🚀 ¡El evento ha iniciado!');
         }
       });
     }
@@ -1377,7 +1378,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     if (_activeEvent == null || _currentUser == null) return;
     
     try {
-      debugPrint('📝 Inscribiéndose al evento: ${_activeEvent!.titulo}');
+      logger.d('📝 Inscribiéndose al evento: ${_activeEvent!.titulo}');
       
       // Aquí llamarías a tu servicio de inscripción
       // await _eventoService.inscribirseAlEvento(_activeEvent!.id!, _currentUser!.id);
@@ -1411,9 +1412,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         );
       }
       
-      debugPrint('✅ Inscripción exitosa al evento');
+      logger.d('✅ Inscripción exitosa al evento');
     } catch (e) {
-      debugPrint('❌ Error en inscripción: $e');
+      logger.d('❌ Error en inscripción: $e');
       _showErrorDialog('Error al inscribirse: $e');
     }
   }
@@ -1459,7 +1460,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   /// Abandonar evento
   Future<void> _abandonEvent() async {
     try {
-      debugPrint('🚪 Abandonando evento...');
+      logger.d('🚪 Abandonando evento...');
       
       // Detener tracking si está activo
       if (_isTrackingActive) {
@@ -1500,9 +1501,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         Navigator.of(context).pop();
       }
       
-      debugPrint('✅ Evento abandonado');
+      logger.d('✅ Evento abandonado');
     } catch (e) {
-      debugPrint('❌ Error abandonando evento: $e');
+      logger.d('❌ Error abandonando evento: $e');
       _showErrorDialog('Error al abandonar evento: $e');
     }
   }

@@ -1,6 +1,6 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/demo_verification_service.dart
 // 🎯 SERVICIO PARA VERIFICAR QUE LA DEMO FUNCIONE 100%
-import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
 import '../services/location_service.dart';
 import '../services/notifications/notification_manager.dart';
@@ -39,7 +39,7 @@ class DemoVerificationService {
 
   /// ✅ VERIFICACIÓN COMPLETA DE LA DEMO
   Future<List<VerificationResult>> verifyFullDemo() async {
-    debugPrint('🔍 Iniciando verificación completa de la demo...');
+    logger.d('🔍 Iniciando verificación completa de la demo...');
     
     final results = <VerificationResult>[];
 
@@ -309,58 +309,58 @@ class DemoVerificationService {
 
   /// 📊 IMPRIMIR RESULTADOS
   void _printResults(List<VerificationResult> results) {
-    debugPrint('\n🔍 ===== RESULTADOS VERIFICACIÓN DEMO =====');
+    logger.d('\n🔍 ===== RESULTADOS VERIFICACIÓN DEMO =====');
     
     int working = 0;
     int total = results.length;
     
     for (final result in results) {
-      debugPrint(result.toString());
+      logger.d(result.toString());
       if (result.isWorking) working++;
     }
     
-    debugPrint('\n📊 RESUMEN: $working/$total componentes funcionando');
-    debugPrint('🎯 Porcentaje: ${(working/total*100).round()}% funcional');
+    logger.d('\n📊 RESUMEN: $working/$total componentes funcionando');
+    logger.d('🎯 Porcentaje: ${(working/total*100).round()}% funcional');
     
     if (working == total) {
-      debugPrint('✅ DEMO 100% FUNCIONAL - LISTA PARA MOSTRAR');
+      logger.d('✅ DEMO 100% FUNCIONAL - LISTA PARA MOSTRAR');
     } else {
-      debugPrint('⚠️ DEMO PARCIALMENTE FUNCIONAL - Revisar componentes fallidos');
+      logger.d('⚠️ DEMO PARCIALMENTE FUNCIONAL - Revisar componentes fallidos');
     }
     
-    debugPrint('==========================================\n');
+    logger.d('==========================================\n');
   }
 
   /// 🎮 FLUJO DEMO COMPLETO
   Future<bool> testCompleteDemoFlow() async {
-    debugPrint('🎮 Iniciando test de flujo completo...');
+    logger.d('🎮 Iniciando test de flujo completo...');
     
     try {
       // 1. Test conectividad
       final connectivity = await _verifyConnectivity();
       if (!connectivity.isWorking) {
-        debugPrint('❌ Flujo abortado: Sin conectividad backend');
+        logger.d('❌ Flujo abortado: Sin conectividad backend');
         return false;
       }
 
       // 2. Test ubicación
       final location = await _verifyLocation();
       if (!location.isWorking) {
-        debugPrint('❌ Flujo abortado: Sin GPS');
+        logger.d('❌ Flujo abortado: Sin GPS');
         return false;
       }
 
       // 3. Test notificaciones
       final notifications = await _verifyNotifications();
       if (!notifications.isWorking) {
-        debugPrint('⚠️ Sin notificaciones, pero continuando...');
+        logger.d('⚠️ Sin notificaciones, pero continuando...');
       }
 
-      debugPrint('✅ Flujo completo exitoso - Demo lista');
+      logger.d('✅ Flujo completo exitoso - Demo lista');
       return true;
       
     } catch (e) {
-      debugPrint('❌ Error en flujo completo: $e');
+      logger.d('❌ Error en flujo completo: $e');
       return false;
     }
   }

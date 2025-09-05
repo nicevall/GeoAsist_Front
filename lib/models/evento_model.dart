@@ -1,6 +1,7 @@
 // lib/models/evento_model.dart
 import 'package:flutter/material.dart';
 import 'ubicacion_model.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 
 /// Estados inteligentes del evento
 enum EventStatus {
@@ -61,17 +62,17 @@ class Evento {
   factory Evento.fromJson(Map<String, dynamic> json) {
     try {
       // ✅ DEBUG: Log del JSON recibido para investigar problema de horas
-      debugPrint('🔍 DEBUG - JSON recibido del backend:');
-      debugPrint('🔍   - Título: ${json['titulo'] ?? json['nombre']}');
-      debugPrint('🔍   - Lugar: ${json['lugar']}');
-      debugPrint('🔍   - fechaInicio: ${json['fechaInicio']} (tipo: ${json['fechaInicio'].runtimeType})');
-      debugPrint('🔍   - fechaFin: ${json['fechaFin']} (tipo: ${json['fechaFin'].runtimeType})');
-      debugPrint('🔍   - horaInicio: ${json['horaInicio']}');
-      debugPrint('🔍   - horaFin/horaFinal: ${json['horaFin'] ?? json['horaFinal']}');
-      debugPrint('🔍   - coordenadas: ${json['coordenadas']}');
-      debugPrint('🔍   - latitud: ${json['latitud']}');
-      debugPrint('🔍   - longitud: ${json['longitud']}');
-      debugPrint('🔍   - radio: ${json['radio']}');
+      logger.d('🔍 DEBUG - JSON recibido del backend:');
+      logger.d('🔍   - Título: ${json['titulo'] ?? json['nombre']}');
+      logger.d('🔍   - Lugar: ${json['lugar']}');
+      logger.d('🔍   - fechaInicio: ${json['fechaInicio']} (tipo: ${json['fechaInicio'].runtimeType})');
+      logger.d('🔍   - fechaFin: ${json['fechaFin']} (tipo: ${json['fechaFin'].runtimeType})');
+      logger.d('🔍   - horaInicio: ${json['horaInicio']}');
+      logger.d('🔍   - horaFin/horaFinal: ${json['horaFin'] ?? json['horaFinal']}');
+      logger.d('🔍   - coordenadas: ${json['coordenadas']}');
+      logger.d('🔍   - latitud: ${json['latitud']}');
+      logger.d('🔍   - longitud: ${json['longitud']}');
+      logger.d('🔍   - radio: ${json['radio']}');
       // ✅ MANEJAR AMBOS NOMBRES: titulo (frontend) y nombre (backend)
       final String titulo =
           json['titulo']?.toString() ??
@@ -126,13 +127,13 @@ class Evento {
             // Es un ISO datetime string completo
             horaInicio = DateTime.parse(fechaInicioStr);
             fecha = DateTime(horaInicio.year, horaInicio.month, horaInicio.day);
-            debugPrint('   ✅ fechaInicio parseado: $horaInicio');
+            logger.d('   ✅ fechaInicio parseado: $horaInicio');
           } else {
             // Es solo fecha (formato anterior)
             fecha = DateTime.parse(fechaInicioStr);
           }
         } catch (e) {
-          debugPrint('   ❌ Error parseando fechaInicio: $e');
+          logger.d('   ❌ Error parseando fechaInicio: $e');
         }
       }
 
@@ -142,10 +143,10 @@ class Evento {
           if (fechaFinStr.contains('T') || fechaFinStr.contains('Z')) {
             // Es un ISO datetime string completo
             horaFinal = DateTime.parse(fechaFinStr);
-            debugPrint('   ✅ fechaFin parseado: $horaFinal');
+            logger.d('   ✅ fechaFin parseado: $horaFinal');
           }
         } catch (e) {
-          debugPrint('   ❌ Error parseando fechaFin: $e');
+          logger.d('   ❌ Error parseando fechaFin: $e');
         }
       }
 
@@ -154,7 +155,7 @@ class Evento {
         try {
           fecha = DateTime.parse(json['fecha'].toString());
         } catch (e) {
-          debugPrint('   ❌ Error parseando fecha: $e');
+          logger.d('   ❌ Error parseando fecha: $e');
         }
       }
 
@@ -173,7 +174,7 @@ class Evento {
             );
           }
         } catch (e) {
-          debugPrint('   ❌ Error parseando horaInicio: $e');
+          logger.d('   ❌ Error parseando horaInicio: $e');
         }
       }
 
@@ -192,16 +193,16 @@ class Evento {
             );
           }
         } catch (e) {
-          debugPrint('   ❌ Error parseando horaFin/horaFinal: $e');
+          logger.d('   ❌ Error parseando horaFin/horaFinal: $e');
         }
       }
       
       // ✅ DEBUG: Log valores finales parseados
-      debugPrint('🔍 DEBUG - Valores finales parseados:');
-      debugPrint('🔍   - horaInicio final: $horaInicio');
-      debugPrint('🔍   - horaFinal final: $horaFinal');
-      debugPrint('🔍   - fecha final: $fecha');
-      debugPrint('🔍   - lat: $lat, lng: $lng, radio: $radio');
+      logger.d('🔍 DEBUG - Valores finales parseados:');
+      logger.d('🔍   - horaInicio final: $horaInicio');
+      logger.d('🔍   - horaFinal final: $horaFinal');
+      logger.d('🔍   - fecha final: $fecha');
+      logger.d('🔍   - lat: $lat, lng: $lng, radio: $radio');
 
       return Evento(
         id: json['id']?.toString() ?? json['_id']?.toString(),
@@ -226,8 +227,8 @@ class Evento {
         duracionMinutos: json['duracionMinutos'] as int?,
       );
     } catch (e) {
-      debugPrint('❌ Error parsing Evento from JSON: $e');
-      debugPrint('❌ JSON data: $json');
+      logger.d('❌ Error parsing Evento from JSON: $e');
+      logger.d('❌ JSON data: $json');
       throw Exception('Error parsing Evento: $e');
     }
   }

@@ -1,6 +1,7 @@
 // lib/services/firebase/hybrid_location_service.dart
 // Servicio de ubicación híbrido que integra con el backend Node.js
 
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -41,12 +42,12 @@ class HybridLocationService {
   /// 🚀 INICIALIZAR SERVICIO DE UBICACIÓN
   Future<void> initialize() async {
     if (_isInitialized) {
-      debugPrint('⚠️ Servicio de ubicación ya está inicializado');
+      logger.d('⚠️ Servicio de ubicación ya está inicializado');
       return;
     }
 
     try {
-      debugPrint('🌍 Inicializando servicio de ubicación híbrido...');
+      logger.d('🌍 Inicializando servicio de ubicación híbrido...');
 
       // 1. Verificar y solicitar permisos
       final permissionsGranted = await _requestLocationPermissions();
@@ -64,10 +65,10 @@ class HybridLocationService {
       _lastKnownPosition = await _getCurrentLocation();
       
       _isInitialized = true;
-      debugPrint('✅ Servicio de ubicación inicializado correctamente');
+      logger.d('✅ Servicio de ubicación inicializado correctamente');
       
     } catch (e) {
-      debugPrint('❌ Error inicializando servicio de ubicación: $e');
+      logger.d('❌ Error inicializando servicio de ubicación: $e');
       rethrow;
     }
   }
@@ -87,7 +88,7 @@ class HybridLocationService {
       if (Platform.isAndroid) {
         final backgroundLocationStatus = await Permission.locationAlways.status;
         if (backgroundLocationStatus.isDenied) {
-          debugPrint('⚠️ Permisos de ubicación en segundo plano no concedidos');
+          logger.d('⚠️ Permisos de ubicación en segundo plano no concedidos');
           // Nota: En producción, podrías solicitar estos permisos aquí
         }
       }
@@ -95,11 +96,11 @@ class HybridLocationService {
       final isGranted = permission == LocationPermission.whileInUse || 
                        permission == LocationPermission.always;
       
-      debugPrint('🔐 Permisos de ubicación: ${isGranted ? "✅ Concedidos" : "❌ Denegados"}');
+      logger.d('🔐 Permisos de ubicación: ${isGranted ? "✅ Concedidos" : "❌ Denegados"}');
       return isGranted;
       
     } catch (e) {
-      debugPrint('❌ Error solicitando permisos: $e');
+      logger.d('❌ Error solicitando permisos: $e');
       return false;
     }
   }
@@ -114,7 +115,7 @@ class HybridLocationService {
         ),
       );
     } catch (e) {
-      debugPrint('❌ Error obteniendo ubicación actual: $e');
+      logger.d('❌ Error obteniendo ubicación actual: $e');
       
       // Fallback: intentar con ubicación de menor precisión
       try {
@@ -125,7 +126,7 @@ class HybridLocationService {
           ),
         );
       } catch (e2) {
-        debugPrint('❌ Error en fallback de ubicación: $e2');
+        logger.d('❌ Error en fallback de ubicación: $e2');
         rethrow;
       }
     }
@@ -141,14 +142,14 @@ class HybridLocationService {
     }
 
     if (_isTracking) {
-      debugPrint('⚠️ El seguimiento ya está activo');
+      logger.d('⚠️ El seguimiento ya está activo');
       return;
     }
 
     try {
-      debugPrint('🎯 Iniciando seguimiento de ubicación...');
-      debugPrint('   - Geofencing: ${enableGeofencing ? "✅ Habilitado" : "❌ Deshabilitado"}');
-      debugPrint('   - Segundo plano: ${enableBackgroundTracking ? "✅ Habilitado" : "❌ Deshabilitado"}');
+      logger.d('🎯 Iniciando seguimiento de ubicación...');
+      logger.d('   - Geofencing: ${enableGeofencing ? "✅ Habilitado" : "❌ Deshabilitado"}');
+      logger.d('   - Segundo plano: ${enableBackgroundTracking ? "✅ Habilitado" : "❌ Deshabilitado"}');
 
       // Configuración de seguimiento
       final LocationSettings locationSettings = AndroidSettings(
@@ -170,16 +171,16 @@ class HybridLocationService {
       ).listen(
         _handleLocationUpdate,
         onError: (error) {
-          debugPrint('❌ Error en stream de ubicación: $error');
+          logger.d('❌ Error en stream de ubicación: $error');
           onError?.call(error.toString());
         },
       );
 
       _isTracking = true;
-      debugPrint('✅ Seguimiento de ubicación iniciado');
+      logger.d('✅ Seguimiento de ubicación iniciado');
       
     } catch (e) {
-      debugPrint('❌ Error iniciando seguimiento: $e');
+      logger.d('❌ Error iniciando seguimiento: $e');
       rethrow;
     }
   }
@@ -189,7 +190,7 @@ class HybridLocationService {
     try {
       _lastKnownPosition = position;
       
-      debugPrint('📍 Nueva ubicación: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)} (±${position.accuracy.toStringAsFixed(1)}m)');
+      logger.d('📍 Nueva ubicación: ${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)} (±${position.accuracy.toStringAsFixed(1)}m)');
       
       // Callback de actualización
       onLocationUpdate?.call(position);
@@ -202,7 +203,7 @@ class HybridLocationService {
       }
       
     } catch (e) {
-      debugPrint('❌ Error procesando ubicación: $e');
+      logger.d('❌ Error procesando ubicación: $e');
       onError?.call(e.toString());
     }
   }
@@ -227,14 +228,14 @@ class HybridLocationService {
   /// 🎯 REALIZAR VERIFICACIÓN DE GEOFENCING
   Future<void> _performGeofenceCheck(Position position) async {
     try {
-      debugPrint('🎯 Realizando verificación de geofencing...');
+      logger.d('🎯 Realizando verificación de geofencing...');
       
       _lastGeofenceCheck = DateTime.now();
       
       // Enviar ubicación al backend para geofencing
       final result = await _backendService.sendLocationForGeofencing(position);
       
-      debugPrint('📋 Resultado geofencing: ${result['success']}');
+      logger.d('📋 Resultado geofencing: ${result['success']}');
       
       // Callback con resultado
       onGeofenceResult?.call(result);
@@ -246,14 +247,14 @@ class HybridLocationService {
           for (final resultado in resultados) {
             if (resultado['accion'] == 'registrada') {
               onAttendanceRegistered?.call(resultado);
-              debugPrint('🎉 Asistencia registrada automáticamente: ${resultado['eventoNombre']}');
+              logger.d('🎉 Asistencia registrada automáticamente: ${resultado['eventoNombre']}');
             }
           }
         }
       }
       
     } catch (e) {
-      debugPrint('❌ Error en verificación de geofencing: $e');
+      logger.d('❌ Error en verificación de geofencing: $e');
       onError?.call('Error en geofencing: $e');
     }
   }
@@ -261,20 +262,20 @@ class HybridLocationService {
   /// ⏸️ PAUSAR SEGUIMIENTO
   Future<void> pauseLocationTracking() async {
     if (!_isTracking) {
-      debugPrint('⚠️ El seguimiento no está activo');
+      logger.d('⚠️ El seguimiento no está activo');
       return;
     }
 
     await _locationSubscription?.cancel();
     _isTracking = false;
     
-    debugPrint('⏸️ Seguimiento de ubicación pausado');
+    logger.d('⏸️ Seguimiento de ubicación pausado');
   }
 
   /// ▶️ REANUDAR SEGUIMIENTO
   Future<void> resumeLocationTracking() async {
     if (_isTracking) {
-      debugPrint('⚠️ El seguimiento ya está activo');
+      logger.d('⚠️ El seguimiento ya está activo');
       return;
     }
 
@@ -288,7 +289,7 @@ class HybridLocationService {
     _isTracking = false;
     _lastGeofenceCheck = null;
     
-    debugPrint('⏹️ Seguimiento de ubicación detenido');
+    logger.d('⏹️ Seguimiento de ubicación detenido');
   }
 
   /// 🎯 VERIFICACIÓN MANUAL DE GEOFENCING
@@ -298,7 +299,7 @@ class HybridLocationService {
     }
 
     try {
-      debugPrint('🎯 Verificación manual de geofencing...');
+      logger.d('🎯 Verificación manual de geofencing...');
       
       // Obtener ubicación actual
       final position = await _getCurrentLocation();
@@ -307,11 +308,11 @@ class HybridLocationService {
       // Realizar verificación
       final result = await _backendService.sendLocationForGeofencing(position);
       
-      debugPrint('📋 Resultado verificación manual: ${result['success']}');
+      logger.d('📋 Resultado verificación manual: ${result['success']}');
       return result;
       
     } catch (e) {
-      debugPrint('❌ Error en verificación manual: $e');
+      logger.d('❌ Error en verificación manual: $e');
       return {
         'success': false,
         'error': e.toString(),
@@ -338,7 +339,7 @@ class HybridLocationService {
 
   /// 🧪 REALIZAR PRUEBA COMPLETA
   Future<Map<String, dynamic>> runLocationTest() async {
-    debugPrint('🧪 Realizando prueba completa del servicio de ubicación...');
+    logger.d('🧪 Realizando prueba completa del servicio de ubicación...');
     
     final results = <String, dynamic>{};
     
@@ -388,7 +389,7 @@ class HybridLocationService {
     }
     
     results['timestamp'] = DateTime.now().toIso8601String();
-    debugPrint('🧪 Resultados prueba ubicación: $results');
+    logger.d('🧪 Resultados prueba ubicación: $results');
     
     return results;
   }

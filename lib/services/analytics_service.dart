@@ -1,6 +1,6 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/analytics_service.dart
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 
 /// ✅ PRODUCTION READY: Comprehensive Analytics and Monitoring Service
 /// Provides detailed application analytics, performance monitoring, and error tracking
@@ -24,7 +24,7 @@ class AnalyticsService {
   static Future<void> initialize({String? userId}) async {
     if (_isInitialized) return;
     
-    debugPrint('$_tag: Initializing analytics service...');
+    logger.d('$_tag: Initializing analytics service...');
     
     try {
       _userId = userId;
@@ -44,9 +44,9 @@ class AnalyticsService {
       );
       
       _isInitialized = true;
-      debugPrint('$_tag: Analytics service initialized successfully');
+      logger.d('$_tag: Analytics service initialized successfully');
     } catch (e) {
-      debugPrint('$_tag: Failed to initialize analytics service: $e');
+      logger.d('$_tag: Failed to initialize analytics service: $e');
       rethrow;
     }
   }
@@ -60,7 +60,7 @@ class AnalyticsService {
     Map<String, dynamic>? customAttributes,
   }) async {
     if (!_isInitialized) {
-      debugPrint('$_tag: Analytics not initialized, skipping event');
+      logger.d('$_tag: Analytics not initialized, skipping event');
       return;
     }
 
@@ -77,13 +77,13 @@ class AnalyticsService {
       );
 
       _eventBatch.add(event);
-      debugPrint('$_tag: Event tracked - $category:$action:$label');
+      logger.d('$_tag: Event tracked - $category:$action:$label');
 
       if (_eventBatch.length >= 10) {
         await flushEvents();
       }
     } catch (e) {
-      debugPrint('$_tag: Failed to track event: $e');
+      logger.d('$_tag: Failed to track event: $e');
     }
   }
 
@@ -110,13 +110,13 @@ class AnalyticsService {
       );
 
       _performanceBatch.add(metric);
-      debugPrint('$_tag: Performance metric tracked - $metricName: $value$unit');
+      logger.d('$_tag: Performance metric tracked - $metricName: $value$unit');
 
       if (_performanceBatch.length >= 20) {
         await flushPerformanceMetrics();
       }
     } catch (e) {
-      debugPrint('$_tag: Failed to track performance metric: $e');
+      logger.d('$_tag: Failed to track performance metric: $e');
     }
   }
 
@@ -143,7 +143,7 @@ class AnalyticsService {
       );
 
       _errorBatch.add(errorEvent);
-      debugPrint('$_tag: Error tracked - $errorType: $errorMessage');
+      logger.d('$_tag: Error tracked - $errorType: $errorMessage');
 
       // Flush errors immediately for critical issues
       if (errorType.contains('crash') || errorType.contains('fatal')) {
@@ -152,13 +152,13 @@ class AnalyticsService {
         await flushErrors();
       }
     } catch (e) {
-      debugPrint('$_tag: Failed to track error: $e');
+      logger.d('$_tag: Failed to track error: $e');
     }
   }
 
   /// Start new session
   static Future<void> startSession() async {
-    debugPrint('$_tag: Starting new analytics session');
+    logger.d('$_tag: Starting new analytics session');
     
     _sessionId = _generateSessionId();
     _sessionStart = DateTime.now();
@@ -186,7 +186,7 @@ class AnalyticsService {
 
   /// Flush all pending analytics data
   static Future<void> flushAll() async {
-    debugPrint('$_tag: Flushing all analytics data');
+    logger.d('$_tag: Flushing all analytics data');
     
     await Future.wait([
       flushEvents(),
@@ -200,13 +200,13 @@ class AnalyticsService {
     if (_eventBatch.isEmpty) return;
 
     try {
-      debugPrint('$_tag: Flushing ${_eventBatch.length} events');
+      logger.d('$_tag: Flushing ${_eventBatch.length} events');
       // In production, send to analytics service
       
       _eventBatch.clear();
-      debugPrint('$_tag: Events flushed successfully');
+      logger.d('$_tag: Events flushed successfully');
     } catch (e) {
-      debugPrint('$_tag: Failed to flush events: $e');
+      logger.d('$_tag: Failed to flush events: $e');
     }
   }
 
@@ -215,13 +215,13 @@ class AnalyticsService {
     if (_performanceBatch.isEmpty) return;
 
     try {
-      debugPrint('$_tag: Flushing ${_performanceBatch.length} performance metrics');
+      logger.d('$_tag: Flushing ${_performanceBatch.length} performance metrics');
       // In production, send to performance monitoring service
       
       _performanceBatch.clear();
-      debugPrint('$_tag: Performance metrics flushed successfully');
+      logger.d('$_tag: Performance metrics flushed successfully');
     } catch (e) {
-      debugPrint('$_tag: Failed to flush performance metrics: $e');
+      logger.d('$_tag: Failed to flush performance metrics: $e');
     }
   }
 
@@ -230,19 +230,19 @@ class AnalyticsService {
     if (_errorBatch.isEmpty) return;
 
     try {
-      debugPrint('$_tag: Flushing ${_errorBatch.length} errors');
+      logger.d('$_tag: Flushing ${_errorBatch.length} errors');
       // In production, send to error tracking service
       
       _errorBatch.clear();
-      debugPrint('$_tag: Errors flushed successfully');
+      logger.d('$_tag: Errors flushed successfully');
     } catch (e) {
-      debugPrint('$_tag: Failed to flush errors: $e');
+      logger.d('$_tag: Failed to flush errors: $e');
     }
   }
 
   /// Dispose analytics service
   static Future<void> dispose() async {
-    debugPrint('$_tag: Disposing analytics service');
+    logger.d('$_tag: Disposing analytics service');
     
     await _endSession();
     await flushAll();
@@ -255,7 +255,7 @@ class AnalyticsService {
     _userId = null;
     _sessionStart = null;
     
-    debugPrint('$_tag: Analytics service disposed');
+    logger.d('$_tag: Analytics service disposed');
   }
 
   // Private methods
@@ -267,18 +267,18 @@ class AnalyticsService {
   static Future<void> _collectDeviceInfo() async {
     try {
       // Device info collection would be implemented here
-      debugPrint('$_tag: Device info collected');
+      logger.d('$_tag: Device info collected');
     } catch (e) {
-      debugPrint('$_tag: Failed to collect device info: $e');
+      logger.d('$_tag: Failed to collect device info: $e');
     }
   }
 
   static Future<void> _collectAppInfo() async {
     try {
       // App info collection would be implemented here
-      debugPrint('$_tag: App info collected');
+      logger.d('$_tag: App info collected');
     } catch (e) {
-      debugPrint('$_tag: Failed to collect app info: $e');
+      logger.d('$_tag: Failed to collect app info: $e');
     }
   }
 

@@ -1,8 +1,8 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/attendance_service_adapter.dart
 // Adapter to bridge old service interfaces with new Firebase services
 
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import '../models/api_response_model.dart';
 import '../models/asistencia_model.dart';
 import '../models/evento_model.dart';
@@ -32,7 +32,7 @@ class AsistenciaService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Error en checkExistingAttendance adapter: $e');
+      logger.d('❌ Error en checkExistingAttendance adapter: $e');
       return ApiResponse<Asistencia?>(
         success: false,
         message: 'Error verificando asistencia: $e',
@@ -74,7 +74,7 @@ class AsistenciaService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Error en registerAttendance adapter: $e');
+      logger.d('❌ Error en registerAttendance adapter: $e');
       return ApiResponse<Asistencia>(
         success: false,
         message: 'Error registrando asistencia: $e',
@@ -100,7 +100,7 @@ class AsistenciaService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Error en getAttendanceByUser adapter: $e');
+      logger.d('❌ Error en getAttendanceByUser adapter: $e');
       return ApiResponse<List<Asistencia>>(
         success: false,
         message: 'Error obteniendo asistencias: $e',
@@ -126,7 +126,7 @@ class AsistenciaService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Error en getAttendanceByEvent adapter: $e');
+      logger.d('❌ Error en getAttendanceByEvent adapter: $e');
       return ApiResponse<List<Asistencia>>(
         success: false,
         message: 'Error obteniendo asistencias del evento: $e',
@@ -165,7 +165,7 @@ class AsistenciaService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Error en updateUserLocation adapter: $e');
+      logger.d('❌ Error en updateUserLocation adapter: $e');
       return ApiResponse<void>(
         success: false,
         message: 'Error actualizando ubicación: $e',
@@ -196,7 +196,7 @@ class EventoService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Error en getEventoById adapter: $e');
+      logger.d('❌ Error en getEventoById adapter: $e');
       return ApiResponse<Evento?>(
         success: false,
         message: 'Error obteniendo evento: $e',
@@ -222,7 +222,7 @@ class EventoService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Error en getActiveEvent adapter: $e');
+      logger.d('❌ Error en getActiveEvent adapter: $e');
       return ApiResponse<Evento?>(
         success: false,
         message: 'Error obteniendo evento activo: $e',

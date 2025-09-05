@@ -1,4 +1,5 @@
 // 🎯 WIDGET PARA MOSTRAR ESTADÍSTICAS DETALLADAS EN DASHBOARDS
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import '../services/asistencia_service.dart';
 import '../services/dashboard_service.dart';
@@ -280,7 +281,7 @@ class _DetailedStatsWidgetState extends State<DetailedStatsWidget> {
         });
       }
     } catch (e) {
-      debugPrint('Error cargando estadísticas: $e');
+      logger.d('Error cargando estadísticas: $e');
       if (mounted) {
         setState(() {
           _stats = {};

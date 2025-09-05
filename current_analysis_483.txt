@@ -1,0 +1,562 @@
+Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 85.0.0 (88.0.0 available)
+  _flutterfire_internals 1.3.59 (1.3.61 available)
+  analyzer 7.5.2 (8.1.1 available)
+  battery_plus 6.2.2 (6.2.3 available)
+  build 2.5.4 (4.0.0 available)
+  build_config 1.1.2 (1.2.0 available)
+  build_resolvers 2.5.4 (3.0.4 available)
+  build_runner 2.5.4 (2.7.2 available)
+  build_runner_core 9.1.2 (9.3.2 available)
+  built_value 8.10.1 (8.11.2 available)
+  characters 1.4.0 (1.4.1 available)
+  cloud_firestore 5.6.12 (6.0.1 available)
+  cloud_firestore_platform_interface 6.6.12 (7.0.1 available)
+  cloud_firestore_web 4.4.12 (5.0.1 available)
+  dart_style 3.1.0 (3.1.2 available)
+  device_info_plus 10.1.2 (11.5.0 available)
+  firebase_analytics 11.6.0 (12.0.1 available)
+  firebase_analytics_platform_interface 4.4.3 (5.0.1 available)
+  firebase_analytics_web 0.5.10+16 (0.6.0+1 available)
+  firebase_auth 5.7.0 (6.0.2 available)
+  firebase_auth_platform_interface 7.7.3 (8.1.1 available)
+  firebase_auth_web 5.15.3 (6.0.2 available)
+  firebase_core 3.15.2 (4.1.0 available)
+  firebase_core_web 2.24.1 (3.1.0 available)
+  firebase_messaging 15.2.10 (16.0.1 available)
+  firebase_messaging_platform_interface 4.6.10 (4.7.1 available)
+  firebase_messaging_web 3.10.10 (4.0.1 available)
+  flutter_local_notifications 19.4.0 (19.4.1 available)
+  flutter_plugin_android_lifecycle 2.0.28 (2.0.30 available)
+  flutter_secure_storage_linux 1.2.3 (2.0.1 available)
+  flutter_secure_storage_macos 3.1.3 (4.0.0 available)
+  flutter_secure_storage_platform_interface 1.1.2 (2.0.1 available)
+  flutter_secure_storage_web 1.2.1 (2.0.0 available)
+  flutter_secure_storage_windows 3.1.2 (4.0.0 available)
+  golden_toolkit 0.15.0 (discontinued)
+  google_maps_flutter 2.12.3 (2.13.1 available)
+  google_maps_flutter_android 2.16.2 (2.18.2 available)
+  google_maps_flutter_ios 2.15.4 (2.15.5 available)
+  google_maps_flutter_platform_interface 2.12.1 (2.14.0 available)
+  google_maps_flutter_web 0.5.12+2 (0.5.14+2 available)
+  intl 0.18.1 (0.20.2 available)
+  js 0.6.7 (0.7.2 available)
+  json_serializable 6.9.5 (6.11.0 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.16.0 (1.17.0 available)
+  mockito 5.4.6 (5.5.1 available)
+  package_info_plus 8.3.0 (8.3.1 available)
+  package_info_plus_platform_interface 3.2.0 (3.2.1 available)
+  path_provider_android 2.2.17 (2.2.18 available)
+  path_provider_foundation 2.4.1 (2.4.2 available)
+  petitparser 6.1.0 (7.0.1 available)
+  pointycastle 3.9.1 (4.0.0 available)
+  process 5.0.3 (5.0.5 available)
+  provider 6.1.5 (6.1.5+1 available)
+  shared_preferences_android 2.4.10 (2.4.12 available)
+  source_gen 2.0.0 (4.0.1 available)
+  source_helper 1.3.5 (1.3.7 available)
+  test 1.26.2 (1.26.3 available)
+  test_api 0.7.6 (0.7.7 available)
+  test_core 0.6.11 (0.6.12 available)
+  url_launcher_android 6.3.17 (6.3.18 available)
+  vm_service 15.0.0 (15.0.2 available)
+  watcher 1.1.2 (1.1.3 available)
+  web_socket_channel 2.4.0 (3.0.3 available)
+  win32_registry 1.1.5 (2.1.0 available)
+  workmanager_android 0.9.0 (0.9.0+2 available)
+  workmanager_apple 0.9.1 (0.9.1+2 available)
+  workmanager_platform_interface 0.9.0 (0.9.1+1 available)
+  xml 6.5.0 (6.6.1 available)
+Got dependencies!
+1 package is discontinued.
+68 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing geo_asist_front...                                    
+
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:31:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:32:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:36:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:40:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:85:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:86:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:90:5 - avoid_print
+  error - Missing concrete implementation of 'abstract class StatelessWidget extends Widget.build' - lib\core\performance\widget_optimization.dart:118:7 - non_abstract_class_inherits_abstract_member
+  error - Expected an initializer - lib\core\performance\widget_optimization.dart:144:102 - missing_initializer
+   info - Empty constructor bodies should be written using a ';' rather than '{}' - lib\core\performance\widget_optimization.dart:145:3 - empty_constructor_bodies
+  error - '' isn't a field in the enclosing class - lib\core\performance\widget_optimization.dart:145:3 - initializer_for_non_existent_field
+  error - A function body must be provided - lib\core\performance\widget_optimization.dart:145:3 - missing_function_body
+  error - Const constructors can't have a body - lib\core\performance\widget_optimization.dart:145:3 - const_constructor_with_body
+  error - Invalid constant value - lib\core\performance\widget_optimization.dart:145:3 - invalid_constant
+  error - Expected a method, getter, setter or operator declaration - lib\core\performance\widget_optimization.dart:145:4 - expected_executable
+  error - Unexpected text ';' - lib\core\performance\widget_optimization.dart:145:5 - unexpected_token
+  error - Undefined name 'assetPath' - lib\core\performance\widget_optimization.dart:150:9 - undefined_identifier
+  error - Undefined name 'assetPath' - lib\core\performance\widget_optimization.dart:152:9 - undefined_identifier
+  error - Undefined name 'width' - lib\core\performance\widget_optimization.dart:153:16 - undefined_identifier
+  error - Undefined name 'height' - lib\core\performance\widget_optimization.dart:154:17 - undefined_identifier
+  error - Undefined name 'fit' - lib\core\performance\widget_optimization.dart:155:14 - undefined_identifier
+  error - Undefined name 'color' - lib\core\performance\widget_optimization.dart:156:16 - undefined_identifier
+  error - Undefined name 'colorBlendMode' - lib\core\performance\widget_optimization.dart:157:25 - undefined_identifier
+  error - Undefined name 'errorWidget' - lib\core\performance\widget_optimization.dart:159:18 - undefined_identifier
+  error - Undefined name 'imageUrl' - lib\core\performance\widget_optimization.dart:166:7 - undefined_identifier
+  error - Undefined name 'width' - lib\core\performance\widget_optimization.dart:167:14 - undefined_identifier
+  error - Undefined name 'height' - lib\core\performance\widget_optimization.dart:168:15 - undefined_identifier
+  error - Undefined name 'fit' - lib\core\performance\widget_optimization.dart:169:12 - undefined_identifier
+  error - Undefined name 'color' - lib\core\performance\widget_optimization.dart:170:14 - undefined_identifier
+  error - Undefined name 'colorBlendMode' - lib\core\performance\widget_optimization.dart:171:23 - undefined_identifier
+  error - Undefined name 'fadeInDuration' - lib\core\performance\widget_optimization.dart:176:23 - undefined_identifier
+  error - Undefined name 'placeholder' - lib\core\performance\widget_optimization.dart:181:16 - undefined_identifier
+  error - Undefined name 'errorWidget' - lib\core\performance\widget_optimization.dart:184:16 - undefined_identifier
+  error - Undefined name 'width' - lib\core\performance\widget_optimization.dart:191:14 - undefined_identifier
+  error - Undefined name 'height' - lib\core\performance\widget_optimization.dart:192:15 - undefined_identifier
+  error - Undefined name 'width' - lib\core\performance\widget_optimization.dart:207:14 - undefined_identifier
+  error - Undefined name 'height' - lib\core\performance\widget_optimization.dart:208:15 - undefined_identifier
+  error - Expected a method, getter, setter or operator declaration - lib\core\performance\widget_optimization.dart:216:1 - expected_executable
+warning - The value of the local variable 'timer' isn't used - lib\core\performance\widget_optimization.dart:414:12 - unused_local_variable
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib\core\theme\android_theme.dart:36:16 - argument_type_not_assignable
+  error - The argument type 'DialogTheme' can't be assigned to the parameter type 'DialogThemeData?'.  - lib\core\theme\android_theme.dart:110:18 - argument_type_not_assignable
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib\core\theme\android_theme.dart:205:16 - argument_type_not_assignable
+   info - The type parameter name 'Type' matches a visible type name - lib\core\usecases\usecase.dart:8:24 - avoid_types_as_parameter_names
+   info - The type parameter name 'Params' matches a visible type name - lib\core\usecases\usecase.dart:8:30 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib\core\usecases\usecase.dart:14:32 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib\core\usecases\usecase.dart:20:30 - avoid_types_as_parameter_names
+   info - The type parameter name 'Params' matches a visible type name - lib\core\usecases\usecase.dart:20:36 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib\core\usecases\usecase.dart:26:38 - avoid_types_as_parameter_names
+   info - The type parameter name 'Params' matches a visible type name - lib\core\usecases\usecase.dart:121:47 - avoid_types_as_parameter_names
+  error - 'Params' doesn't conform to the bound 'Params' of the type parameter 'P' - lib\core\usecases\usecase.dart:124:30 - type_argument_not_matching_bounds
+  error - A value of type 'Failure' can't be returned from the method 'executeWithValidation' because it has a return type of 'Future<Result<T>>' - lib\core\usecases\usecase.dart:171:14 - return_of_invalid_type
+  error - Abstract classes can't be instantiated - lib\core\usecases\usecase.dart:171:14 - instantiate_abstract_class
+  error - The named parameter 'message' is required, but there's no corresponding argument - lib\core\usecases\usecase.dart:171:14 - missing_required_argument
+  error - The type 'Failure' is declared with 0 type parameters, but 1 type arguments were given - lib\core\usecases\usecase.dart:171:14 - wrong_number_of_type_arguments
+  error - Too many positional arguments: 0 expected, but 1 found - lib\core\usecases\usecase.dart:171:25 - extra_positional_arguments_could_be_named
+  error - The type 'Failure' is declared with 0 type parameters, but 1 type arguments were given - lib\core\usecases\usecase.dart:171:46 - wrong_number_of_type_arguments
+  error - The getter 'failure' isn't defined for the type 'Failure' - lib\core\usecases\usecase.dart:171:61 - undefined_getter
+   info - Don't invoke 'print' in production code - lib\core\usecases\usecase.dart:195:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\usecases\usecase.dart:200:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\usecases\usecase.dart:205:5 - avoid_print
+   info - 'printTime' is deprecated and shouldn't be used. Use `dateTimeFormat` with `DateTimeFormat.onlyTimeAndSinceStart` or `DateTimeFormat.none` instead - lib\core\utils\app_logger.dart:26:9 - deprecated_member_use
+   info - An uninitialized field should have an explicit type annotation - lib\core\utils\result.dart:75:9 - prefer_typing_uninitialized_variables
+   info - Missing type annotation - lib\core\utils\result.dart:75:9 - strict_top_level_inference
+  error - 'FailureResult.fold' ('R Function<R>(R Function(dynamic), R Function(T))') isn't a valid override of 'Result.fold' ('R Function<R>(R Function(Failure), R Function(T))') - lib\core\utils\result.dart:80:5 - invalid_override
+  error - failure isn't a type - lib\core\utils\result.dart:80:24 - not_a_type
+  error - Undefined class 'failure' - lib\core\utils\result.dart:106:37 - undefined_class
+  error - Undefined class 'failure' - lib\core\utils\result.dart:116:19 - undefined_class
+   info - Missing type annotation - lib\core\utils\result.dart:137:31 - strict_top_level_inference
+  error - A value of type 'Failure' can't be returned from the method '_checkAuthStatus' because it has a return type of 'Future<Result<AuthUser>>' - lib\features\auth\presentation\bloc\auth_bloc.dart:314:12 - return_of_invalid_type
+  error - Abstract classes can't be instantiated - lib\features\auth\presentation\bloc\auth_bloc.dart:314:18 - instantiate_abstract_class
+  error - The named parameter 'message' is required, but there's no corresponding argument - lib\features\auth\presentation\bloc\auth_bloc.dart:314:18 - missing_required_argument
+  error - Too many positional arguments: 0 expected, but 1 found - lib\features\auth\presentation\bloc\auth_bloc.dart:314:26 - extra_positional_arguments_could_be_named
+  error - Target of URI doesn't exist: 'package:flutter_localizations/flutter_localizations.dart' - lib\generated\l10n\app_localizations.dart:5:8 - uri_does_not_exist
+  error - Const variables must be initialized with a constant value - lib\generated\l10n\app_localizations.dart:90:5 - const_initialized_with_non_constant_value
+  error - The values in a const list literal must be constants - lib\generated\l10n\app_localizations.dart:90:5 - non_constant_list_element
+  error - Undefined name 'GlobalMaterialLocalizations' - lib\generated\l10n\app_localizations.dart:90:5 - undefined_identifier
+  error - The values in a const list literal must be constants - lib\generated\l10n\app_localizations.dart:91:5 - non_constant_list_element
+  error - Undefined name 'GlobalCupertinoLocalizations' - lib\generated\l10n\app_localizations.dart:91:5 - undefined_identifier
+  error - The values in a const list literal must be constants - lib\generated\l10n\app_localizations.dart:92:5 - non_constant_list_element
+  error - Undefined name 'GlobalWidgetsLocalizations' - lib\generated\l10n\app_localizations.dart:92:5 - undefined_identifier
+warning - Unused import: 'package:flutter/foundation.dart' - lib\models\asistencia_model.dart:2:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps - lib\screens\attendance\attendance_tracking_screen.dart:812:54 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\dashboard_screen.dart:592:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\dashboard_screen.dart:605:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\dashboard_screen.dart:618:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\dashboard_screen.dart:628:21 - use_build_context_synchronously
+warning - The declaration '_buildSearchSection' isn't referenced - lib\screens\material3_demo_screen.dart:181:10 - unused_element
+warning - The declaration '_buildSegmentedSection' isn't referenced - lib\screens\material3_demo_screen.dart:226:10 - unused_element
+warning - The declaration '_buildCardsSection' isn't referenced - lib\screens\material3_demo_screen.dart:265:10 - unused_element
+warning - The declaration '_buildProgressSection' isn't referenced - lib\screens\material3_demo_screen.dart:331:10 - unused_element
+warning - The declaration '_buildCarouselSection' isn't referenced - lib\screens\material3_demo_screen.dart:389:10 - unused_element
+warning - The declaration '_buildDateTimeSection' isn't referenced - lib\screens\material3_demo_screen.dart:458:10 - unused_element
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:483:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:502:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:504:73 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:663:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:691:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:693:58 - use_build_context_synchronously
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\asistencia\asistencia_service.dart:4:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\asistencia\geofence_manager.dart:4:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\asistencia\heartbeat_manager.dart:3:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\attendance\attendance_state_manager.dart:3:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\attendance\grace_period_manager.dart:3:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\evento\evento_mapper.dart:3:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\evento\evento_repository.dart:4:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\evento\evento_service.dart:3:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\evento\evento_validator.dart:3:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\firebase\firebase_asistencia_service.dart:4:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\firebase\firebase_auth_service.dart:5:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\firebase\firebase_evento_service.dart:5:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\firebase\firebase_geofencing_service.dart:5:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\firebase\firebase_messaging_service.dart:5:8 - unused_import
+warning - Unused import: 'package:flutter/material.dart' - lib\services\firebase\firebase_messaging_service.dart:6:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\firebase\firestore_service.dart:4:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\firebase\hybrid_backend_service.dart:7:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\firebase\hybrid_location_service.dart:7:8 - unused_import
+   info - The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/services.dart' - lib\services\notifications\notification_manager.dart:8:8 - unnecessary_import
+warning - Dead code - lib\services\production_health_check.dart:326:29 - dead_code
+warning - Dead code - lib\services\production_health_check.dart:326:46 - dead_code
+warning - The value of the local variable 'testKey' isn't used - lib\services\production_health_check.dart:355:13 - unused_local_variable
+warning - The value of the local variable 'testValue' isn't used - lib\services\production_health_check.dart:356:13 - unused_local_variable
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_button.dart:36:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_button.dart:61:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_button.dart:86:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_button.dart:111:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_card.dart:39:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_card.dart:56:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_card.dart:73:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_card.dart:90:5 - invalid_super_formal_parameter_location
+  error - Invalid constant value - lib\shared\widgets\app_card.dart:165:27 - invalid_constant
+  error - The getter 'black05' isn't defined for the type 'Colors' - lib\shared\widgets\app_card.dart:165:34 - undefined_getter
+  error - Invalid constant value - lib\shared\widgets\app_card.dart:176:27 - invalid_constant
+  error - The getter 'primary05' isn't defined for the type 'AppColors' - lib\shared\widgets\app_card.dart:176:37 - undefined_getter
+  error - Invalid constant value - lib\shared\widgets\app_card.dart:187:27 - invalid_constant
+  error - The getter 'success05' isn't defined for the type 'AppColors' - lib\shared\widgets\app_card.dart:187:37 - undefined_getter
+  error - Invalid constant value - lib\shared\widgets\app_card.dart:199:27 - invalid_constant
+  error - The getter 'black05' isn't defined for the type 'Colors' - lib\shared\widgets\app_card.dart:199:34 - undefined_getter
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_text_field.dart:67:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_text_field.dart:105:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_text_field.dart:144:5 - invalid_super_formal_parameter_location
+  error - Undefined name 'SemanticsService' - lib\shared\widgets\app_text_field.dart:226:5 - undefined_identifier
+warning - Unused import: 'package:flutter/foundation.dart' - lib\utils\background_task_helper.dart:5:8 - unused_import
+warning - The declaration '_adjustTasksForPowerState' isn't referenced - lib\utils\background_task_helper.dart:315:16 - unused_element
+  error - Target of URI doesn't exist: 'package:geo_asist_front/core/utils/applogger.dart' - lib\utils\battery_manager.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:53:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:65:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:68:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:82:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:95:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:127:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:131:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:188:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:200:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:219:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:222:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:243:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:248:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:252:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:255:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:300:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:343:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:369:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:394:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:404:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:414:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:420:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:496:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:503:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\battery_manager.dart:518:5 - undefined_identifier
+  error - Target of URI doesn't exist: 'package:geo_asist_front/core/utils/applogger.dart' - lib\utils\memory_manager.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:96:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:114:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:118:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:137:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:140:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:150:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:152:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:165:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:178:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:212:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:216:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:235:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:267:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:282:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:292:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:316:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:319:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:341:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:366:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:375:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:396:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:422:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:427:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:437:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:440:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:459:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:502:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:519:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:524:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:532:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:542:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:622:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:632:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:639:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:657:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_manager.dart:672:5 - undefined_identifier
+warning - Unused import: 'package:flutter/foundation.dart' - lib\utils\notification_helper.dart:4:8 - unused_import
+  error - Target of URI doesn't exist: 'package:geo_asist_front/core/utils/applogger.dart' - lib\utils\performance_optimizer.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:51:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:69:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:71:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:95:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:98:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:128:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:143:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:150:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:156:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:181:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:187:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:219:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:294:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:307:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:314:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:327:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:347:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:352:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\performance_optimizer.dart:364:5 - undefined_identifier
+warning - The value of the field '_isHovered' isn't used - lib\widgets\animated_components.dart:336:8 - unused_field
+warning - The value of the local variable 'theme' isn't used - lib\widgets\animated_components.dart:490:11 - unused_local_variable
+  error - The argument type 'GradientTransform' can't be assigned to the parameter type 'GradientTransform?'.  - lib\widgets\animated_components.dart:516:26 - argument_type_not_assignable
+warning - The method doesn't override an inherited method - lib\widgets\animated_components.dart:537:12 - override_on_non_overriding_member
+warning - The value of the field '_version' isn't used - lib\widgets\material3_components.dart:7:23 - unused_field
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:31:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:32:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:36:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:40:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:85:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:86:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:90:5 - avoid_print
+  error - Missing concrete implementation of 'abstract class StatelessWidget extends Widget.build' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:117:7 - non_abstract_class_inherits_abstract_member
+  error - Expected an initializer - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:143:102 - missing_initializer
+   info - Empty constructor bodies should be written using a ';' rather than '{}' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:3 - empty_constructor_bodies
+  error - '' isn't a field in the enclosing class - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:3 - initializer_for_non_existent_field
+  error - A function body must be provided - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:3 - missing_function_body
+  error - Const constructors can't have a body - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:3 - const_constructor_with_body
+  error - Invalid constant value - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:3 - invalid_constant
+  error - Expected a method, getter, setter or operator declaration - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:4 - expected_executable
+  error - Unexpected text ';' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:5 - unexpected_token
+  error - Undefined name 'assetPath' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:149:9 - undefined_identifier
+  error - Undefined name 'assetPath' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:151:9 - undefined_identifier
+  error - Undefined name 'width' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:152:16 - undefined_identifier
+  error - Undefined name 'height' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:153:17 - undefined_identifier
+  error - Undefined name 'fit' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:154:14 - undefined_identifier
+  error - Undefined name 'color' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:155:16 - undefined_identifier
+  error - Undefined name 'colorBlendMode' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:156:25 - undefined_identifier
+  error - Undefined name 'errorWidget' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:158:18 - undefined_identifier
+  error - Undefined name 'imageUrl' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:165:7 - undefined_identifier
+  error - Undefined name 'width' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:166:14 - undefined_identifier
+  error - Undefined name 'height' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:167:15 - undefined_identifier
+  error - Undefined name 'fit' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:168:12 - undefined_identifier
+  error - Undefined name 'color' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:169:14 - undefined_identifier
+  error - Undefined name 'colorBlendMode' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:170:23 - undefined_identifier
+  error - Undefined name 'fadeInDuration' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:175:23 - undefined_identifier
+  error - Undefined name 'placeholder' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:180:16 - undefined_identifier
+  error - Undefined name 'errorWidget' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:183:16 - undefined_identifier
+  error - Undefined name 'width' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:190:14 - undefined_identifier
+  error - Undefined name 'height' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:191:15 - undefined_identifier
+  error - Undefined name 'width' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:206:14 - undefined_identifier
+  error - Undefined name 'height' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:207:15 - undefined_identifier
+  error - Expected a method, getter, setter or operator declaration - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:215:1 - expected_executable
+warning - The value of the local variable 'timer' isn't used - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:413:12 - unused_local_variable
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib_backup_before_logger_replacement\core\theme\android_theme.dart:36:16 - argument_type_not_assignable
+  error - The argument type 'DialogTheme' can't be assigned to the parameter type 'DialogThemeData?'.  - lib_backup_before_logger_replacement\core\theme\android_theme.dart:110:18 - argument_type_not_assignable
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib_backup_before_logger_replacement\core\theme\android_theme.dart:205:16 - argument_type_not_assignable
+   info - The type parameter name 'Type' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:8:24 - avoid_types_as_parameter_names
+   info - The type parameter name 'Params' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:8:30 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:14:32 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:20:30 - avoid_types_as_parameter_names
+   info - The type parameter name 'Params' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:20:36 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:26:38 - avoid_types_as_parameter_names
+   info - The type parameter name 'Params' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:121:47 - avoid_types_as_parameter_names
+  error - 'Params' doesn't conform to the bound 'Params' of the type parameter 'P' - lib_backup_before_logger_replacement\core\usecases\usecase.dart:124:30 - type_argument_not_matching_bounds
+  error - A value of type 'Failure' can't be returned from the method 'executeWithValidation' because it has a return type of 'Future<Result<T>>' - lib_backup_before_logger_replacement\core\usecases\usecase.dart:171:14 - return_of_invalid_type
+  error - Abstract classes can't be instantiated - lib_backup_before_logger_replacement\core\usecases\usecase.dart:171:14 - instantiate_abstract_class
+  error - The named parameter 'message' is required, but there's no corresponding argument - lib_backup_before_logger_replacement\core\usecases\usecase.dart:171:14 - missing_required_argument
+  error - The type 'Failure' is declared with 0 type parameters, but 1 type arguments were given - lib_backup_before_logger_replacement\core\usecases\usecase.dart:171:14 - wrong_number_of_type_arguments
+  error - Too many positional arguments: 0 expected, but 1 found - lib_backup_before_logger_replacement\core\usecases\usecase.dart:171:25 - extra_positional_arguments_could_be_named
+  error - The type 'Failure' is declared with 0 type parameters, but 1 type arguments were given - lib_backup_before_logger_replacement\core\usecases\usecase.dart:171:46 - wrong_number_of_type_arguments
+  error - The getter 'failure' isn't defined for the type 'Failure' - lib_backup_before_logger_replacement\core\usecases\usecase.dart:171:61 - undefined_getter
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\usecases\usecase.dart:195:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\usecases\usecase.dart:200:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\usecases\usecase.dart:205:5 - avoid_print
+   info - An uninitialized field should have an explicit type annotation - lib_backup_before_logger_replacement\core\utils\result.dart:75:9 - prefer_typing_uninitialized_variables
+   info - Missing type annotation - lib_backup_before_logger_replacement\core\utils\result.dart:75:9 - strict_top_level_inference
+  error - 'FailureResult.fold' ('R Function<R>(R Function(dynamic), R Function(T))') isn't a valid override of 'Result.fold' ('R Function<R>(R Function(Failure), R Function(T))') - lib_backup_before_logger_replacement\core\utils\result.dart:80:5 - invalid_override
+  error - failure isn't a type - lib_backup_before_logger_replacement\core\utils\result.dart:80:24 - not_a_type
+  error - Undefined class 'failure' - lib_backup_before_logger_replacement\core\utils\result.dart:106:37 - undefined_class
+  error - Undefined class 'failure' - lib_backup_before_logger_replacement\core\utils\result.dart:116:19 - undefined_class
+   info - Missing type annotation - lib_backup_before_logger_replacement\core\utils\result.dart:137:31 - strict_top_level_inference
+  error - A value of type 'Failure' can't be returned from the method '_checkAuthStatus' because it has a return type of 'Future<Result<AuthUser>>' - lib_backup_before_logger_replacement\features\auth\presentation\bloc\auth_bloc.dart:314:12 - return_of_invalid_type
+  error - Abstract classes can't be instantiated - lib_backup_before_logger_replacement\features\auth\presentation\bloc\auth_bloc.dart:314:18 - instantiate_abstract_class
+  error - The named parameter 'message' is required, but there's no corresponding argument - lib_backup_before_logger_replacement\features\auth\presentation\bloc\auth_bloc.dart:314:18 - missing_required_argument
+  error - Too many positional arguments: 0 expected, but 1 found - lib_backup_before_logger_replacement\features\auth\presentation\bloc\auth_bloc.dart:314:26 - extra_positional_arguments_could_be_named
+  error - Target of URI doesn't exist: 'package:flutter_localizations/flutter_localizations.dart' - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:5:8 - uri_does_not_exist
+  error - Const variables must be initialized with a constant value - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:90:5 - const_initialized_with_non_constant_value
+  error - The values in a const list literal must be constants - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:90:5 - non_constant_list_element
+  error - Undefined name 'GlobalMaterialLocalizations' - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:90:5 - undefined_identifier
+  error - The values in a const list literal must be constants - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:91:5 - non_constant_list_element
+  error - Undefined name 'GlobalCupertinoLocalizations' - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:91:5 - undefined_identifier
+  error - The values in a const list literal must be constants - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:92:5 - non_constant_list_element
+  error - Undefined name 'GlobalWidgetsLocalizations' - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:92:5 - undefined_identifier
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\attendance\attendance_tracking_screen.dart:811:54 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\dashboard_screen.dart:591:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\dashboard_screen.dart:604:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\dashboard_screen.dart:617:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\dashboard_screen.dart:627:21 - use_build_context_synchronously
+warning - The declaration '_buildSearchSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:180:10 - unused_element
+warning - The declaration '_buildSegmentedSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:225:10 - unused_element
+warning - The declaration '_buildCardsSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:264:10 - unused_element
+warning - The declaration '_buildProgressSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:330:10 - unused_element
+warning - The declaration '_buildCarouselSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:388:10 - unused_element
+warning - The declaration '_buildDateTimeSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:457:10 - unused_element
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:482:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:501:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:503:73 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:662:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:690:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:692:58 - use_build_context_synchronously
+warning - Dead code - lib_backup_before_logger_replacement\services\production_health_check.dart:325:29 - dead_code
+warning - Dead code - lib_backup_before_logger_replacement\services\production_health_check.dart:325:46 - dead_code
+warning - The value of the local variable 'testKey' isn't used - lib_backup_before_logger_replacement\services\production_health_check.dart:354:13 - unused_local_variable
+warning - The value of the local variable 'testValue' isn't used - lib_backup_before_logger_replacement\services\production_health_check.dart:355:13 - unused_local_variable
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_button.dart:36:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_button.dart:61:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_button.dart:86:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_button.dart:111:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:39:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:56:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:73:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:90:5 - invalid_super_formal_parameter_location
+  error - Invalid constant value - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:165:27 - invalid_constant
+  error - The getter 'black05' isn't defined for the type 'Colors' - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:165:34 - undefined_getter
+  error - Invalid constant value - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:176:27 - invalid_constant
+  error - The getter 'primary05' isn't defined for the type 'AppColors' - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:176:37 - undefined_getter
+  error - Invalid constant value - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:187:27 - invalid_constant
+  error - The getter 'success05' isn't defined for the type 'AppColors' - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:187:37 - undefined_getter
+  error - Invalid constant value - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:199:27 - invalid_constant
+  error - The getter 'black05' isn't defined for the type 'Colors' - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:199:34 - undefined_getter
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_text_field.dart:67:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_text_field.dart:105:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_text_field.dart:144:5 - invalid_super_formal_parameter_location
+  error - Undefined name 'SemanticsService' - lib_backup_before_logger_replacement\shared\widgets\app_text_field.dart:226:5 - undefined_identifier
+warning - The declaration '_adjustTasksForPowerState' isn't referenced - lib_backup_before_logger_replacement\utils\background_task_helper.dart:314:16 - unused_element
+warning - The value of the field '_isHovered' isn't used - lib_backup_before_logger_replacement\widgets\animated_components.dart:336:8 - unused_field
+warning - The value of the local variable 'theme' isn't used - lib_backup_before_logger_replacement\widgets\animated_components.dart:490:11 - unused_local_variable
+  error - The argument type 'GradientTransform' can't be assigned to the parameter type 'GradientTransform?'.  - lib_backup_before_logger_replacement\widgets\animated_components.dart:516:26 - argument_type_not_assignable
+warning - The method doesn't override an inherited method - lib_backup_before_logger_replacement\widgets\animated_components.dart:537:12 - override_on_non_overriding_member
+warning - The value of the field '_version' isn't used - lib_backup_before_logger_replacement\widgets\material3_components.dart:7:23 - unused_field
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:21:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:38:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:96:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:134:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:158:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:185:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:222:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:256:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:283:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:303:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:318:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:336:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:352:7 - avoid_print
+  error - Invalid constant value - test\golden\golden_tests.dart:45:26 - invalid_constant
+warning - The value of the local variable 'errorController' isn't used - test\golden\golden_tests.dart:212:15 - unused_local_variable
+  error - The getter 'tester' isn't defined for the type 'TestWidgetsFlutterBinding' - test\golden_file_test.dart:43:22 - undefined_getter
+  error - The getter 'tester' isn't defined for the type 'TestWidgetsFlutterBinding' - test\golden_file_test.dart:44:22 - undefined_getter
+  error - The getter 'tester' isn't defined for the type 'TestWidgetsFlutterBinding' - test\golden_file_test.dart:58:34 - undefined_getter
+  error - The getter 'tester' isn't defined for the type 'TestWidgetsFlutterBinding' - test\golden_file_test.dart:62:22 - undefined_getter
+  error - The getter 'tester' isn't defined for the type 'TestWidgetsFlutterBinding' - test\golden_file_test.dart:63:22 - undefined_getter
+  error - The getter 'tester' isn't defined for the type 'TestWidgetsFlutterBinding' - test\golden_file_test.dart:77:34 - undefined_getter
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:20:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:25:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:27:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:30:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:52:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:57:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:59:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:74:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:79:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:82:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:96:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:101:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:104:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:118:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:120:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:134:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:140:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:142:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:162:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:167:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:170:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:173:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:175:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:183:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:211:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:212:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:213:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:214:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:226:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:241:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:246:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:260:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:264:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:266:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:268:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:272:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:295:13 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:302:17 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:304:17 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:308:13 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:312:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\material3_components_test.dart:57:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\material3_components_test.dart:337:9 - avoid_print
+warning - The value of the field '_tag' isn't used - test\overflow_detection_test.dart:12:23 - unused_field
+   info - Don't invoke 'print' in production code - test\overflow_detection_test.dart:188:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\overflow_detection_test.dart:237:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:29:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:30:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:48:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:72:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:123:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:162:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:214:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:215:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:216:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:285:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:321:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:322:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:323:7 - avoid_print
+warning - The value of the local variable 'dioAdapter' isn't used - test\services\api_service_test.dart:13:21 - unused_local_variable
+warning - The value of the local variable 'mockClient' isn't used - test\services\api_service_test.dart:14:22 - unused_local_variable
+  error - This expression has a type of 'void' so its value can't be used - test\services\asistencia_service_test.dart:102:9 - use_of_void_result
+  error - The function 'argThat' isn't defined - test\services\asistencia_service_test.dart:161:17 - undefined_function
+  error - The function 'argThat' isn't defined - test\services\asistencia_service_test.dart:334:17 - undefined_function
+  error - The function 'argThat' isn't defined - test\services\asistencia_service_test.dart:427:17 - undefined_function
+  error - The returned type 'ApiResponse<bool>' isn't returnable from a 'Future<ApiResponse<Map<String, dynamic>>>' function, as required by the closure's context - test\services\asistencia_service_test.dart:473:36 - return_of_invalid_type_from_closure
+  error - The returned type 'ApiResponse<bool>' isn't returnable from a 'Future<ApiResponse<Map<String, dynamic>>>' function, as required by the closure's context - test\services\asistencia_service_test.dart:512:36 - return_of_invalid_type_from_closure
+  error - This expression has a type of 'void' so its value can't be used - test\services\asistencia_service_test.dart:514:9 - use_of_void_result
+  error - The function 'argThat' isn't defined - test\services\asistencia_service_test.dart:567:17 - undefined_function
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:619:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:619:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:625:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:629:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:629:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:635:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:639:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:639:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:645:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:665:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:665:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:671:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:675:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:675:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:681:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:685:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:685:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:691:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:695:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:695:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:701:19 - argument_type_not_assignable
+  error - A value of type 'String' can't be assigned to a parameter of type 'DateTime' in a const constructor - test\unit\auth_bloc_test.dart:103:11 - const_constructor_param_type_mismatch
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\unit\auth_bloc_test.dart:103:22 - argument_type_not_assignable
+  error - A value of type 'String' can't be assigned to a parameter of type 'DateTime' in a const constructor - test\unit\auth_bloc_test.dart:120:11 - const_constructor_param_type_mismatch
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\unit\auth_bloc_test.dart:120:22 - argument_type_not_assignable
+  error - A value of type 'String' can't be assigned to a parameter of type 'DateTime' in a const constructor - test\unit\auth_bloc_test.dart:128:11 - const_constructor_param_type_mismatch
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\unit\auth_bloc_test.dart:128:22 - argument_type_not_assignable
+  error - A value of type 'String' can't be assigned to a parameter of type 'DateTime' in a const constructor - test\unit\auth_bloc_test.dart:140:11 - const_constructor_param_type_mismatch
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\unit\auth_bloc_test.dart:140:22 - argument_type_not_assignable
+  error - A value of type 'String' can't be assigned to a parameter of type 'DateTime' in a const constructor - test\unit\auth_bloc_test.dart:157:11 - const_constructor_param_type_mismatch
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\unit\auth_bloc_test.dart:157:22 - argument_type_not_assignable
+  error - Const variables must be initialized with a constant value - test\unit\base_bloc_test.dart:200:23 - const_initialized_with_non_constant_value
+  error - The constructor being called isn't a const constructor - test\unit\base_bloc_test.dart:200:23 - const_with_non_const
+warning - The value of the local variable 'pressed' isn't used - test\widget\app_button_test.dart:367:12 - unused_local_variable
+warning - The value of the local variable 'wasPressed' isn't used - test\widgets\custom_button_test.dart:12:12 - unused_local_variable
+
+483 issues found. (ran in 4.1s)

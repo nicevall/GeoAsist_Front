@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/attendance/attendance_tracking_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -103,7 +104,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    debugPrint('📱 App lifecycle cambió a: $state');
+    logger.d('📱 App lifecycle cambió a: $state');
 
     switch (state) {
       case AppLifecycleState.resumed:
@@ -153,7 +154,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   }
 
   Future<void> _initializeTracking() async {
-    debugPrint('🎯 Inicializando AttendanceTracking');
+    logger.d('🎯 Inicializando AttendanceTracking');
 
     try {
       // 1. Validar permisos críticos
@@ -168,7 +169,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       // 4. Cargar historial
       await _loadAttendanceHistory();
     } catch (e) {
-      debugPrint('❌ Error inicializando tracking: $e');
+      logger.d('❌ Error inicializando tracking: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -182,7 +183,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   // ✅ REEMPLAZADO: Sistema de validación de permisos críticos obsoleto
   // Ahora se maneja en _checkCriticalPermissionsBeforeTracking()
   Future<void> _validateCriticalPermissions() async {
-    debugPrint('🔒 Método legacy - usar _checkCriticalPermissionsBeforeTracking');
+    logger.d('🔒 Método legacy - usar _checkCriticalPermissionsBeforeTracking');
     // Método legacy - no se usa más
     setState(() {
       _hasPermissions = _allPermissionsGranted;
@@ -217,11 +218,11 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
 
       if (mounted && _activeEvent != null) {
         setState(() {
-          debugPrint('✅ Evento cargado: ${_activeEvent!.titulo}');
+          logger.d('✅ Evento cargado: ${_activeEvent!.titulo}');
         });
       }
     } catch (e) {
-      debugPrint('❌ Error cargando evento: $e');
+      logger.d('❌ Error cargando evento: $e');
       rethrow;
     }
   }
@@ -240,9 +241,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         });
       }
 
-      debugPrint('✅ Historial cargado: ${history.length} asistencias');
+      logger.d('✅ Historial cargado: ${history.length} asistencias');
     } catch (e) {
-      debugPrint('❌ Error cargando historial: $e');
+      logger.d('❌ Error cargando historial: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -255,12 +256,12 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
 
   /// ✅ NUEVO: Verificar permisos críticos antes del tracking
   Future<void> _checkCriticalPermissionsBeforeTracking() async {
-    debugPrint('🔐 Verificando permisos críticos antes del tracking...');
+    logger.d('🔐 Verificando permisos críticos antes del tracking...');
     
     // Verificar todos los permisos críticos
     _permissionStatus = await _permissionService.checkCriticalPermissions();
     
-    debugPrint('📋 Estado de permisos: $_permissionStatus');
+    logger.d('📋 Estado de permisos: $_permissionStatus');
     
     // Si no todos los permisos están otorgados, mostrar diálogos
     if (!_areAllPermissionsGranted()) {
@@ -721,11 +722,11 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   /// ✅ MÉTODO MODIFICADO: Iniciar tracking automático (solo cuando permisos OK)
   Future<void> _startAutomaticTracking() async {
     if (!_allPermissionsGranted) {
-      debugPrint('❌ No se puede iniciar tracking - faltan permisos críticos');
+      logger.d('❌ No se puede iniciar tracking - faltan permisos críticos');
       return;
     }
     
-    debugPrint('🚀 Iniciando tracking automático con permisos completos...');
+    logger.d('🚀 Iniciando tracking automático con permisos completos...');
     
     setState(() {
       _isLoading = true;
@@ -750,9 +751,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         });
       }
       
-      debugPrint('✅ Tracking automático activado exitosamente');
+      logger.d('✅ Tracking automático activado exitosamente');
     } catch (e) {
-      debugPrint('❌ Error en tracking automático: $e');
+      logger.d('❌ Error en tracking automático: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -769,7 +770,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     }
 
     try {
-      debugPrint('▶️ Activando tracking automático');
+      logger.d('▶️ Activando tracking automático');
 
       // Iniciar timers
       _startPositionUpdates();
@@ -783,9 +784,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       });
 
       _trackingController.forward();
-      debugPrint('✅ Tracking automático activado');
+      logger.d('✅ Tracking automático activado');
     } catch (e) {
-      debugPrint('❌ Error activando tracking: $e');
+      logger.d('❌ Error activando tracking: $e');
       rethrow;
     }
   }
@@ -804,7 +805,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     }
 
     try {
-      debugPrint('▶️ Iniciando tracking');
+      logger.d('▶️ Iniciando tracking');
 
       // Iniciar timers
       _startPositionUpdates();
@@ -819,16 +820,16 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       _trackingController.forward();
       _pulseController.repeat(reverse: true);
 
-      debugPrint('✅ Tracking iniciado');
+      logger.d('✅ Tracking iniciado');
     } catch (e) {
-      debugPrint('❌ Error iniciando tracking: $e');
+      logger.d('❌ Error iniciando tracking: $e');
       _showErrorDialog('Error iniciando tracking: $e');
     }
   }
 
   Future<void> _stopTracking() async {
     try {
-      debugPrint('⏹️ Deteniendo tracking');
+      logger.d('⏹️ Deteniendo tracking');
 
       // Detener timers
       // ✅ FIXED: Cancel all timers properly
@@ -847,9 +848,9 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
       _trackingController.reverse();
       _pulseController.stop();
 
-      debugPrint('✅ Tracking detenido');
+      logger.d('✅ Tracking detenido');
     } catch (e) {
-      debugPrint('❌ Error deteniendo tracking: $e');
+      logger.d('❌ Error deteniendo tracking: $e');
     }
   }
 
@@ -916,7 +917,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         );
       }
     } catch (e) {
-      debugPrint('❌ Error actualizando posición: $e');
+      logger.d('❌ Error actualizando posición: $e');
     }
   }
 
@@ -951,10 +952,10 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
           longitud: _currentPosition!.longitude,
         );
 
-        debugPrint('💓 Heartbeat enviado');
+        logger.d('💓 Heartbeat enviado');
       }
     } catch (e) {
-      debugPrint('❌ Error enviando heartbeat: $e');
+      logger.d('❌ Error enviando heartbeat: $e');
       _handleConnectivityLoss();
     }
   }
@@ -962,7 +963,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   // 🎯 MANEJADORES DE EVENTOS
 
   void _handleGeofenceEntered() {
-    debugPrint('✅ Usuario entró al geofence');
+    logger.d('✅ Usuario entró al geofence');
 
     setState(() {
       _exitWarningCount = 0;
@@ -989,12 +990,12 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     if (_currentPosition == null ||
         _activeEvent == null ||
         _currentUser?.id == null) {
-      debugPrint('❌ Faltan datos para registro automático');
+      logger.d('❌ Faltan datos para registro automático');
       return;
     }
 
     try {
-      debugPrint('📝 Registrando asistencia automáticamente');
+      logger.d('📝 Registrando asistencia automáticamente');
 
       // ✅ MOSTRAR NOTIFICACIÓN DE PROCESO
       await _notificationManager.showGeofenceEnteredWithAutoRegistration(_activeEvent!.titulo);
@@ -1018,7 +1019,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
               _attendanceHistory.insert(0, nuevaAsistencia);
             });
           } catch (e) {
-            debugPrint('❌ Error parsing asistencia automática: $e');
+            logger.d('❌ Error parsing asistencia automática: $e');
           }
         }
 
@@ -1049,7 +1050,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
           );
         }
 
-        debugPrint('✅ Asistencia automática registrada exitosamente');
+        logger.d('✅ Asistencia automática registrada exitosamente');
       } else {
         // Manejar errores específicos
         if (response.error?.contains('ya registró') == true) {
@@ -1085,7 +1086,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         }
       }
     } catch (e) {
-      debugPrint('❌ Excepción en registro automático: $e');
+      logger.d('❌ Excepción en registro automático: $e');
       await _notificationManager.showConnectionErrorNotification();
       
       if (mounted) {
@@ -1101,7 +1102,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   }
 
   void _handleGeofenceExited() {
-    debugPrint('⚠️ Usuario salió del geofence');
+    logger.d('⚠️ Usuario salió del geofence');
 
     setState(() {
       _exitWarningCount++;
@@ -1125,7 +1126,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
 
   // ✅ FIXED: Handle app resumed with separate timers
   void _handleAppResumed() {
-    debugPrint('✅ App resumed');
+    logger.d('✅ App resumed');
 
     // Stop app closed grace timer if running
     if (_appClosedGraceTimer != null) {
@@ -1144,7 +1145,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   }
 
   void _handleAppPaused() {
-    debugPrint('⏸️ App paused');
+    logger.d('⏸️ App paused');
 
     if (_isTrackingActive) {
       _startAppClosedGracePeriod();
@@ -1152,16 +1153,16 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   }
 
   void _handleAppDetached() {
-    debugPrint('❌ App detached');
+    logger.d('❌ App detached');
     _triggerAttendanceLoss('App cerrada');
   }
 
   void _handleAppInactive() {
-    debugPrint('⚠️ App inactive');
+    logger.d('⚠️ App inactive');
   }
 
   void _handleAppHidden() {
-    debugPrint('🙈 App hidden');
+    logger.d('🙈 App hidden');
 
     setState(() {
       _trackingStatus = 'paused';
@@ -1231,7 +1232,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
   }
 
   void _triggerAttendanceLoss(String reason) {
-    debugPrint('❌ PÉRDIDA DE ASISTENCIA: $reason');
+    logger.d('❌ PÉRDIDA DE ASISTENCIA: $reason');
 
     if (_currentUser?.id != null && _activeEvent?.id != null) {
       _asistenciaService.marcarAusente(
@@ -1263,7 +1264,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
     }
 
     try {
-      debugPrint('📝 Registrando asistencia manualmente');
+      logger.d('📝 Registrando asistencia manualmente');
 
       final response = await _asistenciaService.registrarAsistencia(
         eventoId: _activeEvent!.id!,
@@ -1283,7 +1284,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
               _attendanceHistory.insert(0, nuevaAsistencia);
             });
           } catch (e) {
-            debugPrint('❌ Error parsing asistencia response: $e');
+            logger.d('❌ Error parsing asistencia response: $e');
           }
         }
 
@@ -1300,7 +1301,7 @@ class _AttendanceTrackingScreenState extends State<AttendanceTrackingScreen>
         _showErrorDialog(response.error ?? 'Error registrando asistencia');
       }
     } catch (e) {
-      debugPrint('❌ Error en registro manual: $e');
+      logger.d('❌ Error en registro manual: $e');
       _showErrorDialog('Error registrando asistencia: $e');
     }
   }

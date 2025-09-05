@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/performance_monitor.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -34,7 +35,7 @@ class PerformanceMonitor {
   static Future<void> initialize() async {
     if (_isMonitoring) return;
     
-    debugPrint('$_tag: Initializing performance monitoring...');
+    logger.d('$_tag: Initializing performance monitoring...');
     
     try {
       // Start monitoring timers
@@ -52,9 +53,9 @@ class PerformanceMonitor {
         label: 'Performance monitoring initialized',
       );
       
-      debugPrint('$_tag: Performance monitoring initialized successfully');
+      logger.d('$_tag: Performance monitoring initialized successfully');
     } catch (e) {
-      debugPrint('$_tag: Failed to initialize performance monitoring: $e');
+      logger.d('$_tag: Failed to initialize performance monitoring: $e');
       rethrow;
     }
   }
@@ -65,7 +66,7 @@ class PerformanceMonitor {
       _capturePerformanceSnapshot();
     });
     
-    debugPrint('$_tag: Performance monitoring started');
+    logger.d('$_tag: Performance monitoring started');
   }
   
   /// Start memory monitoring
@@ -74,7 +75,7 @@ class PerformanceMonitor {
       _checkMemoryUsage();
     });
     
-    debugPrint('$_tag: Memory monitoring started');
+    logger.d('$_tag: Memory monitoring started');
   }
   
   /// Setup frame callback for frame timing analysis
@@ -153,7 +154,7 @@ class PerformanceMonitor {
       _analyzePerformance(snapshot);
       
     } catch (e) {
-      debugPrint('$_tag: Failed to capture performance snapshot: $e');
+      logger.d('$_tag: Failed to capture performance snapshot: $e');
     }
   }
   
@@ -200,7 +201,7 @@ class PerformanceMonitor {
     
     // Take action if memory usage is high
     if (memoryStats.memoryUsagePercent > 80) {
-      debugPrint('$_tag: High memory usage detected - ${memoryStats.memoryUsagePercent}%');
+      logger.d('$_tag: High memory usage detected - ${memoryStats.memoryUsagePercent}%');
       
       AnalyticsService.trackEvent(
         category: AnalyticsCategory.performance,
@@ -247,21 +248,21 @@ class PerformanceMonitor {
       startTime: DateTime.now(),
     );
     
-    debugPrint('$_tag: Started timing: $operationName');
+    logger.d('$_tag: Started timing: $operationName');
   }
   
   /// End timing measurement
   static void endTiming(String operationName, {Map<String, dynamic>? attributes}) {
     final timingData = _timingData[operationName];
     if (timingData == null) {
-      debugPrint('$_tag: Warning - No timing data found for: $operationName');
+      logger.d('$_tag: Warning - No timing data found for: $operationName');
       return;
     }
     
     final duration = DateTime.now().difference(timingData.startTime);
     timingData.duration = duration;
     
-    debugPrint('$_tag: Completed timing: $operationName - ${duration.inMilliseconds}ms');
+    logger.d('$_tag: Completed timing: $operationName - ${duration.inMilliseconds}ms');
     
     // Track the performance metric
     AnalyticsService.trackPerformanceMetric(
@@ -334,7 +335,7 @@ class PerformanceMonitor {
   
   /// Dispose performance monitoring
   static Future<void> dispose() async {
-    debugPrint('$_tag: Disposing performance monitoring...');
+    logger.d('$_tag: Disposing performance monitoring...');
     
     _performanceTimer?.cancel();
     _memoryTimer?.cancel();
@@ -353,7 +354,7 @@ class PerformanceMonitor {
       label: 'Performance monitoring disposed',
     );
     
-    debugPrint('$_tag: Performance monitoring disposed');
+    logger.d('$_tag: Performance monitoring disposed');
   }
 }
 

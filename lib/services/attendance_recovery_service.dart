@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/attendance_recovery_service.dart
 import 'dart:async';
 import '../models/evento_model.dart';
@@ -41,11 +42,11 @@ class AttendanceRecoveryService {
   /// 🔍 DETECT MISSED ATTENDANCES FOR A USER
   Future<ApiResponse<List<MissedAttendance>>> detectMissedAttendances(String userId) async {
     try {
-      debugPrint('🔍 Detecting missed attendances for user: $userId');
+      logger.d('🔍 Detecting missed attendances for user: $userId');
 
       // Check cache first
       if (_isCacheValid()) {
-        debugPrint('✅ Using cached missed attendances');
+        logger.d('✅ Using cached missed attendances');
         return ApiResponse.success(_cachedMissedAttendances);
       }
 
@@ -108,11 +109,11 @@ class AttendanceRecoveryService {
       _cachedMissedAttendances = missedList;
       _lastCacheUpdate = DateTime.now();
 
-      debugPrint('✅ Detected ${missedList.length} missed attendances');
+      logger.d('✅ Detected ${missedList.length} missed attendances');
       return ApiResponse.success(missedList);
 
     } catch (e) {
-      debugPrint('❌ Error detecting missed attendances: $e');
+      logger.d('❌ Error detecting missed attendances: $e');
       return ApiResponse.error('Error detectando asistencias perdidas: $e');
     }
   }
@@ -120,7 +121,7 @@ class AttendanceRecoveryService {
   /// 📊 GET RECOVERY STATISTICS FOR A USER
   Future<ApiResponse<RecoveryStats>> getRecoveryStats(String userId) async {
     try {
-      debugPrint('📊 Getting recovery stats for user: $userId');
+      logger.d('📊 Getting recovery stats for user: $userId');
 
       final missedResponse = await detectMissedAttendances(userId);
       if (!missedResponse.success) {
@@ -147,11 +148,11 @@ class AttendanceRecoveryService {
         recoverySuccessRate: _calculateRecoverySuccessRate(missed, justifications),
       );
 
-      debugPrint('✅ Recovery stats calculated');
+      logger.d('✅ Recovery stats calculated');
       return ApiResponse.success(stats);
 
     } catch (e) {
-      debugPrint('❌ Error getting recovery stats: $e');
+      logger.d('❌ Error getting recovery stats: $e');
       return ApiResponse.error('Error obteniendo estadísticas: $e');
     }
   }
@@ -164,7 +165,7 @@ class AttendanceRecoveryService {
     Map<String, dynamic>? recoveryData,
   }) async {
     try {
-      debugPrint('🚀 Starting recovery process: $recoveryType for event $eventId');
+      logger.d('🚀 Starting recovery process: $recoveryType for event $eventId');
 
       switch (recoveryType) {
         case RecoveryType.justification:
@@ -181,7 +182,7 @@ class AttendanceRecoveryService {
       }
 
     } catch (e) {
-      debugPrint('❌ Error starting recovery process: $e');
+      logger.d('❌ Error starting recovery process: $e');
       return ApiResponse.error('Error iniciando recuperación: $e');
     }
   }
@@ -216,14 +217,14 @@ class AttendanceRecoveryService {
       
       if (response.success) {
         _invalidateCache(); // Clear cache to force refresh
-        debugPrint('✅ Justification created successfully');
+        logger.d('✅ Justification created successfully');
         return ApiResponse.success(true);
       } else {
         return ApiResponse.error(response.error ?? 'Error creando justificación');
       }
 
     } catch (e) {
-      debugPrint('❌ Error processing justification: $e');
+      logger.d('❌ Error processing justification: $e');
       return ApiResponse.error('Error procesando justificación: $e');
     }
   }
@@ -261,14 +262,14 @@ class AttendanceRecoveryService {
       
       if (response.success) {
         _invalidateCache();
-        debugPrint('✅ Late attendance processed successfully');
+        logger.d('✅ Late attendance processed successfully');
         return ApiResponse.success(true);
       } else {
         return ApiResponse.error(response.error ?? 'Error procesando tardanza');
       }
 
     } catch (e) {
-      debugPrint('❌ Error processing late attendance: $e');
+      logger.d('❌ Error processing late attendance: $e');
       return ApiResponse.error('Error procesando tardanza: $e');
     }
   }
@@ -304,14 +305,14 @@ class AttendanceRecoveryService {
       
       if (response.success) {
         _invalidateCache();
-        debugPrint('✅ Emergency recovery processed successfully');
+        logger.d('✅ Emergency recovery processed successfully');
         return ApiResponse.success(true);
       } else {
         return ApiResponse.error(response.error ?? 'Error procesando emergencia');
       }
 
     } catch (e) {
-      debugPrint('❌ Error processing emergency recovery: $e');
+      logger.d('❌ Error processing emergency recovery: $e');
       return ApiResponse.error('Error procesando emergencia: $e');
     }
   }
@@ -348,14 +349,14 @@ class AttendanceRecoveryService {
       
       if (response.success) {
         _invalidateCache();
-        debugPrint('✅ Technical issue processed successfully');
+        logger.d('✅ Technical issue processed successfully');
         return ApiResponse.success(true);
       } else {
         return ApiResponse.error(response.error ?? 'Error procesando problema técnico');
       }
 
     } catch (e) {
-      debugPrint('❌ Error processing technical issue: $e');
+      logger.d('❌ Error processing technical issue: $e');
       return ApiResponse.error('Error procesando problema técnico: $e');
     }
   }
@@ -370,7 +371,7 @@ class AttendanceRecoveryService {
       return DateTime.now().isBefore(recoveryDeadline);
       
     } catch (e) {
-      debugPrint('❌ Error checking recovery availability: $e');
+      logger.d('❌ Error checking recovery availability: $e');
       return false;
     }
   }
@@ -451,7 +452,7 @@ class AttendanceRecoveryService {
   /// 🧹 CLEAR ALL CACHE
   void clearCache() {
     _invalidateCache();
-    debugPrint('✅ Recovery service cache cleared');
+    logger.d('✅ Recovery service cache cleared');
   }
 }
 

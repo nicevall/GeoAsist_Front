@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/secure_api_client.dart
 import 'dart:convert';
 import 'dart:io';
@@ -38,7 +39,7 @@ class SecureApiClient {
     Duration? sendTimeout,
     Set<String>? certificateHashes,
   }) async {
-    debugPrint('$_tag: Initializing secure API client...');
+    logger.d('$_tag: Initializing secure API client...');
     
     final client = instance;
     
@@ -60,7 +61,7 @@ class SecureApiClient {
       client._addCertificatePinning();
     }
     
-    debugPrint('$_tag: Secure API client initialized with base URL: $baseUrl');
+    logger.d('$_tag: Secure API client initialized with base URL: $baseUrl');
   }
   
   /// Setup Dio interceptors
@@ -82,10 +83,10 @@ class SecureApiClient {
           );
           options.headers['X-Signature'] = signature;
           
-          debugPrint('$_tag: Request signed for ${options.method} ${options.path}');
+          logger.d('$_tag: Request signed for ${options.method} ${options.path}');
           handler.next(options);
         } catch (e) {
-          debugPrint('$_tag: Failed to sign request: $e');
+          logger.d('$_tag: Failed to sign request: $e');
           handler.reject(DioException(
             requestOptions: options,
             error: 'Request signing failed: $e',
@@ -105,7 +106,7 @@ class SecureApiClient {
             );
             
             if (!isValid) {
-              debugPrint('$_tag: Response signature validation failed');
+              logger.d('$_tag: Response signature validation failed');
               handler.reject(DioException(
                 requestOptions: response.requestOptions,
                 error: 'Response signature validation failed',
@@ -115,20 +116,20 @@ class SecureApiClient {
             }
           }
           
-          debugPrint('$_tag: Response validated for ${response.requestOptions.path}');
+          logger.d('$_tag: Response validated for ${response.requestOptions.path}');
           handler.next(response);
         } catch (e) {
-          debugPrint('$_tag: Response validation error: $e');
+          logger.d('$_tag: Response validation error: $e');
           handler.next(response); // Continue even if validation fails
         }
       },
       
       onError: (error, handler) async {
-        debugPrint('$_tag: Request error: ${error.type.name} - ${error.message}');
+        logger.d('$_tag: Request error: ${error.type.name} - ${error.message}');
         
         // Handle authentication errors
         if (error.response?.statusCode == 401) {
-          debugPrint('$_tag: Authentication error - attempting token refresh');
+          logger.d('$_tag: Authentication error - attempting token refresh');
           
           // Add authentication token if available
           final token = await SecurityService.getToken();
@@ -142,7 +143,7 @@ class SecureApiClient {
               final response = await _retryRequest(error.requestOptions);
               return handler.resolve(response);
             } catch (e) {
-              debugPrint('$_tag: Retry after token refresh failed: $e');
+              logger.d('$_tag: Retry after token refresh failed: $e');
             }
           } else {
             // Clear invalid tokens
@@ -157,14 +158,14 @@ class SecureApiClient {
           if (retryCount < 3) {
             error.requestOptions.extra['retryCount'] = retryCount + 1;
             
-            debugPrint('$_tag: Retrying request (attempt ${retryCount + 1})');
+            logger.d('$_tag: Retrying request (attempt ${retryCount + 1})');
             
             // Wait before retry with exponential backoff
             await Future.delayed(Duration(seconds: 1 << retryCount));
             
             // Check connectivity before retry
             if (!ConnectivityService().isOnline) {
-              debugPrint('$_tag: Device is offline - cancelling retry');
+              logger.d('$_tag: Device is offline - cancelling retry');
               handler.next(error);
               return;
             }
@@ -173,7 +174,7 @@ class SecureApiClient {
               final response = await _retryRequest(error.requestOptions);
               return handler.resolve(response);
             } catch (e) {
-              debugPrint('$_tag: Retry failed: $e');
+              logger.d('$_tag: Retry failed: $e');
             }
           }
         }
@@ -186,13 +187,13 @@ class SecureApiClient {
   /// Add certificate pinning - HttpOverrides implementation
   void _addCertificatePinning() {
     if (kDebugMode || _allowedCertificateHashes.isEmpty) {
-      debugPrint('$_tag: Certificate pinning disabled in debug mode or no certificates configured');
+      logger.d('$_tag: Certificate pinning disabled in debug mode or no certificates configured');
       return;
     }
     
     // Set custom HttpOverrides for certificate validation
     HttpOverrides.global = CertificatePinningOverrides(_allowedCertificateHashes);
-    debugPrint('$_tag: Certificate pinning enabled with ${_allowedCertificateHashes.length} certificates');
+    logger.d('$_tag: Certificate pinning enabled with ${_allowedCertificateHashes.length} certificates');
   }
   
   /// Generate request nonce
@@ -216,15 +217,15 @@ class SecureApiClient {
     try {
       final refreshToken = await SecurityService.getRefreshToken();
       if (refreshToken == null) {
-        debugPrint('$_tag: No refresh token available');
+        logger.d('$_tag: No refresh token available');
         return false;
       }
       
       // This would integrate with your auth service to refresh the token
-      debugPrint('$_tag: Token refresh not fully implemented - integrate with AuthService');
+      logger.d('$_tag: Token refresh not fully implemented - integrate with AuthService');
       return false;
     } catch (e) {
-      debugPrint('$_tag: Token refresh failed: $e');
+      logger.d('$_tag: Token refresh failed: $e');
       return false;
     }
   }
@@ -252,7 +253,7 @@ class SecureApiClient {
     CancelToken? cancelToken,
   }) async {
     try {
-      debugPrint('$_tag: GET $path');
+      logger.d('$_tag: GET $path');
       
       final response = await _dio.get(
         path,
@@ -265,7 +266,7 @@ class SecureApiClient {
     } on DioException catch (e) {
       throw _handleDioException(e);
     } catch (e) {
-      debugPrint('$_tag: Unexpected error in GET $path: $e');
+      logger.d('$_tag: Unexpected error in GET $path: $e');
       rethrow;
     }
   }
@@ -279,7 +280,7 @@ class SecureApiClient {
     CancelToken? cancelToken,
   }) async {
     try {
-      debugPrint('$_tag: POST $path');
+      logger.d('$_tag: POST $path');
       
       final response = await _dio.post(
         path,
@@ -293,14 +294,14 @@ class SecureApiClient {
     } on DioException catch (e) {
       throw _handleDioException(e);
     } catch (e) {
-      debugPrint('$_tag: Unexpected error in POST $path: $e');
+      logger.d('$_tag: Unexpected error in POST $path: $e');
       rethrow;
     }
   }
   
   /// Handle successful response
   ApiResponse<T> _handleResponse<T>(Response response) {
-    debugPrint('$_tag: Response ${response.statusCode} for ${response.requestOptions.path}');
+    logger.d('$_tag: Response ${response.statusCode} for ${response.requestOptions.path}');
     
     return ApiResponse<T>(
       success: true,
@@ -312,7 +313,7 @@ class SecureApiClient {
   
   /// Handle Dio exceptions
   ApiException _handleDioException(DioException e) {
-    debugPrint('$_tag: DioException ${e.type.name}: ${e.message}');
+    logger.d('$_tag: DioException ${e.type.name}: ${e.message}');
     
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
@@ -360,7 +361,7 @@ class SecureApiClient {
   /// Close the client and clean up resources
   void close() {
     _dio.close();
-    debugPrint('$_tag: API client closed');
+    logger.d('$_tag: API client closed');
   }
 }
 

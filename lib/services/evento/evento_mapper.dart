@@ -1,4 +1,5 @@
 // lib/services/evento/evento_mapper.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/evento_model.dart';
 
@@ -19,7 +20,7 @@ class EventoMapper {
   /// ✅ FILTRAR EVENTOS ACTIVOS (Método principal)
   /// Este método resuelve el problema de soft delete
   List<Evento> filterActiveEvents(List<dynamic> backendEvents) {
-    debugPrint('🔍 Filtering ${backendEvents.length} events for validity...');
+    logger.d('🔍 Filtering ${backendEvents.length} events for validity...');
     
     final validEvents = backendEvents
         .where((event) => _isEventValid(event))
@@ -28,12 +29,12 @@ class EventoMapper {
         .cast<Evento>()
         .toList();
 
-    debugPrint('✅ Filtered events: ${validEvents.length}/${backendEvents.length} valid');
+    logger.d('✅ Filtered events: ${validEvents.length}/${backendEvents.length} valid');
     
     // Log eventos eliminados para debugging
     final eliminados = backendEvents.length - validEvents.length;
     if (eliminados > 0) {
-      debugPrint('🗑️ Filtered out $eliminados deleted/invalid events');
+      logger.d('🗑️ Filtered out $eliminados deleted/invalid events');
     }
     
     return validEvents;
@@ -42,31 +43,31 @@ class EventoMapper {
   /// 🚨 VALIDACIÓN CRÍTICA: Verificar si evento es válido (no eliminado)
   bool _isEventValid(dynamic eventData) {
     if (eventData == null || eventData is! Map<String, dynamic>) {
-      debugPrint('🚫 Event data is null or not a Map');
+      logger.d('🚫 Event data is null or not a Map');
       return false;
     }
 
     final estado = eventData['estado']?.toString().toLowerCase() ?? '';
     final nombre = eventData['nombre'] ?? eventData['titulo'] ?? 'Unknown';
     
-    debugPrint('🔍 Validating event: "$nombre" with estado: "$estado"');
-    debugPrint('🔍 Excluded states: $_excludedStates');
+    logger.d('🔍 Validating event: "$nombre" with estado: "$estado"');
+    logger.d('🔍 Excluded states: $_excludedStates');
     
     // 🚨 FILTRO PRINCIPAL: Rechazar eventos eliminados
     if (_excludedStates.contains(estado)) {
-      debugPrint('🚫 FILTERING OUT deleted event: $nombre (estado: $estado)');
-      debugPrint('🚫 State "$estado" is in excluded list: $_excludedStates');
+      logger.d('🚫 FILTERING OUT deleted event: $nombre (estado: $estado)');
+      logger.d('🚫 State "$estado" is in excluded list: $_excludedStates');
       return false;
     }
 
     // Validaciones adicionales
     final id = eventData['_id'] ?? eventData['id'];
     if (id == null || id.toString().isEmpty) {
-      debugPrint('⚠️ Event "$nombre" missing ID, filtering out');
+      logger.d('⚠️ Event "$nombre" missing ID, filtering out');
       return false;
     }
 
-    debugPrint('✅ Event "$nombre" is VALID (estado: $estado)');
+    logger.d('✅ Event "$nombre" is VALID (estado: $estado)');
     return true;
   }
 
@@ -74,20 +75,20 @@ class EventoMapper {
   Evento? mapBackendToFlutter(dynamic eventData) {
     try {
       if (eventData == null || eventData is! Map<String, dynamic>) {
-        debugPrint('⚠️ Invalid event data type');
+        logger.d('⚠️ Invalid event data type');
         return null;
       }
 
       // Log proceso de mapeo
       final nombre = eventData['nombre'] ?? eventData['titulo'] ?? 'Unknown';
-      debugPrint('🔍 Processing event: ${eventData.runtimeType}');
-      debugPrint('✅ Event mapped successfully: $nombre');
+      logger.d('🔍 Processing event: ${eventData.runtimeType}');
+      logger.d('✅ Event mapped successfully: $nombre');
 
       // Usar el factory method existente del modelo
       return Evento.fromJson(eventData);
     } catch (e) {
       final nombre = eventData?['nombre'] ?? eventData?['titulo'] ?? 'Unknown';
-      debugPrint('❌ Error mapping event "$nombre": $e');
+      logger.d('❌ Error mapping event "$nombre": $e');
       return null;
     }
   }
@@ -126,7 +127,7 @@ class EventoMapper {
         },
       };
     } catch (e) {
-      debugPrint('❌ Error mapping Evento to backend: $e');
+      logger.d('❌ Error mapping Evento to backend: $e');
       rethrow;
     }
   }
@@ -140,10 +141,10 @@ class EventoMapper {
 
     final filtered = eventos.length - studentEvents.length;
     if (filtered > 0) {
-      debugPrint('🎓 Filtered out $filtered inactive events for students');
+      logger.d('🎓 Filtered out $filtered inactive events for students');
     }
     
-    debugPrint('✅ Student events loaded: ${studentEvents.length} active events');
+    logger.d('✅ Student events loaded: ${studentEvents.length} active events');
     return studentEvents;
   }
 
@@ -157,7 +158,7 @@ class EventoMapper {
     }
     
     // Log eventos filtrados para estudiantes
-    debugPrint('🚫 Event "${evento.titulo}" not visible to students (estado: $estado)');
+    logger.d('🚫 Event "${evento.titulo}" not visible to students (estado: $estado)');
     return false;
   }
 
@@ -168,12 +169,12 @@ class EventoMapper {
         .where((evento) => _isEventFinished(evento))
         .toList();
 
-    debugPrint('🔄 Checking ${finishedEvents.length} finished events for student liberation');
+    logger.d('🔄 Checking ${finishedEvents.length} finished events for student liberation');
     
     if (finishedEvents.isNotEmpty) {
-      debugPrint('📋 Finished events:');
+      logger.d('📋 Finished events:');
       for (final evento in finishedEvents) {
-        debugPrint('  - ${evento.titulo} (${evento.id}) - Estado: ${evento.estado}');
+        logger.d('  - ${evento.titulo} (${evento.id}) - Estado: ${evento.estado}');
       }
     }
     
@@ -238,13 +239,13 @@ class EventoMapper {
     }).toList();
 
     if (deletedEvents.isNotEmpty) {
-      debugPrint('🗑️ Found ${deletedEvents.length} deleted events:');
+      logger.d('🗑️ Found ${deletedEvents.length} deleted events:');
       for (final event in deletedEvents) {
         if (event is Map<String, dynamic>) {
           final nombre = event['nombre'] ?? event['titulo'] ?? 'Unknown';
           final estado = event['estado'] ?? 'Unknown';
           final id = event['_id'] ?? event['id'] ?? 'Unknown';
-          debugPrint('  - $nombre (ID: $id, Estado: $estado)');
+          logger.d('  - $nombre (ID: $id, Estado: $estado)');
         }
       }
     }
@@ -281,6 +282,6 @@ class EventoMapper {
 
   /// 🧹 LIMPIEZA DE DATOS
   void dispose() {
-    debugPrint('🧹 EventoMapper disposed');
+    logger.d('🧹 EventoMapper disposed');
   }
 }

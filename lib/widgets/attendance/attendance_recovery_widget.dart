@@ -1,4 +1,5 @@
 // lib/widgets/attendance/attendance_recovery_widget.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../utils/colors.dart';
@@ -138,9 +139,9 @@ class _AttendanceRecoveryWidgetState extends State<AttendanceRecoveryWidget>
         });
       }
 
-      debugPrint('✅ Loaded ${missedList.length} missed attendances');
+      logger.d('✅ Loaded ${missedList.length} missed attendances');
     } catch (e) {
-      debugPrint('❌ Error loading missed attendances: $e');
+      logger.d('❌ Error loading missed attendances: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;

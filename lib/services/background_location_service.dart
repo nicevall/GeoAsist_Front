@@ -1,6 +1,6 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/background_location_service.dart
 // ✅ ENHANCED: Optimized background location tracking
-import 'package:flutter/foundation.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:geolocator/geolocator.dart';
 import 'storage_service.dart';
@@ -43,7 +43,7 @@ class BackgroundLocationService {
       _initCompleter!.complete(_instance!);
       return _instance!;
     } catch (e) {
-      debugPrint('❌ Error en inicialización de BackgroundService: $e');
+      logger.d('❌ Error en inicialización de BackgroundService: $e');
       _isInitializing = false;
       _isInitialized = false;
       _instance = null;
@@ -68,7 +68,7 @@ class BackgroundLocationService {
     _isInitialized = false;
     _isInitializing = false;
     _initCompleter = null;
-    debugPrint('✅ BackgroundLocationService reset completed');
+    logger.d('✅ BackgroundLocationService reset completed');
   }
   
   // ✅ MOCK WORKMANAGER FOR TESTS
@@ -125,7 +125,7 @@ class BackgroundLocationService {
   /// ✅ ENHANCED: Start optimized event tracking with intelligent frequency
   Future<void> startEventTracking(String eventoId) async {
     try {
-      debugPrint('🎯 Starting enhanced background tracking for event: $eventoId');
+      logger.d('🎯 Starting enhanced background tracking for event: $eventoId');
 
       // ✅ ENHANCED: Stop any existing tracking first
       await stopEventTracking();
@@ -161,10 +161,10 @@ class BackgroundLocationService {
         },
       );
 
-      debugPrint('✅ Enhanced background tracking started for event: $eventoId');
-      debugPrint('📊 Tracking frequency: ${_normalFrequency.inSeconds}s');
+      logger.d('✅ Enhanced background tracking started for event: $eventoId');
+      logger.d('📊 Tracking frequency: ${_normalFrequency.inSeconds}s');
     } catch (e) {
-      debugPrint('❌ Error starting background tracking: $e');
+      logger.d('❌ Error starting background tracking: $e');
       _isTracking = false;
       rethrow;
     }
@@ -173,7 +173,7 @@ class BackgroundLocationService {
   /// ✅ ENHANCED: Stop tracking with comprehensive cleanup
   Future<void> stopEventTracking() async {
     try {
-      debugPrint('🛑 Stopping enhanced background tracking');
+      logger.d('🛑 Stopping enhanced background tracking');
       
       // ✅ ENHANCED: Cancel all related tasks
       await _workmanager.cancelByUniqueName(taskName);
@@ -190,9 +190,9 @@ class BackgroundLocationService {
       await storageService.removeData('background_tracking_event');
       await storageService.removeData('background_tracking_active');
       
-      debugPrint('✅ Background tracking stopped and cleaned up');
+      logger.d('✅ Background tracking stopped and cleaned up');
     } catch (e) {
-      debugPrint('❌ Error stopping background tracking: $e');
+      logger.d('❌ Error stopping background tracking: $e');
     }
   }
 
@@ -203,17 +203,17 @@ class BackgroundLocationService {
     Duration interval = const Duration(minutes: 2),
   }) async {
     if (!_isInitialized) {
-      debugPrint('❌ BackgroundService no inicializado');
+      logger.d('❌ BackgroundService no inicializado');
       return false;
     }
     
     if (_isTracking) {
-      debugPrint('⚠️ Tracking ya está activo');
+      logger.d('⚠️ Tracking ya está activo');
       return true;
     }
     
     try {
-      debugPrint('🎯 Iniciando tracking continuo para evento: $eventoId');
+      logger.d('🎯 Iniciando tracking continuo para evento: $eventoId');
       
       _trackingTimer = Timer.periodic(interval, (timer) async {
         await _performBackgroundLocationUpdate(userId, eventoId);
@@ -221,11 +221,11 @@ class BackgroundLocationService {
       
       _isTracking = true;
       _currentEventId = eventoId;
-      debugPrint('✅ Tracking continuo iniciado');
+      logger.d('✅ Tracking continuo iniciado');
       return true;
       
     } catch (e) {
-      debugPrint('❌ Error iniciando tracking continuo: $e');
+      logger.d('❌ Error iniciando tracking continuo: $e');
       return false;
     }
   }
@@ -233,7 +233,7 @@ class BackgroundLocationService {
   /// ✅ NUEVO: Realizar actualización de ubicación en background
   Future<void> _performBackgroundLocationUpdate(String userId, String eventoId) async {
     if (!_isInitialized || _locationService == null) {
-      debugPrint('⚠️ Servicio no disponible para update background');
+      logger.d('⚠️ Servicio no disponible para update background');
       return;
     }
     
@@ -247,10 +247,10 @@ class BackgroundLocationService {
           eventoId: eventoId,
           backgroundUpdate: true,
         );
-        debugPrint('✅ Update background exitoso');
+        logger.d('✅ Update background exitoso');
       }
     } catch (e) {
-      debugPrint('❌ Error en update background: $e');
+      logger.d('❌ Error en update background: $e');
       // No detener tracking por un error individual
     }
   }
@@ -268,16 +268,16 @@ class BackgroundLocationService {
     }
     
     _isTracking = false;
-    debugPrint('🛑 Tracking background detenido');
+    logger.d('🛑 Tracking background detenido');
   }
 
   /// ✅ ENHANCED: Pause tracking with reduced frequency during breaks
   Future<void> pauseTracking() async {
     try {
-      debugPrint('⏸️ Pausing background tracking for break');
+      logger.d('⏸️ Pausing background tracking for break');
       
       if (!_isTracking || _currentEventId == null) {
-        debugPrint('⚠️ No active tracking to pause');
+        logger.d('⚠️ No active tracking to pause');
         return;
       }
       
@@ -306,32 +306,32 @@ class BackgroundLocationService {
         },
       );
       
-      debugPrint('✅ Background tracking paused - reduced frequency: ${_pausedFrequency.inMinutes}min');
+      logger.d('✅ Background tracking paused - reduced frequency: ${_pausedFrequency.inMinutes}min');
     } catch (e) {
-      debugPrint('❌ Error pausing background tracking: $e');
+      logger.d('❌ Error pausing background tracking: $e');
     }
   }
 
   /// ✅ ENHANCED: Resume tracking with optimized transition
   Future<void> resumeTracking(String eventoId) async {
     try {
-      debugPrint('▶️ Resuming background tracking after break');
+      logger.d('▶️ Resuming background tracking after break');
       
       // ✅ ENHANCED: Cancel paused tracking
       await _workmanager.cancelByUniqueName(pausedTaskName);
       
       // ✅ ENHANCED: Validate event ID consistency
       if (_currentEventId != null && _currentEventId != eventoId) {
-        debugPrint('⚠️ Event ID mismatch during resume: $_currentEventId vs $eventoId');
+        logger.d('⚠️ Event ID mismatch during resume: $_currentEventId vs $eventoId');
       }
       
       // ✅ ENHANCED: Resume with immediate update
       _isPaused = false;
       await startEventTracking(eventoId);
       
-      debugPrint('✅ Background tracking resumed successfully');
+      logger.d('✅ Background tracking resumed successfully');
     } catch (e) {
-      debugPrint('❌ Error resuming background tracking: $e');
+      logger.d('❌ Error resuming background tracking: $e');
       // Try to restart from scratch
       await startEventTracking(eventoId);
     }
@@ -359,7 +359,7 @@ class BackgroundLocationService {
   
   /// ✅ MÉTODO DE DISPOSE PARA LIMPIAR RECURSOS
   Future<void> dispose() async {
-    debugPrint('🧹 Disposing BackgroundLocationService...');
+    logger.d('🧹 Disposing BackgroundLocationService...');
     
     stopTracking();
     
@@ -369,25 +369,25 @@ class BackgroundLocationService {
     }
     
     _instanceInitialized = false;
-    debugPrint('✅ BackgroundLocationService disposed');
+    logger.d('✅ BackgroundLocationService disposed');
   }
   
   /// ✅ ENHANCED: Force immediate background update
   Future<bool> forceBackgroundUpdate() async {
     if (!_isTracking || _currentEventId == null) {
-      debugPrint('⚠️ No active tracking for forced update');
+      logger.d('⚠️ No active tracking for forced update');
       return false;
     }
     
     try {
-      debugPrint('⚡ Forcing immediate background update');
+      logger.d('⚡ Forcing immediate background update');
       
       // Execute the tracking function directly
       await _trackUserLocationEnhanced(_currentEventId!, immediate: true);
       
       return true;
     } catch (e) {
-      debugPrint('❌ Error in forced background update: $e');
+      logger.d('❌ Error in forced background update: $e');
       return false;
     }
   }
@@ -395,12 +395,12 @@ class BackgroundLocationService {
   /// ✅ INICIALIZACIÓN ROBUSTA CON ERROR HANDLING
   Future<void> _initialize() async {
     if (_instanceInitialized) {
-      debugPrint('✅ BackgroundLocationService ya inicializado');
+      logger.d('✅ BackgroundLocationService ya inicializado');
       return;
     }
     
     try {
-      debugPrint('🚀 Inicializando BackgroundLocationService...');
+      logger.d('🚀 Inicializando BackgroundLocationService...');
       
       // 1. Inicializar LocationService
       _locationService = LocationService();
@@ -408,16 +408,16 @@ class BackgroundLocationService {
       // 2. Verificar permisos básicos
       final hasPermissions = await _checkBasicPermissions();
       if (!hasPermissions) {
-        debugPrint('⚠️ Permisos de ubicación no otorgados - continuando en modo limitado');
+        logger.d('⚠️ Permisos de ubicación no otorgados - continuando en modo limitado');
         // No fallar completamente, solo marcar como limitado
       }
       
       // 3. Inicializar Workmanager con manejo de errores
       try {
         await _workmanager.initialize(callbackDispatcher);
-        debugPrint('✅ Workmanager inicializado');
+        logger.d('✅ Workmanager inicializado');
       } catch (e) {
-        debugPrint('⚠️ Error inicializando Workmanager: $e');
+        logger.d('⚠️ Error inicializando Workmanager: $e');
         // Continuar sin Workmanager en entornos de test
       }
       
@@ -428,10 +428,10 @@ class BackgroundLocationService {
       await _recoverTrackingState();
       
       _instanceInitialized = true;
-      debugPrint('✅ BackgroundLocationService inicializado correctamente');
+      logger.d('✅ BackgroundLocationService inicializado correctamente');
       
     } catch (e) {
-      debugPrint('❌ Error inicializando BackgroundLocationService: $e');
+      logger.d('❌ Error inicializando BackgroundLocationService: $e');
       _instanceInitialized = false;
       rethrow;
     }
@@ -444,14 +444,14 @@ class BackgroundLocationService {
       return permission == LocationPermission.always || 
              permission == LocationPermission.whileInUse;
     } catch (e) {
-      debugPrint('❌ Error verificando permisos: $e');
+      logger.d('❌ Error verificando permisos: $e');
       return false;
     }
   }
   
   /// ✅ CONFIGURAR PARÁMETROS DE TRACKING
   void _configureTrackingParameters() {
-    debugPrint('⚙️ Configurando parámetros de tracking background');
+    logger.d('⚙️ Configurando parámetros de tracking background');
   }
   
   /// ✅ ENHANCED: Recover tracking state after app restart
@@ -462,14 +462,14 @@ class BackgroundLocationService {
       final isActive = await storageService.getData('background_tracking_active');
       
       if (eventId != null && isActive == 'true') {
-        debugPrint('🔄 Recovering background tracking for event: $eventId');
+        logger.d('🔄 Recovering background tracking for event: $eventId');
         _currentEventId = eventId;
         _isTracking = true;
         // Note: Don't restart automatically - let the app decide
-        debugPrint('✅ Tracking state recovered, waiting for explicit restart');
+        logger.d('✅ Tracking state recovered, waiting for explicit restart');
       }
     } catch (e) {
-      debugPrint('❌ Error recovering tracking state: $e');
+      logger.d('❌ Error recovering tracking state: $e');
     }
   }
 }
@@ -480,14 +480,14 @@ void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
       final startTime = DateTime.now();
-      debugPrint('🎯 Enhanced background task starting: $task');
-      debugPrint('📊 Input data: $inputData');
+      logger.d('🎯 Enhanced background task starting: $task');
+      logger.d('📊 Input data: $inputData');
 
       final action = inputData?['action'] ?? 'unknown';
       final eventoId = inputData?['eventoId'];
       final version = inputData?['version'] ?? '1.0';
       
-      debugPrint('🔧 Task version: $version, Action: $action');
+      logger.d('🔧 Task version: $version, Action: $action');
 
       bool success = false;
       switch (action) {
@@ -498,17 +498,17 @@ void callbackDispatcher() {
           success = await _handlePausedMode(eventoId);
           break;
         default:
-          debugPrint('⚠️ Unknown background action: $action');
+          logger.d('⚠️ Unknown background action: $action');
           success = false;
       }
 
       final duration = DateTime.now().difference(startTime);
-      debugPrint('✅ Background task completed: $task (${duration.inMilliseconds}ms, success: $success)');
+      logger.d('✅ Background task completed: $task (${duration.inMilliseconds}ms, success: $success)');
       
       return success;
     } catch (e, stackTrace) {
-      debugPrint('❌ Critical error in background task: $e');
-      debugPrint('📍 Stack trace: $stackTrace');
+      logger.d('❌ Critical error in background task: $e');
+      logger.d('📍 Stack trace: $stackTrace');
       return false;
     }
   });
@@ -517,32 +517,32 @@ void callbackDispatcher() {
 /// ✅ ENHANCED: Advanced background location tracking with optimization
 Future<bool> _trackUserLocationEnhanced(String? eventoId, {bool immediate = false}) async {
   if (eventoId == null) {
-    debugPrint('❌ No event ID provided for background tracking');
+    logger.d('❌ No event ID provided for background tracking');
     return false;
   }
 
   final startTime = DateTime.now();
   
   try {
-    debugPrint('🎯 Enhanced background tracking for event: $eventoId');
+    logger.d('🎯 Enhanced background tracking for event: $eventoId');
 
     // 1. ✅ ENHANCED: Verify permissions with detailed logging
     final permissionValid = await _verifyLocationPermissions();
     if (!permissionValid) {
-      debugPrint('❌ Location permissions insufficient for background tracking');
+      logger.d('❌ Location permissions insufficient for background tracking');
       return false;
     }
 
     // 2. ✅ ENHANCED: Get high-quality position with retry
     final position = await _getBackgroundPosition();
     if (position == null) {
-      debugPrint('❌ Failed to obtain GPS position in background');
+      logger.d('❌ Failed to obtain GPS position in background');
       return false;
     }
 
     // 3. ✅ ENHANCED: Validate position quality
     if (!_isBackgroundPositionValid(position)) {
-      debugPrint('⚠️ Background position quality insufficient, skipping update');
+      logger.d('⚠️ Background position quality insufficient, skipping update');
       return false;
     }
 
@@ -550,7 +550,7 @@ Future<bool> _trackUserLocationEnhanced(String? eventoId, {bool immediate = fals
     final storageService = StorageService();
     final user = await storageService.getUser();
     if (user == null) {
-      debugPrint('❌ No user data available for background tracking');
+      logger.d('❌ No user data available for background tracking');
       return false;
     }
 
@@ -566,26 +566,26 @@ Future<bool> _trackUserLocationEnhanced(String? eventoId, {bool immediate = fals
     );
 
     if (response != null) {
-      debugPrint('✅ Background location sent successfully');
-      debugPrint('📊 Response: inside=${response.insideGeofence}, distance=${response.distance}m');
+      logger.d('✅ Background location sent successfully');
+      logger.d('📊 Response: inside=${response.insideGeofence}, distance=${response.distance}m');
 
       // 6. ✅ ENHANCED: Handle critical situations
       await _handleBackgroundResponse(response, eventoId);
       
       final duration = DateTime.now().difference(startTime);
-      debugPrint('⏱️ Background update completed in ${duration.inMilliseconds}ms');
+      logger.d('⏱️ Background update completed in ${duration.inMilliseconds}ms');
       
       return true;
     } else {
-      debugPrint('❌ Background location update failed');
+      logger.d('❌ Background location update failed');
       return false;
     }
 
   } catch (e, stackTrace) {
     final duration = DateTime.now().difference(startTime);
-    debugPrint('❌ Error in enhanced background tracking: $e');
-    debugPrint('⏱️ Failed after ${duration.inMilliseconds}ms');
-    debugPrint('📍 Stack trace: $stackTrace');
+    logger.d('❌ Error in enhanced background tracking: $e');
+    logger.d('⏱️ Failed after ${duration.inMilliseconds}ms');
+    logger.d('📍 Stack trace: $stackTrace');
     return false;
   }
 }
@@ -595,21 +595,21 @@ Future<bool> _handlePausedMode(String? eventoId) async {
   if (eventoId == null) return false;
   
   try {
-    debugPrint('⏸️ Background tracking in paused mode for event: $eventoId');
+    logger.d('⏸️ Background tracking in paused mode for event: $eventoId');
     
     // In paused mode, we still track but less frequently
     // This helps detect when user returns to event area
     final result = await _trackUserLocationEnhanced(eventoId);
     
     if (result) {
-      debugPrint('✅ Paused mode tracking successful');
+      logger.d('✅ Paused mode tracking successful');
     } else {
-      debugPrint('⚠️ Paused mode tracking failed');
+      logger.d('⚠️ Paused mode tracking failed');
     }
     
     return result;
   } catch (e) {
-    debugPrint('❌ Error in paused mode tracking: $e');
+    logger.d('❌ Error in paused mode tracking: $e');
     return false;
   }
 }
@@ -621,24 +621,24 @@ Future<bool> _verifyLocationPermissions() async {
     
     switch (permission) {
       case LocationPermission.always:
-        debugPrint('✅ Background location permission: Always granted');
+        logger.d('✅ Background location permission: Always granted');
         return true;
       case LocationPermission.whileInUse:
-        debugPrint('⚠️ Background location permission: Only while in use');
+        logger.d('⚠️ Background location permission: Only while in use');
         // Still allow - background tasks can run briefly after app backgrounded
         return true;
       case LocationPermission.denied:
-        debugPrint('❌ Background location permission: Denied');
+        logger.d('❌ Background location permission: Denied');
         return false;
       case LocationPermission.deniedForever:
-        debugPrint('❌ Background location permission: Permanently denied');
+        logger.d('❌ Background location permission: Permanently denied');
         return false;
       default:
-        debugPrint('❓ Background location permission: Unknown status');
+        logger.d('❓ Background location permission: Unknown status');
         return false;
     }
   } catch (e) {
-    debugPrint('❌ Error checking background permissions: $e');
+    logger.d('❌ Error checking background permissions: $e');
     return false;
   }
 }
@@ -655,22 +655,22 @@ Future<Position?> _getBackgroundPosition() async {
       ),
     ).timeout(const Duration(seconds: 10));
 
-    debugPrint('📍 Background position: (${position.latitude}, ${position.longitude})');
-    debugPrint('🎯 Accuracy: ${position.accuracy}m, Age: ${DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(position.timestamp.millisecondsSinceEpoch)).inSeconds}s');
+    logger.d('📍 Background position: (${position.latitude}, ${position.longitude})');
+    logger.d('🎯 Accuracy: ${position.accuracy}m, Age: ${DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(position.timestamp.millisecondsSinceEpoch)).inSeconds}s');
     
     return position;
   } catch (e) {
-    debugPrint('❌ Background GPS error: $e');
+    logger.d('❌ Background GPS error: $e');
     
     // Try to get last known position as fallback
     try {
       final lastPosition = await Geolocator.getLastKnownPosition();
       if (lastPosition != null) {
-        debugPrint('🔄 Using last known position as fallback');
+        logger.d('🔄 Using last known position as fallback');
         return lastPosition;
       }
     } catch (e2) {
-      debugPrint('❌ Last known position also failed: $e2');
+      logger.d('❌ Last known position also failed: $e2');
     }
     
     return null;
@@ -681,7 +681,7 @@ Future<Position?> _getBackgroundPosition() async {
 bool _isBackgroundPositionValid(Position position) {
   // More lenient validation for background (battery optimization)
   if (position.accuracy > 100.0) {
-    debugPrint('⚠️ Background position accuracy too poor: ${position.accuracy}m');
+    logger.d('⚠️ Background position accuracy too poor: ${position.accuracy}m');
     return false;
   }
   
@@ -689,7 +689,7 @@ bool _isBackgroundPositionValid(Position position) {
     DateTime.fromMillisecondsSinceEpoch(position.timestamp.millisecondsSinceEpoch)
   );
   if (positionAge > Duration(minutes: 10)) {
-    debugPrint('⚠️ Background position too old: ${positionAge.inMinutes}min');
+    logger.d('⚠️ Background position too old: ${positionAge.inMinutes}min');
     return false;
   }
   
@@ -701,8 +701,8 @@ Future<void> _handleBackgroundResponse(dynamic response, String eventoId) async 
   try {
     // Check if user is outside geofence in an active event
     if (response.eventActive && response.eventStarted && !response.insideGeofence) {
-      debugPrint('🚨 CRITICAL: User outside geofence during active event');
-      debugPrint('📏 Distance from event: ${response.distance}m');
+      logger.d('🚨 CRITICAL: User outside geofence during active event');
+      logger.d('📏 Distance from event: ${response.distance}m');
       
       // Could trigger local notification here if needed
       // Note: Be careful with notification frequency in background
@@ -719,15 +719,15 @@ Future<void> _handleBackgroundResponse(dynamic response, String eventoId) async 
         }
       }));
       
-      debugPrint('📝 Geofence violation logged for foreground handling');
+      logger.d('📝 Geofence violation logged for foreground handling');
     } else if (response.insideGeofence && response.eventActive) {
-      debugPrint('✅ User properly inside event geofence');
+      logger.d('✅ User properly inside event geofence');
       
       // Clear any previous violation
       final storageService = StorageService();
       await storageService.removeData('background_geofence_violation');
     }
   } catch (e) {
-    debugPrint('❌ Error handling background response: $e');
+    logger.d('❌ Error handling background response: $e');
   }
 }

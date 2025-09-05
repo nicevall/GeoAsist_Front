@@ -1,9 +1,9 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/location_service.dart
 // ✅ ENHANCED: Optimized location service for consistent updates
 import '../models/api_response_model.dart';
 import '../core/app_constants.dart';
 import 'api_service.dart';
-import 'package:flutter/foundation.dart';
 import '../models/location_response_model.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
@@ -63,7 +63,7 @@ class LocationService {
     String? eventoId,
   }) async {
     try {
-      debugPrint('📍 Legacy location update (use updateUserLocationComplete instead)');
+      logger.d('📍 Legacy location update (use updateUserLocationComplete instead)');
       
       // Use optimized method internally
       if (eventoId != null) {
@@ -107,7 +107,7 @@ class LocationService {
       return ApiResponse.error(
           response.error ?? 'Error al actualizar ubicación');
     } catch (e) {
-      debugPrint('❌ Legacy location update error: $e');
+      logger.d('❌ Legacy location update error: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -119,11 +119,11 @@ class LocationService {
     final startTime = DateTime.now();
     
     try {
-      debugPrint('📍 Getting optimized GPS position (force: $forceRefresh)');
+      logger.d('📍 Getting optimized GPS position (force: $forceRefresh)');
 
       // ✅ ENHANCED: Use cached position if valid and no force refresh
       if (!forceRefresh && _canUseCachedPosition()) {
-        debugPrint('✅ Using cached GPS position (${_cacheAge().inSeconds}s old)');
+        logger.d('✅ Using cached GPS position (${_cacheAge().inSeconds}s old)');
         _recordPerformanceMetric('cached_position', startTime, true);
         return _lastKnownPosition;
       }
@@ -144,13 +144,13 @@ class LocationService {
           _lastKnownPosition = position;
           _lastPositionUpdate = DateTime.now();
           
-          debugPrint('✅ Fresh position obtained: (${position.latitude}, ${position.longitude})');
-          debugPrint('   - Accuracy: ${position.accuracy}m');
-          debugPrint('   - Age: ${DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(position.timestamp.millisecondsSinceEpoch)).inSeconds}s');
+          logger.d('✅ Fresh position obtained: (${position.latitude}, ${position.longitude})');
+          logger.d('   - Accuracy: ${position.accuracy}m');
+          logger.d('   - Age: ${DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(position.timestamp.millisecondsSinceEpoch)).inSeconds}s');
           
           _recordPerformanceMetric('fresh_position', startTime, true);
         } else {
-          debugPrint('⚠️ Position quality insufficient, using fallback');
+          logger.d('⚠️ Position quality insufficient, using fallback');
           _recordPerformanceMetric('poor_quality', startTime, false);
           return _lastKnownPosition; // Return last known good position
         }
@@ -160,12 +160,12 @@ class LocationService {
 
       return position;
     } catch (e) {
-      debugPrint('❌ Error getting GPS position: $e');
+      logger.d('❌ Error getting GPS position: $e');
       _recordPerformanceMetric('exception', startTime, false);
       
       // ✅ ENHANCED: Return cached position as fallback
       if (_lastKnownPosition != null) {
-        debugPrint('💾 Using last known position as fallback');
+        logger.d('💾 Using last known position as fallback');
         return _lastKnownPosition;
       }
       
@@ -185,23 +185,23 @@ class LocationService {
     final startTime = DateTime.now();
     
     try {
-      debugPrint('📍 Optimized location update to backend');
-      debugPrint('   - User: $userId');
-      debugPrint('   - Coordinates: ($latitude, $longitude)');
-      debugPrint('   - Event: $eventoId');
-      debugPrint('   - Background: $backgroundUpdate');
-      debugPrint('   - Force: $forceSend');
+      logger.d('📍 Optimized location update to backend');
+      logger.d('   - User: $userId');
+      logger.d('   - Coordinates: ($latitude, $longitude)');
+      logger.d('   - Event: $eventoId');
+      logger.d('   - Background: $backgroundUpdate');
+      logger.d('   - Force: $forceSend');
 
       // ✅ ENHANCED: Check if update is necessary
       if (!forceSend && !_shouldSendUpdate(latitude, longitude, backgroundUpdate)) {
-        debugPrint('⏭️ Skipping update - too frequent or insignificant change');
+        logger.d('⏭️ Skipping update - too frequent or insignificant change');
         _recordPerformanceMetric('update_skipped', startTime, true);
         return _lastLocationResponse;
       }
 
       // ✅ ENHANCED: Handle offline mode
       if (!_isOnline) {
-        debugPrint('📶 Offline mode - queuing update');
+        logger.d('📶 Offline mode - queuing update');
         _queueOfflineUpdate(userId, latitude, longitude, eventoId, backgroundUpdate);
         return _lastLocationResponse;
       }
@@ -219,25 +219,25 @@ class LocationService {
         _lastLocationResponse = response;
         _lastBackendUpdate = DateTime.now();
         
-        debugPrint('✅ Backend response processed successfully:');
-        debugPrint('   - Inside geofence: ${response.insideGeofence}');
-        debugPrint('   - Distance: ${response.distance}m');
-        debugPrint('   - Event active: ${response.eventActive}');
-        debugPrint('   - Can register: ${response.canRegisterAttendance}');
+        logger.d('✅ Backend response processed successfully:');
+        logger.d('   - Inside geofence: ${response.insideGeofence}');
+        logger.d('   - Distance: ${response.distance}m');
+        logger.d('   - Event active: ${response.eventActive}');
+        logger.d('   - Can register: ${response.canRegisterAttendance}');
         
         _recordPerformanceMetric('update_success', startTime, true);
         
         // ✅ ENHANCED: Process offline queue if we're back online
         _processOfflineQueue();
       } else {
-        debugPrint('❌ Location update failed');
+        logger.d('❌ Location update failed');
         _recordPerformanceMetric('update_failed', startTime, false);
         _handleUpdateFailure();
       }
 
       return response;
     } catch (e) {
-      debugPrint('❌ Error in updateUserLocationComplete: $e');
+      logger.d('❌ Error in updateUserLocationComplete: $e');
       _recordPerformanceMetric('update_exception', startTime, false);
       _handleUpdateFailure();
       return _lastLocationResponse; // Return cached response
@@ -267,26 +267,26 @@ class LocationService {
       LocationPermission permission = await Geolocator.checkPermission();
       
       if (permission == LocationPermission.denied) {
-        debugPrint('🔑 Requesting location permissions');
+        logger.d('🔑 Requesting location permissions');
         permission = await Geolocator.requestPermission();
       }
       
       switch (permission) {
         case LocationPermission.denied:
-          debugPrint('❌ Location permissions denied');
+          logger.d('❌ Location permissions denied');
           return false;
         case LocationPermission.deniedForever:
-          debugPrint('❌ Location permissions permanently denied');
+          logger.d('❌ Location permissions permanently denied');
           return false;
         case LocationPermission.whileInUse:
         case LocationPermission.always:
-          debugPrint('✅ Location permissions granted: $permission');
+          logger.d('✅ Location permissions granted: $permission');
           return true;
         default:
           return false;
       }
     } catch (e) {
-      debugPrint('❌ Error checking permissions: $e');
+      logger.d('❌ Error checking permissions: $e');
       return false;
     }
   }
@@ -295,7 +295,7 @@ class LocationService {
   Future<Position?> _getPositionWithRetry() async {
     for (int attempt = 1; attempt <= _maxRetryAttempts; attempt++) {
       try {
-        debugPrint('🎯 GPS attempt $attempt of $_maxRetryAttempts');
+        logger.d('🎯 GPS attempt $attempt of $_maxRetryAttempts');
         
         final position = await Geolocator.getCurrentPosition(
           locationSettings: LocationSettings(
@@ -305,19 +305,19 @@ class LocationService {
           ),
         ).timeout(Duration(seconds: 10 + (attempt * 2)));
         
-        debugPrint('✅ GPS position obtained on attempt $attempt');
+        logger.d('✅ GPS position obtained on attempt $attempt');
         return position;
       } catch (e) {
-        debugPrint('❌ GPS attempt $attempt failed: $e');
+        logger.d('❌ GPS attempt $attempt failed: $e');
         
         if (attempt < _maxRetryAttempts) {
-          debugPrint('🔄 Retrying in ${_retryDelay.inSeconds}s...');
+          logger.d('🔄 Retrying in ${_retryDelay.inSeconds}s...');
           await Future.delayed(_retryDelay);
         }
       }
     }
     
-    debugPrint('❌ All GPS attempts failed');
+    logger.d('❌ All GPS attempts failed');
     return null;
   }
   
@@ -325,7 +325,7 @@ class LocationService {
   bool _isPositionValid(Position position) {
     // Check accuracy threshold
     if (position.accuracy > 50.0) {
-      debugPrint('⚠️ Position accuracy poor: ${position.accuracy}m');
+      logger.d('⚠️ Position accuracy poor: ${position.accuracy}m');
       return false;
     }
     
@@ -334,13 +334,13 @@ class LocationService {
       DateTime.fromMillisecondsSinceEpoch(position.timestamp.millisecondsSinceEpoch)
     );
     if (positionAge > Duration(minutes: 5)) {
-      debugPrint('⚠️ Position too old: ${positionAge.inMinutes}min');
+      logger.d('⚠️ Position too old: ${positionAge.inMinutes}min');
       return false;
     }
     
     // Check for invalid coordinates
     if (position.latitude.abs() > 90 || position.longitude.abs() > 180) {
-      debugPrint('⚠️ Invalid coordinates: (${position.latitude}, ${position.longitude})');
+      logger.d('⚠️ Invalid coordinates: (${position.latitude}, ${position.longitude})');
       return false;
     }
     
@@ -367,7 +367,7 @@ class LocationService {
       );
       
       if (distance < _significantDistanceChange && !backgroundUpdate) {
-        debugPrint('📎 Distance change insignificant: ${distance.toStringAsFixed(1)}m');
+        logger.d('📎 Distance change insignificant: ${distance.toStringAsFixed(1)}m');
         return false;
       }
     }
@@ -384,28 +384,28 @@ class LocationService {
   bool _validateCoordinates(double lat, double lng) {
     // Validar rango válido
     if (lat < -90 || lat > 90) {
-      debugPrint('❌ Invalid latitude: $lat (must be between -90 and 90)');
+      logger.d('❌ Invalid latitude: $lat (must be between -90 and 90)');
       return false;
     }
     
     if (lng < -180 || lng > 180) {
-      debugPrint('❌ Invalid longitude: $lng (must be between -180 and 180)');
+      logger.d('❌ Invalid longitude: $lng (must be between -180 and 180)');
       return false;
     }
     
     // Validar que no sean exactamente 0,0 (coordenadas inválidas comunes)
     if (lat == 0.0 && lng == 0.0) {
-      debugPrint('❌ Invalid coordinates: (0.0, 0.0) detected');
+      logger.d('❌ Invalid coordinates: (0.0, 0.0) detected');
       return false;
     }
     
     // Validar que no sean NaN o infinitas
     if (lat.isNaN || lng.isNaN || lat.isInfinite || lng.isInfinite) {
-      debugPrint('❌ Invalid coordinates: NaN or Infinite detected');
+      logger.d('❌ Invalid coordinates: NaN or Infinite detected');
       return false;
     }
     
-    debugPrint('✅ Coordinates validation passed: ($lat, $lng)');
+    logger.d('✅ Coordinates validation passed: ($lat, $lng)');
     return true;
   }
   
@@ -420,15 +420,15 @@ class LocationService {
     
     // ✅ CRITICAL FIX: Validate coordinates before sending
     if (!_validateCoordinates(latitude, longitude)) {
-      debugPrint('❌ Invalid coordinates: ($latitude, $longitude)');
+      logger.d('❌ Invalid coordinates: ($latitude, $longitude)');
       return null;
     }
     
-    debugPrint('✅ Coordenadas validadas: ($latitude, $longitude)');
+    logger.d('✅ Coordenadas validadas: ($latitude, $longitude)');
     
     for (int attempt = 1; attempt <= _maxRetryAttempts; attempt++) {
       try {
-        debugPrint('📤 Location update attempt $attempt of $_maxRetryAttempts');
+        logger.d('📤 Location update attempt $attempt of $_maxRetryAttempts');
         
         // ✅ CRITICAL FIX: Correct field names and format for backend
         final requestBody = {
@@ -441,8 +441,8 @@ class LocationService {
           'attempt': attempt,
         };
         
-        debugPrint('📤 Enviando actualización al backend con formato correcto');
-        debugPrint('   Request body: $requestBody');
+        logger.d('📤 Enviando actualización al backend con formato correcto');
+        logger.d('   Request body: $requestBody');
         
         // ✅ ENHANCED: Progressive timeout with proper endpoint
         final timeoutDuration = Duration(seconds: 15 + (attempt * 5));
@@ -453,33 +453,33 @@ class LocationService {
 
         if (response.success && response.data != null) {
           final locationResponse = LocationResponseModel.fromSimpleResponse(response.data!);
-          debugPrint('✅ Location update successful on attempt $attempt');
-          debugPrint('   Status: ${response.statusCode}, Message: ${response.message}');
+          logger.d('✅ Location update successful on attempt $attempt');
+          logger.d('   Status: ${response.statusCode}, Message: ${response.message}');
           _markServiceOnline(); // Mark service as online
           return locationResponse;
         } else {
-          debugPrint('❌ Backend rejected update on attempt $attempt');
-          debugPrint('   Status: ${response.statusCode}, Error: ${response.message}');
+          logger.d('❌ Backend rejected update on attempt $attempt');
+          logger.d('   Status: ${response.statusCode}, Error: ${response.message}');
           
           // Don't retry on certain error codes
           if (response.statusCode == 400 || response.statusCode == 401) {
-            debugPrint('❌ Non-retryable error, stopping attempts');
+            logger.d('❌ Non-retryable error, stopping attempts');
             return null;
           }
           
           if (attempt == _maxRetryAttempts) {
-            debugPrint('❌ All location update attempts failed');
+            logger.d('❌ All location update attempts failed');
             _markServiceOffline();
             return null;
           }
         }
       } catch (e) {
-        debugPrint('❌ Location update attempt $attempt failed: $e');
+        logger.d('❌ Location update attempt $attempt failed: $e');
         
         // Determine if error is retryable
         final isRetryable = _isRetryableError(e);
         if (!isRetryable) {
-          debugPrint('❌ Non-retryable error: $e');
+          logger.d('❌ Non-retryable error: $e');
           _markServiceOffline();
           return null;
         }
@@ -490,13 +490,13 @@ class LocationService {
           final jitter = Duration(milliseconds: (exponentialDelay.inMilliseconds * 0.1 * (attempt % 3)).round());
           final finalDelay = exponentialDelay + jitter;
           
-          debugPrint('🔄 Retrying location update in ${finalDelay.inSeconds}s (attempt $attempt/$_maxRetryAttempts)...');
+          logger.d('🔄 Retrying location update in ${finalDelay.inSeconds}s (attempt $attempt/$_maxRetryAttempts)...');
           await Future.delayed(finalDelay);
         }
       }
     }
     
-    debugPrint('❌ All location update attempts failed');
+    logger.d('❌ All location update attempts failed');
     _isOnline = false; // Mark as offline
     return null;
   }
@@ -513,12 +513,12 @@ class LocationService {
     );
     
     _offlineQueue.add(update);
-    debugPrint('💫 Queued offline update (${_offlineQueue.length} pending)');
+    logger.d('💫 Queued offline update (${_offlineQueue.length} pending)');
     
     // Limit queue size
     if (_offlineQueue.length > 50) {
       _offlineQueue.removeAt(0);
-      debugPrint('⚠️ Offline queue full, removed oldest update');
+      logger.d('⚠️ Offline queue full, removed oldest update');
     }
   }
   
@@ -526,7 +526,7 @@ class LocationService {
   Future<void> _processOfflineQueue() async {
     if (_offlineQueue.isEmpty) return;
     
-    debugPrint('📤 Processing ${_offlineQueue.length} offline updates');
+    logger.d('📤 Processing ${_offlineQueue.length} offline updates');
     
     final updates = List<LocationUpdate>.from(_offlineQueue);
     _offlineQueue.clear();
@@ -544,14 +544,14 @@ class LocationService {
         // Small delay between batch updates
         await Future.delayed(Duration(milliseconds: 500));
       } catch (e) {
-        debugPrint('❌ Failed to process offline update: $e');
+        logger.d('❌ Failed to process offline update: $e');
         // Re-queue failed update
         _offlineQueue.add(update);
       }
     }
     
     _isOnline = true;
-    debugPrint('✅ Offline queue processing completed');
+    logger.d('✅ Offline queue processing completed');
   }
   
   /// ✅ ENHANCED: Handle update failure with better state management
@@ -563,7 +563,7 @@ class LocationService {
   void _markServiceOffline() {
     if (_isOnline) {
       _isOnline = false;
-      debugPrint('🗑️ Service marked as OFFLINE due to update failure');
+      logger.d('🗑️ Service marked as OFFLINE due to update failure');
     }
   }
   
@@ -571,7 +571,7 @@ class LocationService {
   void _markServiceOnline() {
     if (!_isOnline) {
       _isOnline = true;
-      debugPrint('✅ Service marked as ONLINE after successful update');
+      logger.d('✅ Service marked as ONLINE after successful update');
     }
   }
   
@@ -613,7 +613,7 @@ class LocationService {
     double longitude,
   ) async {
     try {
-      debugPrint('🧪 LOCAL: Testing coordinates locally (no backend): ($latitude, $longitude)');
+      logger.d('🧪 LOCAL: Testing coordinates locally (no backend): ($latitude, $longitude)');
       
       // 1. Validate coordinate ranges locally
       if (!_validateCoordinates(latitude, longitude)) {
@@ -621,13 +621,13 @@ class LocationService {
       }
       
       // 2. SIMULATE LOCAL PROCESSING (no backend call)
-      debugPrint('📡 Simulando validación local de coordenadas...');
+      logger.d('📡 Simulando validación local de coordenadas...');
       
       // Simulate processing time
       await Future.delayed(Duration(milliseconds: 500));
       
       // 3. LOCAL SUCCESS RESPONSE
-      debugPrint('✅ LOCAL: Coordinate validation successful (simulated)');
+      logger.d('✅ LOCAL: Coordinate validation successful (simulated)');
       return ApiResponse.success({
         'message': 'Coordenadas validadas localmente',
         'latitude': latitude,
@@ -637,7 +637,7 @@ class LocationService {
       });
       
     } catch (e) {
-      debugPrint('❌ LOCAL: Coordinate validation error: $e');
+      logger.d('❌ LOCAL: Coordinate validation error: $e');
       return ApiResponse.error('Error validando coordenadas: $e');
     }
   }
@@ -658,7 +658,7 @@ class LocationService {
       _performanceMetrics.removeRange(0, 20);
     }
     
-    debugPrint('📊 Performance: $operation = ${metric.duration.inMilliseconds}ms (${success ? "success" : "failed"})');
+    logger.d('📊 Performance: $operation = ${metric.duration.inMilliseconds}ms (${success ? "success" : "failed"})');
   }
   
   /// Get performance statistics
@@ -685,11 +685,11 @@ class LocationService {
   
   /// Cleanup resources
   void dispose() {
-    debugPrint('🧹 Disposing LocationService resources');
+    logger.d('🧹 Disposing LocationService resources');
     _performanceCleanupTimer?.cancel();
     _offlineQueue.clear();
     _performanceMetrics.clear();
-    debugPrint('✅ LocationService disposed');
+    logger.d('✅ LocationService disposed');
   }
 
   // Missing method required by demo_verification_service
@@ -703,7 +703,7 @@ class LocationService {
       return permission != LocationPermission.denied && 
              permission != LocationPermission.deniedForever;
     } catch (e) {
-      debugPrint('❌ Error requesting location permission: $e');
+      logger.d('❌ Error requesting location permission: $e');
       return false;
     }
   }

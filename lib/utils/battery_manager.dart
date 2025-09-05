@@ -3,10 +3,10 @@
 // Detección de estado de carga/descarga, modo ahorro automático
 // Tracking adaptivo según batería, predicción de duración restante
 
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:battery_plus/battery_plus.dart';
-import 'package:logger/logger.dart';
 
 /// 🔋 Gestor inteligente de batería
 /// Optimiza el comportamiento de la app según el estado de la batería
@@ -15,16 +15,6 @@ class BatteryManager {
   factory BatteryManager() => _instance;
   BatteryManager._internal();
 
-  final Logger _logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 2,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
-    ),
-  );
 
   final Battery _battery = Battery();
 
@@ -60,7 +50,7 @@ class BatteryManager {
     if (_isInitialized) return;
 
     try {
-      _logger.i('🔋 Inicializando Battery Manager...');
+      logger.i('🔋 Inicializando Battery Manager...');
 
       // Leer estado inicial
       await _updateBatteryStatus();
@@ -72,10 +62,10 @@ class BatteryManager {
       _startBatteryTracking();
 
       _isInitialized = true;
-      _logger.i(
+      logger.i(
           '✅ Battery Manager inicializado - Nivel: $_currentBatteryLevel%, Estado: $_currentBatteryState');
     } catch (e, stackTrace) {
-      _logger.e('❌ Error inicializando Battery Manager',
+      logger.e('❌ Error inicializando Battery Manager',
           error: e, stackTrace: stackTrace);
       rethrow;
     }
@@ -89,7 +79,7 @@ class BatteryManager {
         _onBatteryStateChanged(state);
       },
       onError: (error) {
-        _logger.w('⚠️ Error en stream de estado de batería: $error');
+        logger.w('⚠️ Error en stream de estado de batería: $error');
       },
     );
   }
@@ -102,7 +92,7 @@ class BatteryManager {
       await _updateBatteryStatus();
     });
 
-    _logger.d('⏱️ Battery tracking iniciado - Frecuencia: $_trackingFrequency');
+    logger.d('⏱️ Battery tracking iniciado - Frecuencia: $_trackingFrequency');
   }
 
   /// 📊 Actualizar estado de la batería
@@ -134,11 +124,11 @@ class BatteryManager {
         }
 
         if (kDebugMode) {
-          _logger.d('🔋 Batería actualizada: $level% - $state');
+          logger.d('🔋 Batería actualizada: $level% - $state');
         }
       }
     } catch (e) {
-      _logger.w('⚠️ Error actualizando estado de batería: $e');
+      logger.w('⚠️ Error actualizando estado de batería: $e');
     }
   }
 
@@ -195,7 +185,7 @@ class BatteryManager {
 
   /// ⚡ Habilitar optimizaciones de batería
   void _enableBatteryOptimizations() {
-    _logger.i('⚡ Habilitando optimizaciones de batería...');
+    logger.i('⚡ Habilitando optimizaciones de batería...');
 
     // Reducir frecuencia de tracking
     _setTrackingFrequency(Duration(
@@ -207,7 +197,7 @@ class BatteryManager {
 
   /// 🚀 Deshabilitar optimizaciones de batería
   void _disableBatteryOptimizations() {
-    _logger.i('🚀 Deshabilitando optimizaciones de batería...');
+    logger.i('🚀 Deshabilitando optimizaciones de batería...');
 
     // Restaurar frecuencia normal
     _setTrackingFrequency(const Duration(seconds: 30));
@@ -226,10 +216,10 @@ class BatteryManager {
       _notifyLowPowerModeCallbacks(_isLowPowerMode);
 
       if (_isLowPowerMode) {
-        _logger.w(
+        logger.w(
             '🔋 Modo de bajo consumo activado - Batería: $_currentBatteryLevel%');
       } else {
-        _logger.i(
+        logger.i(
             '🚀 Modo de bajo consumo desactivado - Batería: $_currentBatteryLevel%');
       }
     }
@@ -250,19 +240,19 @@ class BatteryManager {
       _startBatteryTracking();
     }
 
-    _logger.d('⏱️ Frecuencia de battery tracking cambiada: $frequency');
+    logger.d('⏱️ Frecuencia de battery tracking cambiada: $frequency');
   }
 
   /// 📊 Callbacks de eventos de batería
   void _onBatteryStateChanged(BatteryState state) {
-    _logger.d('🔄 Estado de batería cambió: $_currentBatteryState → $state');
+    logger.d('🔄 Estado de batería cambió: $_currentBatteryState → $state');
 
     if (state == BatteryState.charging &&
         _currentBatteryState != BatteryState.charging) {
-      _logger.i('🔌 Dispositivo conectado a cargador');
+      logger.i('🔌 Dispositivo conectado a cargador');
     } else if (state != BatteryState.charging &&
         _currentBatteryState == BatteryState.charging) {
-      _logger.i('🔌 Dispositivo desconectado del cargador');
+      logger.i('🔌 Dispositivo desconectado del cargador');
     }
   }
 
@@ -307,7 +297,7 @@ class BatteryManager {
 
       return hoursRemaining;
     } catch (e) {
-      _logger.w('⚠️ Error calculando predicción de batería: $e');
+      logger.w('⚠️ Error calculando predicción de batería: $e');
       return double.infinity;
     }
   }
@@ -350,7 +340,7 @@ class BatteryManager {
       _currentBatteryLevel = await _battery.batteryLevel;
       return _currentBatteryLevel;
     } catch (e) {
-      _logger.w('⚠️ Error obteniendo nivel de batería: $e');
+      logger.w('⚠️ Error obteniendo nivel de batería: $e');
       return _currentBatteryLevel;
     }
   }
@@ -376,7 +366,7 @@ class BatteryManager {
       _veryLowBatteryThreshold = veryLowBatteryThreshold;
     }
 
-    _logger.i('🎯 Thresholds de batería configurados: '
+    logger.i('🎯 Thresholds de batería configurados: '
         'Low=$_lowBatteryThreshold%, '
         'Critical=$_criticalBatteryThreshold%, '
         'VeryLow=$_veryLowBatteryThreshold%');
@@ -401,7 +391,7 @@ class BatteryManager {
       try {
         callback(level);
       } catch (e) {
-        _logger.w('⚠️ Error en callback de nivel de batería: $e');
+        logger.w('⚠️ Error en callback de nivel de batería: $e');
       }
     }
   }
@@ -411,7 +401,7 @@ class BatteryManager {
       try {
         callback(state);
       } catch (e) {
-        _logger.w('⚠️ Error en callback de estado de batería: $e');
+        logger.w('⚠️ Error en callback de estado de batería: $e');
       }
     }
   }
@@ -421,13 +411,13 @@ class BatteryManager {
       try {
         callback(enabled);
       } catch (e) {
-        _logger.w('⚠️ Error en callback de modo bajo consumo: $e');
+        logger.w('⚠️ Error en callback de modo bajo consumo: $e');
       }
     }
   }
 
   void _notifyOptimizationStateChanged(bool enabled) {
-    _logger.i('🎯 Estado de optimización cambiado: $enabled');
+    logger.i('🎯 Estado de optimización cambiado: $enabled');
     // Aquí se podría notificar a otros componentes del sistema
   }
 
@@ -503,14 +493,14 @@ class BatteryManager {
 
   /// 🎯 Forzar optimización por batería baja
   void forceOptimizationForLowBattery() {
-    _logger.i('🎯 Forzando optimización por batería baja...');
+    logger.i('🎯 Forzando optimización por batería baja...');
     _isOptimizationEnabled = true;
     _enableBatteryOptimizations();
   }
 
   /// 🚀 Deshabilitar optimización forzada
   void disableOptimization() {
-    _logger.i('🚀 Deshabilitando optimización forzada...');
+    logger.i('🚀 Deshabilitando optimización forzada...');
     _isOptimizationEnabled = false;
     _disableBatteryOptimizations();
   }
@@ -525,7 +515,7 @@ class BatteryManager {
     _lowPowerModeCallbacks.clear();
     _isInitialized = false;
 
-    _logger.i('🛑 Battery Manager disposed');
+    logger.i('🛑 Battery Manager disposed');
   }
 }
 

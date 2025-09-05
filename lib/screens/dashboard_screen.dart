@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -83,21 +84,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (user?.rol == AppConstants.estudianteRole) {
         try {
           if (user?.id != null && user!.id.isNotEmpty) {
-            debugPrint('✅ Usando usuario principal: ${user!.id}');
-            await _loadAsistenciasSync(user!.id);
+            logger.d('✅ Usando usuario principal: ${user.id}');
+            await _loadAsistenciasSync(user.id);
           } else {
-            debugPrint('⚠️ Usuario sin ID válido, creando usuario de prueba...');
+            logger.d('⚠️ Usuario sin ID válido, creando usuario de prueba...');
             // Crear usuario de prueba
             final testUser = await StorageService().createTestUserIfNeeded();
-            debugPrint('✅ Usuario de prueba creado: ${testUser.id}');
+            logger.d('✅ Usuario de prueba creado: ${testUser.id}');
             if (testUser.id.isNotEmpty) {
               await _loadAsistenciasSync(testUser.id);
             } else {
-              debugPrint('❌ Usuario de prueba también tiene ID vacío');
+              logger.d('❌ Usuario de prueba también tiene ID vacío');
             }
           }
         } catch (e) {
-          debugPrint('❌ Error cargando asistencias: $e');
+          logger.d('❌ Error cargando asistencias: $e');
         }
       }
 
@@ -106,14 +107,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       List<Evento> userEvents = []; // ✅ DECLARAR VARIABLE
       if (user?.rol == AppConstants.estudianteRole) {
         eventoActivo = await _selectBestEventForStudent(eventos);
-        debugPrint('🎯 Evento seleccionado para estudiante: ${eventoActivo?.titulo ?? "Ninguno"}');
+        logger.d('🎯 Evento seleccionado para estudiante: ${eventoActivo?.titulo ?? "Ninguno"}');
       }
 
       // ✅ NUEVOS: Eventos específicos para profesors/admin
       if (user?.rol == AppConstants.profesorRole || user?.rol == 'admin') {
         // Los eventos ya vienen filtrados por getEventosByCreador()
         userEvents = eventos;
-        debugPrint('✅ Eventos del profesor ${user?.nombre} procesados: ${userEvents.length}');
+        logger.d('✅ Eventos del profesor ${user?.nombre} procesados: ${userEvents.length}');
       }
 
       // ✅ UN SOLO setState con todos los datos
@@ -130,10 +131,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _isLoadingEvents = false;
       });
 
-      debugPrint(
+      logger.d(
           '✅ Dashboard inicializado: Usuario=${user?.nombre}, Eventos=${eventos.length}');
     } catch (e) {
-      debugPrint('❌ Error en inicialización: $e');
+      logger.d('❌ Error en inicialización: $e');
       setState(() {
         _isLoadingUser = false;
         _isLoadingMetrics = false;
@@ -147,20 +148,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final user = await _storageService.getUser();
       if (user != null) {
-        debugPrint('Usuario cargado: ${user.nombre} - Rol: ${user.rol}');
+        logger.d('Usuario cargado: ${user.nombre} - Rol: ${user.rol}');
         return user;
       } else {
-        debugPrint('⚠️ No hay usuario en storage - es posible logout legítimo');
+        logger.d('⚠️ No hay usuario en storage - es posible logout legítimo');
         // Solo hacer logout si realmente no hay datos de usuario
         final hasAnyUserData = await _storageService.getToken();
         if (hasAnyUserData == null) {
-          debugPrint('🚪 No hay token - redirigiendo a login');
+          logger.d('🚪 No hay token - redirigiendo a login');
           AppRouter.logout();
         }
         return null;
       }
     } catch (e) {
-      debugPrint('⚠️ Error temporal cargando usuario: $e - NO desconectando');
+      logger.d('⚠️ Error temporal cargando usuario: $e - NO desconectando');
       // ✅ NO desconectar automáticamente en errores temporales
       // Solo desconectar si hay evidencia clara de que la sesión es inválida
       return null;
@@ -172,11 +173,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final metrics = await _dashboardService.getMetrics();
       if (metrics != null) {
-        debugPrint('Métricas cargadas: ${metrics.length}');
+        logger.d('Métricas cargadas: ${metrics.length}');
       }
       return metrics;
     } catch (e) {
-      debugPrint('Error cargando métricas: $e');
+      logger.d('Error cargando métricas: $e');
       return null;
     }
   }
@@ -191,16 +192,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (user?.rol == 'profesor' || user?.rol == 'admin') {
         // Para profesors: solo sus eventos
         eventos = await _eventoService.getEventosByCreador(user!.id);
-        debugPrint('Eventos del profesor ${user.nombre} cargados: ${eventos.length}');
+        logger.d('Eventos del profesor ${user.nombre} cargados: ${eventos.length}');
       } else {
         // Para estudiantes: todos los eventos públicos
         eventos = await _eventoService.obtenerEventos();
-        debugPrint('Eventos públicos cargados: ${eventos.length}');
+        logger.d('Eventos públicos cargados: ${eventos.length}');
       }
       
       return eventos;
     } catch (e) {
-      debugPrint('Error cargando eventos: $e');
+      logger.d('Error cargando eventos: $e');
       return [];
     }
   }
@@ -208,13 +209,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   /// Carga asistencias sin setState
   Future<List<Asistencia>> _loadAsistenciasSync(String userId) async {
     try {
-      debugPrint('📊 Cargando asistencias del estudiante...');
+      logger.d('📊 Cargando asistencias del estudiante...');
       final asistencias =
           await _asistenciaService.obtenerHistorialUsuario(userId);
-      debugPrint('✅ ${asistencias.length} asistencias cargadas');
+      logger.d('✅ ${asistencias.length} asistencias cargadas');
       return asistencias;
     } catch (e) {
-      debugPrint('❌ Error cargando asistencias: $e');
+      logger.d('❌ Error cargando asistencias: $e');
       return [];
     }
   }
@@ -229,7 +230,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   /// Prioriza por: 1) Estado del evento, 2) Proximidad geográfica, 3) Tiempo
   Future<Evento?> _selectBestEventForStudent(List<Evento> eventos) async {
     try {
-      debugPrint('🎯 Seleccionando mejor evento para estudiante...');
+      logger.d('🎯 Seleccionando mejor evento para estudiante...');
       
       // 1. Filtrar solo eventos relevantes para estudiantes
       final eventosRelevantes = eventos.where((evento) => 
@@ -239,7 +240,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ).toList();
       
       if (eventosRelevantes.isEmpty) {
-        debugPrint('❌ No hay eventos relevantes para estudiantes');
+        logger.d('❌ No hay eventos relevantes para estudiantes');
         return null;
       }
       
@@ -250,10 +251,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (position != null) {
           studentLat = position.latitude;
           studentLng = position.longitude;
-          debugPrint('📍 Ubicación estudiante: $studentLat, $studentLng');
+          logger.d('📍 Ubicación estudiante: $studentLat, $studentLng');
         }
       } catch (e) {
-        debugPrint('⚠️ No se pudo obtener ubicación del estudiante: $e');
+        logger.d('⚠️ No se pudo obtener ubicación del estudiante: $e');
       }
       
       // 3. Calcular puntuación para cada evento
@@ -289,7 +290,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             puntuacion += 10; // Relativamente cerca
           }
           
-          debugPrint('📏 Distancia a ${evento.titulo}: ${distance.round()}m (Rango: ${evento.rangoPermitido.round()}m)');
+          logger.d('📏 Distancia a ${evento.titulo}: ${distance.round()}m (Rango: ${evento.rangoPermitido.round()}m)');
         }
         
         // FACTOR 3: Tiempo - bonus por eventos que ya deberían haber comenzado
@@ -310,10 +311,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             puntuacion += 15; // Bonus por evento próximo (1 hora)
           }
         } catch (e) {
-          debugPrint('⚠️ Error procesando fecha/hora del evento ${evento.titulo}: $e');
+          logger.d('⚠️ Error procesando fecha/hora del evento ${evento.titulo}: $e');
         }
         
-        debugPrint('🎯 ${evento.titulo}: ${puntuacion.round()} puntos (Estado: ${evento.estado})');
+        logger.d('🎯 ${evento.titulo}: ${puntuacion.round()} puntos (Estado: ${evento.estado})');
         
         return MapEntry(evento, puntuacion);
       }).toList();
@@ -323,11 +324,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final mejorEvento = eventosConPuntuacion.first.key;
       final puntuacion = eventosConPuntuacion.first.value;
       
-      debugPrint('✅ Mejor evento seleccionado: ${mejorEvento.titulo} (${puntuacion.round()} puntos)');
+      logger.d('✅ Mejor evento seleccionado: ${mejorEvento.titulo} (${puntuacion.round()} puntos)');
       return mejorEvento;
       
     } catch (e) {
-      debugPrint('❌ Error en selección de evento: $e');
+      logger.d('❌ Error en selección de evento: $e');
       // Fallback a la lógica anterior
       final eventosActivos = eventos.where((e) => e.isActive);
       return eventosActivos.isNotEmpty ? eventosActivos.first : null;
@@ -396,13 +397,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _minimizeApp() {
     // En Android esto moverá la app al background
     // sin cerrar la sesión ni detener servicios
-    debugPrint('📱 Minimizando app - sesión y tracking activos');
+    logger.d('📱 Minimizando app - sesión y tracking activos');
     
     try {
       // Minimizar la aplicación en Android
       SystemNavigator.pop();
     } catch (e) {
-      debugPrint('⚠️ Error minimizando app: $e');
+      logger.d('⚠️ Error minimizando app: $e');
     }
   }
 
@@ -538,7 +539,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           batteryOptimizationDisabled: true,
         );
       } catch (e) {
-        debugPrint('❌ Error en navegación a tracking: $e');
+        logger.d('❌ Error en navegación a tracking: $e');
         _showErrorDialog('Error de Navegación', 
           'No se pudo acceder al tracking. Verifica tus permisos de ubicación.');
       }
@@ -549,7 +550,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   /// Manejo de tap en evento para profesor
   void _handleTeacherEventTap(Evento evento) {
-    debugPrint('👩‍🏫 Docente tocó evento: ${evento.titulo}');
+    logger.d('👩‍🏫 Docente tocó evento: ${evento.titulo}');
     Navigator.pushNamed(
       context,
       AppConstants.eventMonitorRoute,
@@ -562,7 +563,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   /// ✅ NUEVO: Registro directo en evento específico
   Future<void> _handleJoinSpecificEvent(Evento evento) async {
-    debugPrint('🎯 Estudiante se está registrando directamente en evento: ${evento.titulo}');
+    logger.d('🎯 Estudiante se está registrando directamente en evento: ${evento.titulo}');
     
     if (evento.id == null || evento.id!.isEmpty) {
       _showErrorDialog('Error de Evento', 'El evento no tiene un ID válido');
@@ -625,7 +626,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       // Cerrar indicador de carga si está abierto
       Navigator.pop(context);
-      debugPrint('❌ Error en registro directo: $e');
+      logger.d('❌ Error en registro directo: $e');
       _showErrorDialog('Error de Registro', 
         'No se pudo inscribir en el evento. Verifica tu conexión.');
     }
@@ -633,7 +634,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   /// Manejo de tap en evento para estudiante con validaciones
   Future<void> _handleStudentEventTap(Evento evento) async {
-    debugPrint('🎓 Estudiante tocó evento: ${evento.titulo}');
+    logger.d('🎓 Estudiante tocó evento: ${evento.titulo}');
     
     if (evento.id == null || evento.id!.isEmpty) {
       _showErrorDialog('Error de Evento', 'El evento no tiene un ID válido');
@@ -656,7 +657,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         batteryOptimizationDisabled: true,
       );
     } catch (e) {
-      debugPrint('❌ Error en navegación de estudiante: $e');
+      logger.d('❌ Error en navegación de estudiante: $e');
       _showErrorDialog('Error de Navegación', 
         'No se pudo acceder al evento. Verifica tus permisos de ubicación.');
     }

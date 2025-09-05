@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../core/backend_sync_service.dart';
 import '../notifications/notification_manager.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 
 /// ✅ GRACE PERIOD MANAGER: Períodos de gracia duales sin conflictos
 /// Responsabilidades:
@@ -47,11 +48,11 @@ class GracePeriodManager {
   /// Solo para cuando el estudiante sale de la geocerca
   Future<void> startGeofenceGracePeriod() async {
     if (_isGeofenceGraceActive) {
-      debugPrint('⚠️ Geofence grace period already active, ignoring');
+      logger.d('⚠️ Geofence grace period already active, ignoring');
       return;
     }
 
-    debugPrint('🚨 Starting GEOFENCE grace period - 60 seconds');
+    logger.d('🚨 Starting GEOFENCE grace period - 60 seconds');
     
     _isGeofenceGraceActive = true;
     _geofenceGraceStarted = DateTime.now();
@@ -103,11 +104,11 @@ class GracePeriodManager {
   /// Solo para cuando la app se cierra/va a background
   Future<void> startAppClosedGracePeriod() async {
     if (_isAppClosedGraceActive) {
-      debugPrint('⚠️ App closed grace period already active, ignoring');
+      logger.d('⚠️ App closed grace period already active, ignoring');
       return;
     }
 
-    debugPrint('🚨 Starting APP CLOSED grace period - 30 seconds');
+    logger.d('🚨 Starting APP CLOSED grace period - 30 seconds');
     
     _isAppClosedGraceActive = true;
     _appClosedGraceStarted = DateTime.now();
@@ -148,11 +149,11 @@ class GracePeriodManager {
   /// Se llama cuando el estudiante regresa a la geocerca
   Future<void> cancelGeofenceGracePeriod() async {
     if (!_isGeofenceGraceActive) {
-      debugPrint('✅ Geofence grace period not active, nothing to cancel');
+      logger.d('✅ Geofence grace period not active, nothing to cancel');
       return;
     }
 
-    debugPrint('✅ Canceling GEOFENCE grace period - student returned to area');
+    logger.d('✅ Canceling GEOFENCE grace period - student returned to area');
     
     _geofenceGraceTimer?.cancel();
     _geofenceGraceTimer = null;
@@ -175,11 +176,11 @@ class GracePeriodManager {
   /// Se llama cuando la app regresa a foreground
   Future<void> cancelAppClosedGracePeriod() async {
     if (!_isAppClosedGraceActive) {
-      debugPrint('✅ App closed grace period not active, nothing to cancel');
+      logger.d('✅ App closed grace period not active, nothing to cancel');
       return;
     }
 
-    debugPrint('✅ Canceling APP CLOSED grace period - app returned to foreground');
+    logger.d('✅ Canceling APP CLOSED grace period - app returned to foreground');
     
     _appClosedGraceTimer?.cancel();
     _appClosedGraceTimer = null;
@@ -200,7 +201,7 @@ class GracePeriodManager {
 
   /// 🚨 GEOFENCE GRACE PERIOD EXPIRADO
   void _triggerGeofenceGraceExpired() {
-    debugPrint('🚨 GEOFENCE grace period EXPIRED - 60 seconds elapsed');
+    logger.d('🚨 GEOFENCE grace period EXPIRED - 60 seconds elapsed');
     
     _isGeofenceGraceActive = false;
     _geofenceGraceStarted = null;
@@ -216,7 +217,7 @@ class GracePeriodManager {
 
   /// 🚨 APP CLOSED GRACE PERIOD EXPIRADO
   void _triggerAppClosedGraceExpired() {
-    debugPrint('🚨 APP CLOSED grace period EXPIRED - 30 seconds elapsed');
+    logger.d('🚨 APP CLOSED grace period EXPIRED - 30 seconds elapsed');
     
     _isAppClosedGraceActive = false;
     _appClosedGraceStarted = null;
@@ -268,7 +269,7 @@ class GracePeriodManager {
 
   /// 🧹 CANCELAR TODOS LOS GRACE PERIODS
   Future<void> cancelAllGracePeriods() async {
-    debugPrint('🧹 Canceling all grace periods');
+    logger.d('🧹 Canceling all grace periods');
     
     if (_isGeofenceGraceActive) {
       await cancelGeofenceGracePeriod();
@@ -281,7 +282,7 @@ class GracePeriodManager {
 
   /// 🧹 CLEANUP
   void dispose() {
-    debugPrint('🧹 Disposing GracePeriodManager');
+    logger.d('🧹 Disposing GracePeriodManager');
     
     _geofenceGraceTimer?.cancel();
     _appClosedGraceTimer?.cancel();
@@ -290,7 +291,7 @@ class GracePeriodManager {
     _isGeofenceGraceActive = false;
     _isAppClosedGraceActive = false;
     
-    debugPrint('🧹 GracePeriodManager disposed');
+    logger.d('🧹 GracePeriodManager disposed');
   }
 }
 

@@ -1,5 +1,5 @@
 // lib/core/backend_sync_service.dart
-import 'package:flutter/foundation.dart';
+import 'utils/app_logger.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -60,7 +60,7 @@ class BackendSyncService {
 
   /// ✅ INICIALIZAR SERVICIO DE SINCRONIZACIÓN
   Future<void> initialize() async {
-    debugPrint('🔄 Inicializando BackendSyncService...');
+    logger.d('🔄 Inicializando BackendSyncService...');
     
     // Verificar conectividad inicial
     await _checkConnectivity();
@@ -74,7 +74,7 @@ class BackendSyncService {
     // Sincronización inicial
     await performInitialSync();
     
-    debugPrint('✅ BackendSyncService inicializado correctamente');
+    logger.i('✅ BackendSyncService inicializado correctamente');
   }
 
   /// 💓 INICIAR HEARTBEAT CON BACKEND
@@ -83,7 +83,7 @@ class BackendSyncService {
     _heartbeatTimer = Timer.periodic(_heartbeatInterval, (timer) async {
       await _sendHeartbeat();
     });
-    debugPrint('💓 Heartbeat iniciado cada ${_heartbeatInterval.inSeconds}s');
+    logger.d('💓 Heartbeat iniciado cada ${_heartbeatInterval.inSeconds}s');
   }
 
   /// 🔄 INICIAR SINCRONIZACIÓN AUTOMÁTICA
@@ -94,7 +94,7 @@ class BackendSyncService {
         await syncPendingOperations();
       }
     });
-    debugPrint('🔄 Auto-sync iniciado cada ${_syncInterval.inMinutes}m');
+    logger.d('🔄 Auto-sync iniciado cada ${_syncInterval.inMinutes}m');
   }
 
   /// 💓 ENVIAR HEARTBEAT AL BACKEND
@@ -118,7 +118,7 @@ class BackendSyncService {
       
       if (_isOnline != wasOnline) {
         _connectivityController.add(_isOnline);
-        debugPrint('🌐 Conectividad cambió: ${_isOnline ? "ONLINE" : "OFFLINE"}');
+        logger.d('🌐 Conectividad cambió: ${_isOnline ? "ONLINE" : "OFFLINE"}');
         
         if (_isOnline) {
           // Reconectado - sincronizar operaciones pendientes
@@ -131,7 +131,7 @@ class BackendSyncService {
       
       if (wasOnline) {
         _connectivityController.add(_isOnline);
-        debugPrint('❌ Conexión perdida: $e');
+        logger.e('❌ Conexión perdida: $e');
       }
     }
   }
@@ -145,10 +145,10 @@ class BackendSyncService {
       ).timeout(_connectionTimeout);
       
       _isOnline = response.statusCode == 200;
-      debugPrint('🌐 Conectividad inicial: ${_isOnline ? "ONLINE" : "OFFLINE"}');
+      logger.d('🌐 Conectividad inicial: ${_isOnline ? "ONLINE" : "OFFLINE"}');
     } catch (e) {
       _isOnline = false;
-      debugPrint('❌ Error verificando conectividad: $e');
+      logger.e('❌ Error verificando conectividad: $e');
     }
   }
 
@@ -160,7 +160,7 @@ class BackendSyncService {
     _syncStatusController.add(SyncStatus.syncing);
     
     try {
-      debugPrint('🚀 Iniciando sincronización inicial...');
+      logger.d('🚀 Iniciando sincronización inicial...');
       
       // Sincronizar datos críticos en orden
       await _syncUserProfile();
@@ -170,11 +170,11 @@ class BackendSyncService {
       
       _lastSyncTime = DateTime.now();
       _syncStatusController.add(SyncStatus.completed);
-      debugPrint('✅ Sincronización inicial completada');
+      logger.i('✅ Sincronización inicial completada');
       
     } catch (e) {
       _syncStatusController.add(SyncStatus.error);
-      debugPrint('❌ Error en sincronización inicial: $e');
+      logger.e('❌ Error en sincronización inicial: $e');
       rethrow;
     } finally {
       _isSyncing = false;
@@ -195,10 +195,10 @@ class BackendSyncService {
       if (response.statusCode == 200) {
         jsonDecode(response.body);
         // Aquí se actualizaría el cache local del perfil
-        debugPrint('✅ Perfil de usuario sincronizado');
+        logger.i('✅ Perfil de usuario sincronizado');
       }
     } catch (e) {
-      debugPrint('❌ Error sincronizando perfil: $e');
+      logger.e('❌ Error sincronizando perfil: $e');
     }
   }
 
@@ -216,10 +216,10 @@ class BackendSyncService {
       if (response.statusCode == 200) {
         final eventsData = jsonDecode(response.body);
         // Aquí se actualizaría el cache local de eventos
-        debugPrint('✅ Eventos activos sincronizados (${eventsData['eventos']?.length ?? 0})');
+        logger.i('✅ Eventos activos sincronizados (${eventsData['eventos']?.length ?? 0})');
       }
     } catch (e) {
-      debugPrint('❌ Error sincronizando eventos: $e');
+      logger.e('❌ Error sincronizando eventos: $e');
     }
   }
 
@@ -237,10 +237,10 @@ class BackendSyncService {
       if (response.statusCode == 200) {
         final attendancesData = jsonDecode(response.body);
         // Aquí se actualizaría el cache local de asistencias
-        debugPrint('✅ Asistencias recientes sincronizadas (${attendancesData['asistencias']?.length ?? 0})');
+        logger.i('✅ Asistencias recientes sincronizadas (${attendancesData['asistencias']?.length ?? 0})');
       }
     } catch (e) {
-      debugPrint('❌ Error sincronizando asistencias: $e');
+      logger.e('❌ Error sincronizando asistencias: $e');
     }
   }
 
@@ -255,10 +255,10 @@ class BackendSyncService {
       if (response.statusCode == 200) {
         jsonDecode(response.body);
         // Aquí se actualizaría la configuración local
-        debugPrint('✅ Configuración del sistema sincronizada');
+        logger.i('✅ Configuración del sistema sincronizada');
       }
     } catch (e) {
-      debugPrint('❌ Error sincronizando configuración: $e');
+      logger.e('❌ Error sincronizando configuración: $e');
     }
   }
 
@@ -270,7 +270,7 @@ class BackendSyncService {
     _syncStatusController.add(SyncStatus.syncing);
     
     try {
-      debugPrint('📤 Sincronizando ${_pendingOperations.length} operaciones pendientes...');
+      logger.d('📤 Sincronizando ${_pendingOperations.length} operaciones pendientes...');
       
       final operationsToSync = List<SyncOperation>.from(_pendingOperations);
       int successCount = 0;
@@ -287,7 +287,7 @@ class BackendSyncService {
             if (operation.retries >= _maxRetries) {
               _pendingOperations.remove(operation);
               errorCount++;
-              debugPrint('❌ Operación descartada tras $_maxRetries intentos: ${operation.type}');
+              logger.e('❌ Operación descartada tras $_maxRetries intentos: ${operation.type}');
             }
           }
         } catch (e) {
@@ -296,17 +296,17 @@ class BackendSyncService {
             _pendingOperations.remove(operation);
             errorCount++;
           }
-          debugPrint('❌ Error ejecutando operación ${operation.type}: $e');
+          logger.e('❌ Error ejecutando operación ${operation.type}: $e');
         }
       }
       
       _lastSyncTime = DateTime.now();
       _syncStatusController.add(SyncStatus.completed);
-      debugPrint('✅ Sincronización completada: $successCount éxitos, $errorCount errores');
+      logger.i('✅ Sincronización completada: $successCount éxitos, $errorCount errores');
       
     } catch (e) {
       _syncStatusController.add(SyncStatus.error);
-      debugPrint('❌ Error en sincronización de operaciones: $e');
+      logger.e('❌ Error en sincronización de operaciones: $e');
     } finally {
       _isSyncing = false;
     }
@@ -356,14 +356,14 @@ class BackendSyncService {
           break;
           
         default:
-          debugPrint('❌ Tipo de operación no soportado: ${operation.type}');
+          logger.e('❌ Tipo de operación no soportado: ${operation.type}');
           return false;
       }
       
       return response.statusCode >= 200 && response.statusCode < 300;
       
     } catch (e) {
-      debugPrint('❌ Error ejecutando operación ${operation.type}: $e');
+      logger.e('❌ Error ejecutando operación ${operation.type}: $e');
       return false;
     }
   }
@@ -381,7 +381,7 @@ class BackendSyncService {
     }
     
     _pendingOperations.add(operation);
-    debugPrint('📝 Operación agregada a pendientes: ${operation.type} (${_pendingOperations.length} total)');
+    logger.d('📝 Operación agregada a pendientes: ${operation.type} (${_pendingOperations.length} total)');
     
     // Intentar sincronizar inmediatamente si está online
     if (_isOnline && !_isSyncing) {
@@ -391,7 +391,7 @@ class BackendSyncService {
 
   /// 🔄 FORZAR SINCRONIZACIÓN COMPLETA
   Future<void> forceSyncAll() async {
-    debugPrint('🔄 Forzando sincronización completa...');
+    logger.d('🔄 Forzando sincronización completa...');
     await performInitialSync();
     await syncPendingOperations();
   }
@@ -410,12 +410,12 @@ class BackendSyncService {
   /// 🧹 LIMPIAR OPERACIONES PENDIENTES
   void clearPendingOperations() {
     _pendingOperations.clear();
-    debugPrint('🧹 Operaciones pendientes limpiadas');
+    logger.d('🧹 Operaciones pendientes limpiadas');
   }
 
   /// 🔄 REINICIAR SERVICIO
   Future<void> restart() async {
-    debugPrint('🔄 Reiniciando BackendSyncService...');
+    logger.d('🔄 Reiniciando BackendSyncService...');
     
     await dispose();
     await initialize();
@@ -426,7 +426,7 @@ class BackendSyncService {
     _heartbeatTimer?.cancel();
     _syncTimer?.cancel();
     _isSyncing = false;
-    debugPrint('🛑 BackendSyncService detenido');
+    logger.d('🛑 BackendSyncService detenido');
   }
 
   /// 🗑️ LIMPIAR RECURSOS
@@ -435,7 +435,7 @@ class BackendSyncService {
     await _syncStatusController.close();
     await _connectivityController.close();
     _pendingOperations.clear();
-    debugPrint('🗑️ BackendSyncService disposed');
+    logger.d('🗑️ BackendSyncService disposed');
   }
 }
 

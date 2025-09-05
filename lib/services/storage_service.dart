@@ -1,6 +1,6 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/storage_service.dart
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/usuario_model.dart';
 import '../core/app_constants.dart';
@@ -524,7 +524,7 @@ class StorageService {
     try {
       return await getStringList(_preRegisteredEventsKey);
     } catch (e) {
-      debugPrint('❌ Error obteniendo pre-registros: $e');
+      logger.d('❌ Error obteniendo pre-registros: $e');
       return null;
     }
   }
@@ -533,9 +533,9 @@ class StorageService {
   Future<void> savePreRegisteredEvents(List<String> eventIds) async {
     try {
       await saveStringList(_preRegisteredEventsKey, eventIds);
-      debugPrint('✅ Pre-registros guardados: ${eventIds.length} eventos');
+      logger.d('✅ Pre-registros guardados: ${eventIds.length} eventos');
     } catch (e) {
-      debugPrint('❌ Error guardando pre-registros: $e');
+      logger.d('❌ Error guardando pre-registros: $e');
       throw Exception('Error guardando pre-registros: $e');
     }
   }
@@ -546,7 +546,7 @@ class StorageService {
       final preRegistros = await getPreRegisteredEvents() ?? <String>[];
       return preRegistros.contains(eventId);
     } catch (e) {
-      debugPrint('❌ Error verificando pre-registro: $e');
+      logger.d('❌ Error verificando pre-registro: $e');
       return false;
     }
   }
@@ -557,9 +557,9 @@ class StorageService {
       final preRegistros = await getPreRegisteredEvents() ?? <String>[];
       preRegistros.remove(eventId);
       await savePreRegisteredEvents(preRegistros);
-      debugPrint('✅ Evento removido de pre-registros: $eventId');
+      logger.d('✅ Evento removido de pre-registros: $eventId');
     } catch (e) {
-      debugPrint('❌ Error removiendo pre-registro: $e');
+      logger.d('❌ Error removiendo pre-registro: $e');
       throw Exception('Error removiendo pre-registro: $e');
     }
   }
@@ -568,9 +568,9 @@ class StorageService {
   Future<void> clearPreRegisteredEvents() async {
     try {
       await removeData(_preRegisteredEventsKey);
-      debugPrint('✅ Pre-registros limpiados');
+      logger.d('✅ Pre-registros limpiados');
     } catch (e) {
-      debugPrint('❌ Error limpiando pre-registros: $e');
+      logger.d('❌ Error limpiando pre-registros: $e');
       throw Exception('Error limpiando pre-registros: $e');
     }
   }
@@ -582,7 +582,7 @@ class StorageService {
       // Verificar si ya hay un usuario
       Usuario? existingUser = await getUser();
       if (existingUser != null && existingUser.id.isNotEmpty) {
-        debugPrint('✅ Usuario existente encontrado: ${existingUser.nombre}');
+        logger.d('✅ Usuario existente encontrado: ${existingUser.nombre}');
         return existingUser;
       }
 
@@ -595,11 +595,11 @@ class StorageService {
       );
 
       await saveUser(testUser);
-      debugPrint('✅ Usuario de prueba creado: ${testUser.nombre} (ID: ${testUser.id})');
+      logger.d('✅ Usuario de prueba creado: ${testUser.nombre} (ID: ${testUser.id})');
       
       return testUser;
     } catch (e) {
-      debugPrint('❌ Error creando usuario de prueba: $e');
+      logger.d('❌ Error creando usuario de prueba: $e');
       throw Exception('Error creando usuario de prueba: $e');
     }
   }

@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/permission_service.dart
 import 'dart:async';
 import 'dart:io';
@@ -29,21 +30,21 @@ class PermissionService {
   /// Validar si la ubicación precisa está otorgada
   Future<bool> isPreciseLocationGranted() async {
     try {
-      debugPrint('🔍 Validando permisos de ubicación precisa');
+      logger.d('🔍 Validando permisos de ubicación precisa');
 
       // 1. Verificar permisos básicos de ubicación
       final locationPermission = await Geolocator.checkPermission();
 
       if (locationPermission == LocationPermission.denied ||
           locationPermission == LocationPermission.deniedForever) {
-        debugPrint('❌ Permisos de ubicación denegados');
+        logger.d('❌ Permisos de ubicación denegados');
         return false;
       }
 
       // 2. Verificar configuración de precisión
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        debugPrint('❌ Servicios de ubicación deshabilitados');
+        logger.d('❌ Servicios de ubicación deshabilitados');
         return false;
       }
 
@@ -51,7 +52,7 @@ class PermissionService {
       if (Platform.isAndroid) {
         final hasAccuracyPermission = await _checkAndroidLocationAccuracy();
         if (!hasAccuracyPermission) {
-          debugPrint('❌ Ubicación precisa no otorgada en Android');
+          logger.d('❌ Ubicación precisa no otorgada en Android');
           return false;
         }
       }
@@ -67,17 +68,17 @@ class PermissionService {
 
         final isAccurate = position.accuracy <= AppConstants.maxGpsAccuracyMeters; // ✅ Usar constante configurada
 
-        debugPrint('📍 Ubicación obtenida - Precisión: ${position.accuracy}m');
-        debugPrint(
+        logger.d('📍 Ubicación obtenida - Precisión: ${position.accuracy}m');
+        logger.d(
             isAccurate ? '✅ Precisión aceptable' : '❌ Precisión insuficiente');
 
         return isAccurate;
       } catch (e) {
-        debugPrint('❌ Error obteniendo ubicación precisa: $e');
+        logger.d('❌ Error obteniendo ubicación precisa: $e');
         return false;
       }
     } catch (e) {
-      debugPrint('❌ Error validando ubicación precisa: $e');
+      logger.d('❌ Error validando ubicación precisa: $e');
       return false;
     }
   }
@@ -85,7 +86,7 @@ class PermissionService {
   /// Solicitar permisos de ubicación precisa
   Future<bool> requestPreciseLocationPermission() async {
     try {
-      debugPrint('📲 Solicitando permisos de ubicación precisa');
+      logger.d('📲 Solicitando permisos de ubicación precisa');
 
       // 1. Solicitar permisos básicos de ubicación
       LocationPermission permission = await Geolocator.checkPermission();
@@ -95,13 +96,13 @@ class PermissionService {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        debugPrint('❌ Permisos denegados permanentemente');
+        logger.d('❌ Permisos denegados permanentemente');
         await _showLocationSettingsDialog();
         return false;
       }
 
       if (permission == LocationPermission.denied) {
-        debugPrint('❌ Permisos de ubicación denegados');
+        logger.d('❌ Permisos de ubicación denegados');
         return false;
       }
 
@@ -109,7 +110,7 @@ class PermissionService {
       if (Platform.isAndroid) {
         final preciseGranted = await _requestAndroidPreciseLocation();
         if (!preciseGranted) {
-          debugPrint('❌ Ubicación precisa no otorgada');
+          logger.d('❌ Ubicación precisa no otorgada');
           return false;
         }
       }
@@ -117,12 +118,12 @@ class PermissionService {
       // 3. Validar que realmente funcione
       final isWorking = await isPreciseLocationGranted();
 
-      debugPrint(isWorking
+      logger.d(isWorking
           ? '✅ Ubicación precisa configurada correctamente'
           : '❌ Configuración de ubicación incorrecta');
       return isWorking;
     } catch (e) {
-      debugPrint('❌ Error solicitando ubicación precisa: $e');
+      logger.d('❌ Error solicitando ubicación precisa: $e');
       return false;
     }
   }
@@ -132,18 +133,18 @@ class PermissionService {
   /// Solicitar permisos de background
   Future<bool> requestBackgroundPermission() async {
     try {
-      debugPrint('🔄 Solicitando permisos de background');
+      logger.d('🔄 Solicitando permisos de background');
 
       // 1. Verificar versión de Android
       if (Platform.isAndroid) {
         final androidInfo = await DeviceInfoPlugin().androidInfo;
-        debugPrint('📱 Android version: ${androidInfo.version.sdkInt}');
+        logger.d('📱 Android version: ${androidInfo.version.sdkInt}');
 
         // Android 10+ requiere background location
         if (androidInfo.version.sdkInt >= 29) {
           final backgroundGranted = await _requestAndroidBackgroundLocation();
           if (!backgroundGranted) {
-            debugPrint('❌ Background location no otorgado');
+            logger.d('❌ Background location no otorgado');
             return false;
           }
         }
@@ -159,12 +160,12 @@ class PermissionService {
 
       final allGranted = batteryOptimizationDisabled && additionalPermissions;
 
-      debugPrint(allGranted
+      logger.d(allGranted
           ? '✅ Permisos de background configurados'
           : '❌ Faltan permisos de background');
       return allGranted;
     } catch (e) {
-      debugPrint('❌ Error solicitando permisos de background: $e');
+      logger.d('❌ Error solicitando permisos de background: $e');
       return false;
     }
   }
@@ -172,7 +173,7 @@ class PermissionService {
   /// Solicitar exención de optimización de batería
   Future<bool> requestBatteryOptimizationExemption() async {
     try {
-      debugPrint('🔋 Solicitando exención de optimización de batería');
+      logger.d('🔋 Solicitando exención de optimización de batería');
 
       if (Platform.isAndroid) {
         // Verificar si ya está exenta
@@ -180,7 +181,7 @@ class PermissionService {
             await Permission.ignoreBatteryOptimizations.isGranted;
 
         if (isIgnoring) {
-          debugPrint('✅ Ya exenta de optimización de batería');
+          logger.d('✅ Ya exenta de optimización de batería');
           return true;
         }
 
@@ -188,10 +189,10 @@ class PermissionService {
         final status = await Permission.ignoreBatteryOptimizations.request();
 
         if (status.isGranted) {
-          debugPrint('✅ Exención de batería otorgada');
+          logger.d('✅ Exención de batería otorgada');
           return true;
         } else {
-          debugPrint('❌ Exención de batería denegada');
+          logger.d('❌ Exención de batería denegada');
           await _showBatteryOptimizationDialog();
           return false;
         }
@@ -200,7 +201,7 @@ class PermissionService {
       // En iOS no es necesario
       return true;
     } catch (e) {
-      debugPrint('❌ Error configurando exención de batería: $e');
+      logger.d('❌ Error configurando exención de batería: $e');
       return false;
     }
   }
@@ -210,7 +211,7 @@ class PermissionService {
   /// Configurar servicio foreground
   Future<bool> setupForegroundService() async {
     try {
-      debugPrint('⚙️ Configurando servicio foreground');
+      logger.d('⚙️ Configurando servicio foreground');
 
       if (Platform.isAndroid) {
         // Verificar permisos de notificaciones
@@ -219,7 +220,7 @@ class PermissionService {
         if (!notificationStatus.isGranted) {
           final granted = await Permission.notification.request();
           if (!granted.isGranted) {
-            debugPrint('❌ Permisos de notificación denegados');
+            logger.d('❌ Permisos de notificación denegados');
             return false;
           }
         }
@@ -235,10 +236,10 @@ class PermissionService {
         }
       }
 
-      debugPrint('✅ Servicio foreground configurado');
+      logger.d('✅ Servicio foreground configurado');
       return true;
     } catch (e) {
-      debugPrint('❌ Error configurando foreground service: $e');
+      logger.d('❌ Error configurando foreground service: $e');
       return false;
     }
   }
@@ -261,7 +262,7 @@ class PermissionService {
         // Verificar cada 10 minutos
         await Future.delayed(const Duration(minutes: 10));
       } catch (e) {
-        debugPrint('❌ Error monitoreando permisos: $e');
+        logger.d('❌ Error monitoreando permisos: $e');
         yield PermissionStatus.permanentlyDenied;
         await Future.delayed(const Duration(minutes: 10));
       }
@@ -286,7 +287,7 @@ class PermissionService {
         return await Permission.location.isGranted;
       }
     } catch (e) {
-      debugPrint('❌ Error verificando precisión Android: $e');
+      logger.d('❌ Error verificando precisión Android: $e');
       return false;
     }
   }
@@ -310,23 +311,23 @@ class PermissionService {
 
       final allGranted = statuses.values.every((status) => status.isGranted);
 
-      debugPrint('📍 Permisos de ubicación Android: $allGranted');
+      logger.d('📍 Permisos de ubicación Android: $allGranted');
       return allGranted;
     } catch (e) {
-      debugPrint('❌ Error solicitando ubicación precisa Android: $e');
+      logger.d('❌ Error solicitando ubicación precisa Android: $e');
       return false;
     }
   }
 
   Future<bool> _requestAndroidBackgroundLocation() async {
     try {
-      debugPrint('🔄 Solicitando background location en Android');
+      logger.d('🔄 Solicitando background location en Android');
 
       // Verificar si ya está otorgado
       final currentStatus = await Permission.locationAlways.status;
 
       if (currentStatus.isGranted) {
-        debugPrint('✅ Background location ya otorgado');
+        logger.d('✅ Background location ya otorgado');
         return true;
       }
 
@@ -334,15 +335,15 @@ class PermissionService {
       final status = await Permission.locationAlways.request();
 
       if (status.isGranted) {
-        debugPrint('✅ Background location otorgado');
+        logger.d('✅ Background location otorgado');
         return true;
       } else {
-        debugPrint('❌ Background location denegado');
+        logger.d('❌ Background location denegado');
         await _showBackgroundLocationDialog();
         return false;
       }
     } catch (e) {
-      debugPrint('❌ Error solicitando background location Android: $e');
+      logger.d('❌ Error solicitando background location Android: $e');
       return false;
     }
   }
@@ -365,10 +366,10 @@ class PermissionService {
       final criticalGranted =
           statuses[Permission.notification]?.isGranted ?? true;
 
-      debugPrint('🔔 Permisos adicionales: críticos=$criticalGranted');
+      logger.d('🔔 Permisos adicionales: críticos=$criticalGranted');
       return criticalGranted;
     } catch (e) {
-      debugPrint('❌ Error solicitando permisos adicionales: $e');
+      logger.d('❌ Error solicitando permisos adicionales: $e');
       return true; // No bloquear por estos permisos
     }
   }
@@ -392,7 +393,7 @@ class PermissionService {
 
       return true; // iOS no requiere estos permisos específicos
     } catch (e) {
-      debugPrint('❌ Error verificando permisos background: $e');
+      logger.d('❌ Error verificando permisos background: $e');
       return false;
     }
   }
@@ -400,25 +401,25 @@ class PermissionService {
   // 🎯 DIÁLOGOS EDUCATIVOS
 
   Future<void> _showLocationSettingsDialog() async {
-    debugPrint('📋 Mostrando diálogo de configuración de ubicación');
+    logger.d('📋 Mostrando diálogo de configuración de ubicación');
 
     // En una implementación real, aquí se abriría la configuración del sistema
     // Por ahora solo loggeamos para debugging
-    debugPrint(
+    logger.d(
         '💡 Usuario debe ir a Configuración > Aplicaciones > GeoAsist > Permisos > Ubicación > Precisa');
   }
 
   Future<void> _showBatteryOptimizationDialog() async {
-    debugPrint('📋 Mostrando diálogo de optimización de batería');
+    logger.d('📋 Mostrando diálogo de optimización de batería');
 
-    debugPrint(
+    logger.d(
         '💡 Usuario debe ir a Configuración > Batería > Optimización de batería > Todas las apps > GeoAsist > No optimizar');
   }
 
   Future<void> _showBackgroundLocationDialog() async {
-    debugPrint('📋 Mostrando diálogo de ubicación en background');
+    logger.d('📋 Mostrando diálogo de ubicación en background');
 
-    debugPrint(
+    logger.d(
         '💡 Usuario debe permitir ubicación "Siempre" para tracking continuo');
   }
 
@@ -431,7 +432,7 @@ class PermissionService {
   /// Validar permisos completos para tracking
   Future<bool> validateAllPermissionsForTracking() async {
     try {
-      debugPrint('🔒 Validando todos los permisos para tracking');
+      logger.d('🔒 Validando todos los permisos para tracking');
 
       final checks = await Future.wait([
         isPreciseLocationGranted(),
@@ -443,17 +444,17 @@ class PermissionService {
       final backgroundOk = checks[1];
       final notificationOk = checks[2];
 
-      debugPrint(
+      logger.d(
           '📊 Permisos - Ubicación: $locationOk, Background: $backgroundOk, Notificaciones: $notificationOk');
 
       final allOk = locationOk && backgroundOk && notificationOk;
 
-      debugPrint(allOk
+      logger.d(allOk
           ? '✅ Todos los permisos validados'
           : '❌ Faltan permisos críticos');
       return allOk;
     } catch (e) {
-      debugPrint('❌ Error validando permisos: $e');
+      logger.d('❌ Error validando permisos: $e');
       return false;
     }
   }
@@ -465,7 +466,7 @@ class PermissionService {
       }
       return true; // iOS maneja notificaciones diferente
     } catch (e) {
-      debugPrint('❌ Error verificando notificaciones: $e');
+      logger.d('❌ Error verificando notificaciones: $e');
       return false;
     }
   }
@@ -500,10 +501,10 @@ class PermissionService {
         status['android_version'] = androidInfo.version.sdkInt;
       }
 
-      debugPrint('📋 Estado detallado de permisos: $status');
+      logger.d('📋 Estado detallado de permisos: $status');
       return status;
     } catch (e) {
-      debugPrint('❌ Error obteniendo estado de permisos: $e');
+      logger.d('❌ Error obteniendo estado de permisos: $e');
       return {'error': e.toString()};
     }
   }
@@ -511,14 +512,14 @@ class PermissionService {
   /// Abrir configuración de la aplicación
   Future<bool> openAppSettings() async {
     try {
-      debugPrint('⚙️ Abriendo configuración de la aplicación');
+      logger.d('⚙️ Abriendo configuración de la aplicación');
       // Import permission_handler para usar openAppSettings()
       await Permission.location.shouldShowRequestRationale;
       return await Permission.location.request().then((status) {
         return status.isGranted;
       });
     } catch (e) {
-      debugPrint('❌ Error abriendo configuración: $e');
+      logger.d('❌ Error abriendo configuración: $e');
       return false;
     }
   }
@@ -528,7 +529,7 @@ class PermissionService {
     try {
       return await Geolocator.isLocationServiceEnabled();
     } catch (e) {
-      debugPrint('❌ Error verificando servicios de ubicación: $e');
+      logger.d('❌ Error verificando servicios de ubicación: $e');
       return false;
     }
   }
@@ -544,7 +545,7 @@ class PermissionService {
       );
       return position.accuracy;
     } catch (e) {
-      debugPrint('❌ Error obteniendo precisión: $e');
+      logger.d('❌ Error obteniendo precisión: $e');
       return null;
     }
   }
@@ -560,7 +561,7 @@ class PermissionService {
       }
       return true; // iOS maneja esto automáticamente
     } catch (e) {
-      debugPrint('❌ Error verificando background: $e');
+      logger.d('❌ Error verificando background: $e');
       return false;
     }
   }
@@ -569,7 +570,7 @@ class PermissionService {
 
   /// Configurar todos los permisos automáticamente
   Future<Map<String, bool>> requestAllPermissions() async {
-    debugPrint('🚀 Iniciando configuración automática de permisos');
+    logger.d('🚀 Iniciando configuración automática de permisos');
 
     final results = <String, bool>{};
 
@@ -586,16 +587,16 @@ class PermissionService {
       // 4. Validación final
       results['all_valid'] = await validateAllPermissionsForTracking();
 
-      debugPrint('📊 Resultados configuración: $results');
+      logger.d('📊 Resultados configuración: $results');
 
       final success = results.values.every((granted) => granted);
-      debugPrint(success
+      logger.d(success
           ? '✅ Configuración completa exitosa'
           : '❌ Configuración incompleta');
 
       return results;
     } catch (e) {
-      debugPrint('❌ Error en configuración automática: $e');
+      logger.d('❌ Error en configuración automática: $e');
       results['error'] = false;
       return results;
     }
@@ -604,17 +605,17 @@ class PermissionService {
   /// Verificar configuración cada cierto tiempo
   Future<bool> performPeriodicCheck() async {
     try {
-      debugPrint('🔍 Verificación periódica de permisos');
+      logger.d('🔍 Verificación periódica de permisos');
 
       final isValid = await validateAllPermissionsForTracking();
 
       if (!isValid) {
-        debugPrint('⚠️ Permisos han cambiado - requiere nueva configuración');
+        logger.d('⚠️ Permisos han cambiado - requiere nueva configuración');
       }
 
       return isValid;
     } catch (e) {
-      debugPrint('❌ Error en verificación periódica: $e');
+      logger.d('❌ Error en verificación periódica: $e');
       return false;
     }
   }
@@ -623,7 +624,7 @@ class PermissionService {
 
   /// Limpiar caché de permisos
   void clearPermissionCache() {
-    debugPrint('🧹 Limpiando caché de permisos');
+    logger.d('🧹 Limpiando caché de permisos');
     // En el futuro se puede implementar caché local si es necesario
   }
 
@@ -641,7 +642,7 @@ class PermissionService {
 
       return false;
     } catch (e) {
-      debugPrint('❌ Error verificando necesidad de permisos: $e');
+      logger.d('❌ Error verificando necesidad de permisos: $e');
       return true; // Si hay error, mejor verificar
     }
   }
@@ -654,7 +655,7 @@ class PermissionService {
 
   Future<void> _saveLastPermissionCheck(DateTime date) async {
     // En una implementación real, esto se guardaría en SharedPreferences
-    debugPrint('💾 Guardando última verificación: $date');
+    logger.d('💾 Guardando última verificación: $date');
   }
 
   // 🎯 INFORMACIÓN PARA DEBUGGING
@@ -688,10 +689,10 @@ class PermissionService {
       info['current_accuracy'] = accuracy;
       info['can_run_background'] = await canRunInBackground();
 
-      debugPrint('🔧 Sistema info: $info');
+      logger.d('🔧 Sistema info: $info');
       return info;
     } catch (e) {
-      debugPrint('❌ Error obteniendo info del sistema: $e');
+      logger.d('❌ Error obteniendo info del sistema: $e');
       return {'error': e.toString()};
     }
   }
@@ -708,7 +709,7 @@ class PermissionService {
           permission != LocationPermission.deniedForever &&
           serviceEnabled;
     } catch (e) {
-      debugPrint('❌ Error verificando permisos de ubicación: $e');
+      logger.d('❌ Error verificando permisos de ubicación: $e');
       return false;
     }
   }
@@ -718,7 +719,7 @@ class PermissionService {
     try {
       // Verificar permisos primero
       if (!await hasLocationPermissions()) {
-        debugPrint('❌ Sin permisos de ubicación para obtener posición');
+        logger.d('❌ Sin permisos de ubicación para obtener posición');
         return null;
       }
 
@@ -730,11 +731,11 @@ class PermissionService {
         ),
       );
 
-      debugPrint(
+      logger.d(
           '📍 Ubicación obtenida: ${position.latitude}, ${position.longitude}');
       return position;
     } catch (e) {
-      debugPrint('❌ Error obteniendo ubicación: $e');
+      logger.d('❌ Error obteniendo ubicación: $e');
       return null;
     }
   }
@@ -742,7 +743,7 @@ class PermissionService {
   /// Solicitar permisos de ubicación con resultado detallado
   Future<LocationPermissionResult> requestLocationPermissions() async {
     try {
-      debugPrint('📲 Solicitando permisos de ubicación');
+      logger.d('📲 Solicitando permisos de ubicación');
 
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -767,7 +768,7 @@ class PermissionService {
           return LocationPermissionResult.denied;
       }
     } catch (e) {
-      debugPrint('❌ Error solicitando permisos: $e');
+      logger.d('❌ Error solicitando permisos: $e');
       return LocationPermissionResult.denied;
     }
   }
@@ -797,7 +798,7 @@ class PermissionService {
       }
       return true; // iOS maneja esto automáticamente
     } catch (e) {
-      debugPrint('❌ Error verificando ubicación precisa: $e');
+      logger.d('❌ Error verificando ubicación precisa: $e');
       return false;
     }
   }
@@ -808,7 +809,7 @@ class PermissionService {
       final permission = await Permission.locationAlways.status;
       return permission.isGranted;
     } catch (e) {
-      debugPrint('❌ Error verificando ubicación siempre: $e');
+      logger.d('❌ Error verificando ubicación siempre: $e');
       return false;
     }
   }
@@ -823,7 +824,7 @@ class PermissionService {
       }
       return true; // iOS no tiene optimización de batería configurable
     } catch (e) {
-      debugPrint('❌ Error verificando optimización batería: $e');
+      logger.d('❌ Error verificando optimización batería: $e');
       return false;
     }
   }
@@ -833,7 +834,7 @@ class PermissionService {
     try {
       return await Geolocator.isLocationServiceEnabled();
     } catch (e) {
-      debugPrint('❌ Error verificando servicios ubicación: $e');
+      logger.d('❌ Error verificando servicios ubicación: $e');
       return false;
     }
   }
@@ -847,7 +848,7 @@ class PermissionService {
       }
       return true;
     } catch (e) {
-      debugPrint('❌ Error solicitando permiso batería: $e');
+      logger.d('❌ Error solicitando permiso batería: $e');
       return false;
     }
   }
@@ -859,7 +860,7 @@ class PermissionService {
       final location = await Permission.location.request();
       return locationWhenInUse.isGranted && location.isGranted;
     } catch (e) {
-      debugPrint('❌ Error solicitando ubicación precisa: $e');
+      logger.d('❌ Error solicitando ubicación precisa: $e');
       return false;
     }
   }
@@ -870,7 +871,7 @@ class PermissionService {
       final permission = await Permission.locationAlways.request();
       return permission.isGranted;
     } catch (e) {
-      debugPrint('❌ Error solicitando ubicación siempre: $e');
+      logger.d('❌ Error solicitando ubicación siempre: $e');
       return false;
     }
   }
@@ -889,7 +890,7 @@ class PermissionService {
         }
       });
     } catch (e) {
-      debugPrint('❌ Error abriendo configuración: $e');
+      logger.d('❌ Error abriendo configuración: $e');
     }
   }
 

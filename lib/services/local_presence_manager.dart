@@ -1,7 +1,7 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/local_presence_manager.dart
 // 🎯 SISTEMA DE PRESENCIA LOCAL (SIN BACKEND HEARTBEATS)
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/evento_model.dart';
 import '../services/location_service.dart';
@@ -59,7 +59,7 @@ class LocalPresenceManager {
 
   /// ✅ INICIAR MONITOREO DE PRESENCIA
   Future<void> startPresenceMonitoring(Evento event) async {
-    debugPrint('🎯 Iniciando monitoreo de presencia local para: ${event.titulo}');
+    logger.d('🎯 Iniciando monitoreo de presencia local para: ${event.titulo}');
     
     _currentEvent = event;
     _sessionStartTime = DateTime.now();
@@ -136,7 +136,7 @@ class LocalPresenceManager {
       }
       
     } catch (e) {
-      debugPrint('❌ Error verificando presencia: $e');
+      logger.d('❌ Error verificando presencia: $e');
       _handleLocationFailure();
     }
   }
@@ -186,7 +186,7 @@ class LocalPresenceManager {
       _status = newStatus;
       _statusController.add(newStatus);
       
-      debugPrint('🎯 Estado presencia: ${newStatus.toString()}');
+      logger.d('🎯 Estado presencia: ${newStatus.toString()}');
       
       // Guardar cambio de estado en historial
       _storageService.savePresenceStatusChange(
@@ -199,7 +199,7 @@ class LocalPresenceManager {
 
   /// ⏸️ ACTIVAR PERÍODO DE GRACIA
   void activateGracePeriod({Duration duration = const Duration(minutes: 15)}) {
-    debugPrint('⏸️ Activando período de gracia por ${duration.inMinutes} minutos');
+    logger.d('⏸️ Activando período de gracia por ${duration.inMinutes} minutos');
     _updateStatus(LocalPresenceStatus.gracePeriod);
     
     // Volver a monitoreo normal después del grace period
@@ -212,7 +212,7 @@ class LocalPresenceManager {
 
   /// 🛑 DETENER MONITOREO
   Future<void> stopPresenceMonitoring() async {
-    debugPrint('🛑 Deteniendo monitoreo de presencia');
+    logger.d('🛑 Deteniendo monitoreo de presencia');
     
     _presenceTimer?.cancel();
     _presenceTimer = null;
@@ -240,7 +240,7 @@ class LocalPresenceManager {
     };
     
     await _storageService.savePresenceSession(summary);
-    debugPrint('💾 Sesión de presencia guardada');
+    logger.d('💾 Sesión de presencia guardada');
   }
 
   /// 📊 OBTENER ESTADÍSTICAS ACTUALES

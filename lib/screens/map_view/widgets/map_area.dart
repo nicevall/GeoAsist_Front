@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../utils/colors.dart';
 import '../../../models/evento_model.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 
 class MapArea extends StatefulWidget {
   final Evento? currentEvento;
@@ -40,7 +41,7 @@ class _MapAreaState extends State<MapArea> {
   @override
   void didUpdateWidget(MapArea oldWidget) {
     super.didUpdateWidget(oldWidget);
-    debugPrint('🗺️ MapArea recibió coordenadas: Lat: ${widget.userLat}, Lng: ${widget.userLng}');
+    logger.d('🗺️ MapArea recibió coordenadas: Lat: ${widget.userLat}, Lng: ${widget.userLng}');
     if (oldWidget.currentEvento != widget.currentEvento ||
         oldWidget.userLat != widget.userLat ||
         oldWidget.userLng != widget.userLng ||

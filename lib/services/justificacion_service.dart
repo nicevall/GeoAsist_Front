@@ -1,6 +1,6 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/justificacion_service.dart
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import '../models/justificacion_model.dart';
 import '../models/api_response_model.dart';
 import '../models/usuario_model.dart';
@@ -32,11 +32,11 @@ class JustificacionService {
     Map<String, dynamic>? metadatos,
   }) async {
     try {
-      debugPrint('📄 Creando nueva justificación');
-      debugPrint('🎯 Evento: $eventoId');
-      debugPrint('📝 Motivo: $motivo');
-      debugPrint('🔗 Documento: $linkDocumento');
-      debugPrint('📋 Tipo: ${tipo.displayName}');
+      logger.d('📄 Creando nueva justificación');
+      logger.d('🎯 Evento: $eventoId');
+      logger.d('📝 Motivo: $motivo');
+      logger.d('🔗 Documento: $linkDocumento');
+      logger.d('📋 Tipo: ${tipo.displayName}');
 
       // Obtener usuario actual
       final usuario = await _storageService.getUser();
@@ -63,14 +63,14 @@ class JustificacionService {
       );
 
       if (resultado.success) {
-        debugPrint('✅ Justificación creada exitosamente');
+        logger.d('✅ Justificación creada exitosamente');
         return ApiResponse.success(true, message: 'Justificación enviada correctamente');
       } else {
-        debugPrint('❌ Error creando justificación: ${resultado.error}');
+        logger.d('❌ Error creando justificación: ${resultado.error}');
         return ApiResponse.error(resultado.error ?? 'Error al crear justificación');
       }
     } catch (e) {
-      debugPrint('❌ Excepción creando justificación: $e');
+      logger.d('❌ Excepción creando justificación: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -78,13 +78,13 @@ class JustificacionService {
   /// 📋 OBTENER JUSTIFICACIONES DEL USUARIO ACTUAL
   Future<ApiResponse<List<Justificacion>>> obtenerMisJustificaciones() async {
     try {
-      debugPrint('📄 Obteniendo justificaciones del usuario actual');
+      logger.d('📄 Obteniendo justificaciones del usuario actual');
 
       Usuario? usuario = await _storageService.getUser();
       
       // Si no hay usuario o el ID está vacío, crear usuario de prueba
       if (usuario == null || usuario.id.isEmpty) {
-        debugPrint('⚠️ Usuario no válido, creando usuario de prueba para justificaciones...');
+        logger.d('⚠️ Usuario no válido, creando usuario de prueba para justificaciones...');
         usuario = await _storageService.createTestUserIfNeeded();
       }
 
@@ -95,7 +95,7 @@ class JustificacionService {
 
       return await obtenerJustificacionesUsuario(usuario.id);
     } catch (e) {
-      debugPrint('❌ Error obteniendo mis justificaciones: $e');
+      logger.d('❌ Error obteniendo mis justificaciones: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -103,7 +103,7 @@ class JustificacionService {
   /// 📋 OBTENER JUSTIFICACIONES DE UN USUARIO ESPECÍFICO
   Future<ApiResponse<List<Justificacion>>> obtenerJustificacionesUsuario(String usuarioId) async {
     try {
-      debugPrint('📄 Obteniendo justificaciones del usuario: $usuarioId');
+      logger.d('📄 Obteniendo justificaciones del usuario: $usuarioId');
 
       // Usar el método existente del servicio de asistencia
       final justificacionesData = await _asistenciaService.obtenerJustificaciones(usuarioId);
@@ -124,7 +124,7 @@ class JustificacionService {
           final justificacion = _crearJustificacionDesdeBackend(justData, eventTitle);
           justificaciones.add(justificacion);
         } catch (e) {
-          debugPrint('⚠️ Error procesando justificación: $e');
+          logger.d('⚠️ Error procesando justificación: $e');
           continue; // Continuar con la siguiente
         }
       }
@@ -132,10 +132,10 @@ class JustificacionService {
       // Ordenar por fecha más reciente primero
       justificaciones.sort((a, b) => b.fechaCreacion.compareTo(a.fechaCreacion));
 
-      debugPrint('✅ Justificaciones obtenidas: ${justificaciones.length}');
+      logger.d('✅ Justificaciones obtenidas: ${justificaciones.length}');
       return ApiResponse.success(justificaciones);
     } catch (e) {
-      debugPrint('❌ Error obteniendo justificaciones: $e');
+      logger.d('❌ Error obteniendo justificaciones: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -143,7 +143,7 @@ class JustificacionService {
   /// 📋 OBTENER JUSTIFICACIONES POR EVENTO (PARA DOCENTES)
   Future<ApiResponse<List<Justificacion>>> obtenerJustificacionesEvento(String eventoId) async {
     try {
-      debugPrint('📄 Obteniendo justificaciones del evento: $eventoId');
+      logger.d('📄 Obteniendo justificaciones del evento: $eventoId');
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -182,7 +182,7 @@ class JustificacionService {
               justificaciones.add(justificacion);
             }
           } catch (e) {
-            debugPrint('⚠️ Error procesando justificación del evento: $e');
+            logger.d('⚠️ Error procesando justificación del evento: $e');
             continue;
           }
         }
@@ -191,10 +191,10 @@ class JustificacionService {
       // Ordenar por fecha más reciente primero
       justificaciones.sort((a, b) => b.fechaCreacion.compareTo(a.fechaCreacion));
 
-      debugPrint('✅ Justificaciones del evento obtenidas: ${justificaciones.length}');
+      logger.d('✅ Justificaciones del evento obtenidas: ${justificaciones.length}');
       return ApiResponse.success(justificaciones);
     } catch (e) {
-      debugPrint('❌ Error obteniendo justificaciones del evento: $e');
+      logger.d('❌ Error obteniendo justificaciones del evento: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -211,7 +211,7 @@ class JustificacionService {
         return ApiResponse.error(response.error ?? 'Error obteniendo estadísticas');
       }
     } catch (e) {
-      debugPrint('❌ Error obteniendo estadísticas: $e');
+      logger.d('❌ Error obteniendo estadísticas: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -223,8 +223,8 @@ class JustificacionService {
     String? comentarioDocente,
   }) async {
     try {
-      debugPrint('🔄 Actualizando estado de justificación: $justificacionId');
-      debugPrint('📊 Nuevo estado: ${nuevoEstado.displayName}');
+      logger.d('🔄 Actualizando estado de justificación: $justificacionId');
+      logger.d('📊 Nuevo estado: ${nuevoEstado.displayName}');
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -243,14 +243,14 @@ class JustificacionService {
       );
 
       if (response.success) {
-        debugPrint('✅ Estado de justificación actualizado');
+        logger.d('✅ Estado de justificación actualizado');
         return ApiResponse.success(true, message: 'Estado actualizado correctamente');
       } else {
-        debugPrint('❌ Error actualizando estado: ${response.error}');
+        logger.d('❌ Error actualizando estado: ${response.error}');
         return ApiResponse.error(response.error ?? 'Error actualizando estado');
       }
     } catch (e) {
-      debugPrint('❌ Error actualizando estado de justificación: $e');
+      logger.d('❌ Error actualizando estado de justificación: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -258,7 +258,7 @@ class JustificacionService {
   /// 🗑️ ELIMINAR JUSTIFICACIÓN (SOLO PENDIENTES)
   Future<ApiResponse<bool>> eliminarJustificacion(String justificacionId) async {
     try {
-      debugPrint('🗑️ Eliminando justificación: $justificacionId');
+      logger.d('🗑️ Eliminando justificación: $justificacionId');
 
       final token = await _storageService.getToken();
       if (token == null) {
@@ -271,14 +271,14 @@ class JustificacionService {
       );
 
       if (response.success) {
-        debugPrint('✅ Justificación eliminada');
+        logger.d('✅ Justificación eliminada');
         return ApiResponse.success(true, message: 'Justificación eliminada correctamente');
       } else {
-        debugPrint('❌ Error eliminando justificación: ${response.error}');
+        logger.d('❌ Error eliminando justificación: ${response.error}');
         return ApiResponse.error(response.error ?? 'Error eliminando justificación');
       }
     } catch (e) {
-      debugPrint('❌ Error eliminando justificación: $e');
+      logger.d('❌ Error eliminando justificación: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -293,7 +293,7 @@ class JustificacionService {
     DateTime? fechaHasta,
   }) async {
     try {
-      debugPrint('🔍 Buscando justificaciones con filtros');
+      logger.d('🔍 Buscando justificaciones con filtros');
 
       // Si se especifica un usuario, obtener sus justificaciones
       if (usuarioId != null) {
@@ -340,7 +340,7 @@ class JustificacionService {
 
       return ApiResponse.error('Debe especificar al menos usuarioId o eventoId');
     } catch (e) {
-      debugPrint('❌ Error buscando justificaciones: $e');
+      logger.d('❌ Error buscando justificaciones: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -387,7 +387,7 @@ class JustificacionService {
       try {
         observaciones = jsonDecode(backendData['observaciones']);
       } catch (e) {
-        debugPrint('⚠️ Error parseando observaciones: $e');
+        logger.d('⚠️ Error parseando observaciones: $e');
       }
     }
 
@@ -479,7 +479,7 @@ class JustificacionService {
         };
       }
     } catch (e) {
-      debugPrint('❌ Error obteniendo resumen de justificaciones: $e');
+      logger.d('❌ Error obteniendo resumen de justificaciones: $e');
       return {
         'total': 0,
         'pendientes': 0,

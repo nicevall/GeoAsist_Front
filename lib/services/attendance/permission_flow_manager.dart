@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import '../permission_service.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 
 /// ✅ PERMISSION FLOW MANAGER: Gestión del flujo de permisos críticos preservado
 /// Responsabilidades:
@@ -46,7 +47,7 @@ class PermissionFlowManager {
   /// ✅ INICIALIZAR VERIFICACIÓN DE PERMISOS CRÍTICOS
   /// Este es el punto de entrada principal del flujo
   Future<void> initializeCriticalPermissionsFlow() async {
-    debugPrint('🔐 Iniciando flujo de permisos críticos...');
+    logger.d('🔐 Iniciando flujo de permisos críticos...');
     
     // Verificar todos los permisos críticos
     await _checkAllPermissions();
@@ -58,7 +59,7 @@ class PermissionFlowManager {
       // Todos los permisos están OK
       _allPermissionsGranted = true;
       _onAllPermissionsGranted?.call();
-      debugPrint('✅ Todos los permisos críticos están otorgados');
+      logger.d('✅ Todos los permisos críticos están otorgados');
     }
   }
 
@@ -66,7 +67,7 @@ class PermissionFlowManager {
   Future<void> _checkAllPermissions() async {
     _permissionStatus = await _permissionService.checkCriticalPermissions();
     _updatePermissionState();
-    debugPrint('📋 Estado de permisos actualizado: $_permissionStatus');
+    logger.d('📋 Estado de permisos actualizado: $_permissionStatus');
   }
 
   /// ✅ VERIFICAR SI TODOS LOS PERMISOS ESTÁN OTORGADOS
@@ -88,7 +89,7 @@ class PermissionFlowManager {
   Future<void> _startPermissionFlow() async {
     if (_showingPermissionDialog) return; // Evitar diálogos múltiples
     
-    debugPrint('🚦 Iniciando flujo secuencial de permisos...');
+    logger.d('🚦 Iniciando flujo secuencial de permisos...');
     _showingPermissionDialog = true;
     
     // Verificar en orden estricto
@@ -108,7 +109,7 @@ class PermissionFlowManager {
   Future<void> recheckPermissionsAndContinue() async {
     _showingPermissionDialog = false;
     
-    debugPrint('🔍 Reverificando permisos después de configuración...');
+    logger.d('🔍 Reverificando permisos después de configuración...');
     
     // Verificar nuevamente todos los permisos
     await _checkAllPermissions();
@@ -117,10 +118,10 @@ class PermissionFlowManager {
       // ¡Todos los permisos están OK!
       _allPermissionsGranted = true;
       _onAllPermissionsGranted?.call();
-      debugPrint('✅ ¡Todos los permisos críticos ahora están otorgados!');
+      logger.d('✅ ¡Todos los permisos críticos ahora están otorgados!');
     } else {
       // Todavía faltan permisos, continuar con el siguiente en secuencia
-      debugPrint('⚠️ Todavía faltan permisos, continuando flujo...');
+      logger.d('⚠️ Todavía faltan permisos, continuando flujo...');
       Timer(Duration(milliseconds: 800), () async {
         await _startPermissionFlow();
       });
@@ -152,14 +153,14 @@ class PermissionFlowManager {
           break;
           
         default:
-          debugPrint('❌ Tipo de permiso desconocido: $permissionType');
+          logger.d('❌ Tipo de permiso desconocido: $permissionType');
           return false;
       }
       
-      debugPrint('📋 Permiso $permissionType: ${granted ? "otorgado" : "denegado"}');
+      logger.d('📋 Permiso $permissionType: ${granted ? "otorgado" : "denegado"}');
       return granted;
     } catch (e) {
-      debugPrint('❌ Error solicitando permiso $permissionType: $e');
+      logger.d('❌ Error solicitando permiso $permissionType: $e');
       return false;
     }
   }
@@ -236,7 +237,7 @@ class PermissionFlowManager {
 
   /// 🔄 FORZAR RECHECK MANUAL
   Future<void> forcePermissionRecheck() async {
-    debugPrint('🔄 Forzando recheck manual de permisos...');
+    logger.d('🔄 Forzando recheck manual de permisos...');
     await _checkAllPermissions();
     
     if (!_areAllPermissionsGranted() && !_showingPermissionDialog) {
@@ -249,7 +250,7 @@ class PermissionFlowManager {
     _permissionStatus.clear();
     _allPermissionsGranted = false;
     _showingPermissionDialog = false;
-    debugPrint('🧹 Estado de permisos reseteado');
+    logger.d('🧹 Estado de permisos reseteado');
   }
 
   /// 📊 OBTENER RESUMEN DE ESTADO
@@ -298,7 +299,7 @@ class PermissionFlowManager {
     if (kDebugMode) {
       _permissionStatus[permissionType] = true;
       _updatePermissionState();
-      debugPrint('🧪 Simulado permiso otorgado: $permissionType');
+      logger.d('🧪 Simulado permiso otorgado: $permissionType');
     }
   }
 
@@ -307,7 +308,7 @@ class PermissionFlowManager {
     if (kDebugMode) {
       _permissionStatus[permissionType] = false;
       _updatePermissionState();
-      debugPrint('🧪 Simulado permiso denegado: $permissionType');
+      logger.d('🧪 Simulado permiso denegado: $permissionType');
     }
   }
 }

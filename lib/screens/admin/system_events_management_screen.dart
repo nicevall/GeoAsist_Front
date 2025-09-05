@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/admin/system_events_management_screen.dart
 import 'package:flutter/material.dart';
 import '../../utils/colors.dart';
@@ -51,13 +52,13 @@ class _SystemEventsManagementScreenState extends State<SystemEventsManagementScr
       }
       
       // ✅ ADMIN: Cargar TODOS los eventos del sistema
-      debugPrint('👑 Cargando todos los eventos del sistema...');
+      logger.d('👑 Cargando todos los eventos del sistema...');
       final eventos = await _eventoService.obtenerEventos();
       setState(() {
         _allSystemEvents = eventos;
         _isLoading = false;
       });
-      debugPrint('✅ Admin: Cargados ${eventos.length} eventos del sistema');
+      logger.d('✅ Admin: Cargados ${eventos.length} eventos del sistema');
       
     } catch (e) {
       setState(() => _isLoading = false);

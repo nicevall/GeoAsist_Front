@@ -1,5 +1,6 @@
 //lib/utils/background_task_helper.dart
 // 🎯 HELPER DE TAREAS EN BACKGROUND FASE A1.2 - Preparado para optimizaciones A1.3
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
@@ -27,13 +28,13 @@ class BackgroundTaskHelper {
 
   // 🎯 INICIALIZACIÓN
   Future<void> initialize() async {
-    debugPrint('🔧 Inicializando BackgroundTaskHelper');
+    logger.d('🔧 Inicializando BackgroundTaskHelper');
 
     try {
       _isInitialized = true;
-      debugPrint('✅ BackgroundTaskHelper inicializado');
+      logger.d('✅ BackgroundTaskHelper inicializado');
     } catch (e) {
-      debugPrint('❌ Error inicializando background helper: $e');
+      logger.d('❌ Error inicializando background helper: $e');
     }
   }
 
@@ -48,7 +49,7 @@ class BackgroundTaskHelper {
     bool respectBatteryOptimization = true,
   }) {
     if (!_isInitialized) {
-      debugPrint('⚠️ BackgroundTaskHelper no inicializado');
+      logger.d('⚠️ BackgroundTaskHelper no inicializado');
       return;
     }
 
@@ -62,7 +63,7 @@ class BackgroundTaskHelper {
       respectBatteryOptimization,
     );
 
-    debugPrint(
+    logger.d(
         '📅 Programando tarea: $taskId (${optimizedInterval.inSeconds}s)');
 
     // Crear timer con la tarea optimizada
@@ -71,7 +72,7 @@ class BackgroundTaskHelper {
     });
 
     _activeTasks[taskId] = timer;
-    debugPrint('✅ Tarea programada: $taskId');
+    logger.d('✅ Tarea programada: $taskId');
   }
 
   /// Cancelar una tarea específica
@@ -80,13 +81,13 @@ class BackgroundTaskHelper {
     if (timer != null) {
       timer.cancel();
       _taskLastExecution.remove(taskId);
-      debugPrint('🛑 Tarea cancelada: $taskId');
+      logger.d('🛑 Tarea cancelada: $taskId');
     }
   }
 
   /// Cancelar todas las tareas
   void cancelAllTasks() {
-    debugPrint('🧹 Cancelando todas las tareas en background');
+    logger.d('🧹 Cancelando todas las tareas en background');
 
     for (final timer in _activeTasks.values) {
       timer.cancel();
@@ -95,7 +96,7 @@ class BackgroundTaskHelper {
     _activeTasks.clear();
     _taskLastExecution.clear();
 
-    debugPrint('✅ Todas las tareas canceladas');
+    logger.d('✅ Todas las tareas canceladas');
   }
 
   /// Obtener información de tareas activas
@@ -208,7 +209,7 @@ class BackgroundTaskHelper {
         return;
       }
 
-      debugPrint('⚡ Ejecutando tarea: $taskId');
+      logger.d('⚡ Ejecutando tarea: $taskId');
 
       // Ejecutar la tarea
       await task();
@@ -217,10 +218,10 @@ class BackgroundTaskHelper {
       _taskLastExecution[taskId] = startTime;
 
       final executionTime = DateTime.now().difference(startTime);
-      debugPrint(
+      logger.d(
           '✅ Tarea completada: $taskId (${executionTime.inMilliseconds}ms)');
     } catch (e) {
-      debugPrint('❌ Error en tarea $taskId: $e');
+      logger.d('❌ Error en tarea $taskId: $e');
 
       // Manejar errores según la prioridad
       _handleTaskError(taskId, e, priority);
@@ -242,14 +243,14 @@ class BackgroundTaskHelper {
       String taskId, dynamic error, BackgroundTaskPriority priority) {
     switch (priority) {
       case BackgroundTaskPriority.critical:
-        debugPrint('🚨 Error crítico en tarea $taskId: $error');
+        logger.d('🚨 Error crítico en tarea $taskId: $error');
         // ✅ Implementación básica - error crítico logueado
         break;
       case BackgroundTaskPriority.high:
-        debugPrint('⚠️ Error en tarea de alta prioridad $taskId: $error');
+        logger.d('⚠️ Error en tarea de alta prioridad $taskId: $error');
         break;
       default:
-        debugPrint('ℹ️ Error en tarea $taskId: $error');
+        logger.d('ℹ️ Error en tarea $taskId: $error');
         break;
     }
   }
@@ -294,7 +295,7 @@ class BackgroundTaskHelper {
       }
       return false; // iOS gestiona esto automáticamente
     } catch (e) {
-      debugPrint('$_tag: Error checking battery optimization: $e');
+      logger.d('$_tag: Error checking battery optimization: $e');
       return false;
     }
   }
@@ -305,7 +306,7 @@ class BackgroundTaskHelper {
       final connectivityResult = await Connectivity().checkConnectivity();
       return connectivityResult.contains(ConnectivityResult.wifi);
     } catch (e) {
-      debugPrint('$_tag: Error checking WiFi connection: $e');
+      logger.d('$_tag: Error checking WiFi connection: $e');
       return false;
     }
   }
@@ -320,15 +321,15 @@ class BackgroundTaskHelper {
       // Ajustar frecuencia según condiciones
       if (batteryLevel < 20 || isBatteryOptEnabled) {
         // Reducir frecuencia en batería baja
-        debugPrint('$_tag: Reducing task frequency due to low battery or optimization');
+        logger.d('$_tag: Reducing task frequency due to low battery or optimization');
         await _setReducedFrequency();
       } else if (isWiFi && batteryLevel > 50) {
         // Frecuencia normal en condiciones óptimas
-        debugPrint('$_tag: Using normal task frequency');
+        logger.d('$_tag: Using normal task frequency');
         await _setNormalFrequency();
       }
     } catch (e) {
-      debugPrint('$_tag: Error adjusting tasks for power state: $e');
+      logger.d('$_tag: Error adjusting tasks for power state: $e');
     }
   }
 
@@ -362,7 +363,7 @@ class BackgroundTaskHelper {
 
   // 🎯 CLEANUP Y DISPOSE
   void dispose() {
-    debugPrint('🧹 Limpiando BackgroundTaskHelper');
+    logger.d('🧹 Limpiando BackgroundTaskHelper');
     cancelAllTasks();
     _isInitialized = false;
   }

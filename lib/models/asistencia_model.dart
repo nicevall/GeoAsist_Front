@@ -1,5 +1,6 @@
 // lib/models/asistencia_model.dart
 import 'package:flutter/foundation.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 
 class Asistencia {
   final String? id;
@@ -132,8 +133,8 @@ class Asistencia {
         nombreUsuario: nombreUsuario,
       );
     } catch (e) {
-      debugPrint('❌ Error parsing Asistencia from JSON: $e');
-      debugPrint('❌ JSON data: $json');
+      logger.d('❌ Error parsing Asistencia from JSON: $e');
+      logger.d('❌ JSON data: $json');
       throw Exception('Error parsing Asistencia: $e');
     }
   }

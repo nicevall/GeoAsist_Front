@@ -1,7 +1,7 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/certificate_pinning.dart
 import 'dart:io';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
 
 /// Certificate pinning implementation using HttpOverrides
 class CertificatePinningOverrides extends HttpOverrides {
@@ -17,17 +17,17 @@ class CertificatePinningOverrides extends HttpOverrides {
         final certBytes = cert.der;
         final certHash = sha256.convert(certBytes).toString();
         
-        debugPrint('SecureApiClient: Validating certificate for $host:$port');
-        debugPrint('SecureApiClient: Certificate SHA-256: $certHash');
+        logger.d('SecureApiClient: Validating certificate for $host:$port');
+        logger.d('SecureApiClient: Certificate SHA-256: $certHash');
         
         // Check if certificate hash is in allowed list
         final isAllowed = allowedCertificateHashes.contains(certHash);
         
         if (!isAllowed) {
-          debugPrint('SecureApiClient: Certificate validation failed - hash not in allowed list');
-          debugPrint('SecureApiClient: Allowed hashes: ${allowedCertificateHashes.join(', ')}');
+          logger.d('SecureApiClient: Certificate validation failed - hash not in allowed list');
+          logger.d('SecureApiClient: Allowed hashes: ${allowedCertificateHashes.join(', ')}');
         } else {
-          debugPrint('SecureApiClient: Certificate validation passed');
+          logger.d('SecureApiClient: Certificate validation passed');
         }
         
         return isAllowed;

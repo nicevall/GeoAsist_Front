@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/map_view/map_view_screen.dart - FASE C COMPLETA
 // 🎯 INTEGRACIÓN TOTAL CON STUDENTATTENDANCEMANAGER + RESTRICCIONES DE SEGURIDAD
 import 'package:flutter/material.dart';
@@ -83,7 +84,7 @@ class _MapViewScreenState extends State<MapViewScreen>
   @override
   void initState() {
     super.initState();
-    debugPrint(
+    logger.d(
         '🎯 MapViewScreen iniciando con restricciones de seguridad FASE C');
 
     // 1. Inicializar animaciones
@@ -127,19 +128,19 @@ class _MapViewScreenState extends State<MapViewScreen>
   }
 
   void _validateNavigationArguments() {
-    debugPrint('🔍 Validando argumentos de navegación:');
-    debugPrint('   - isStudentMode: ${widget.isStudentMode}');
-    debugPrint('   - eventoId: ${widget.eventoId}');
-    debugPrint('   - permissionsValidated: ${widget.permissionsValidated}');
-    debugPrint('   - preciseLocationGranted: ${widget.preciseLocationGranted}');
-    debugPrint(
+    logger.d('🔍 Validando argumentos de navegación:');
+    logger.d('   - isStudentMode: ${widget.isStudentMode}');
+    logger.d('   - eventoId: ${widget.eventoId}');
+    logger.d('   - permissionsValidated: ${widget.permissionsValidated}');
+    logger.d('   - preciseLocationGranted: ${widget.preciseLocationGranted}');
+    logger.d(
         '   - backgroundPermissionsGranted: ${widget.backgroundPermissionsGranted}');
-    debugPrint(
+    logger.d(
         '   - batteryOptimizationDisabled: ${widget.batteryOptimizationDisabled}');
 
     // ✅ FASE C: Si no vienen validaciones, es acceso directo (no permitido para estudiantes)
     if (widget.isStudentMode && widget.permissionsValidated != true) {
-      debugPrint(
+      logger.d(
           '🚨 ACCESO DIRECTO NO PERMITIDO - Redirigiendo a validaciones');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacementNamed(context, '/available-events');
@@ -153,7 +154,7 @@ class _MapViewScreenState extends State<MapViewScreen>
       setState(() => _isLoading = true);
 
       // 🔒 PASO 1: RE-VALIDAR PERMISOS CRÍTICOS (incluso si vinieron validados)
-      debugPrint('🔒 PASO 1: Re-validando permisos críticos...');
+      logger.d('🔒 PASO 1: Re-validando permisos críticos...');
       final permissionsValid = await _revalidateAllPermissions();
       if (!permissionsValid) {
         _showCriticalPermissionError();
@@ -161,29 +162,29 @@ class _MapViewScreenState extends State<MapViewScreen>
       }
 
       // 🔒 PASO 2: INICIALIZAR SERVICIOS BACKGROUND OBLIGATORIOS
-      debugPrint('🔒 PASO 2: Inicializando servicios background...');
+      logger.d('🔒 PASO 2: Inicializando servicios background...');
       await _initializeBackgroundServices();
 
       // 🔒 PASO 3: CONFIGURAR STUDENTATTENDANCEMANAGER CON RESTRICCIONES
-      debugPrint('🔒 PASO 3: Configurando StudentAttendanceManager...');
+      logger.d('🔒 PASO 3: Configurando StudentAttendanceManager...');
       await _initializeAttendanceManagerWithRestrictions();
 
       // 🔒 PASO 4: CARGAR EVENTO Y VALIDAR DISPONIBILIDAD
-      debugPrint('🔒 PASO 4: Cargando evento...');
+      logger.d('🔒 PASO 4: Cargando evento...');
       await _loadEventWithValidation();
 
       // 🔒 PASO 5: INICIAR TRACKING CON TODAS LAS RESTRICCIONES
-      debugPrint('🔒 PASO 5: Iniciando tracking seguro...');
+      logger.d('🔒 PASO 5: Iniciando tracking seguro...');
       await _startSecureTracking();
 
       // 🔒 PASO 6: INICIAR VALIDACIONES CONTINUAS
-      debugPrint('🔒 PASO 6: Iniciando validaciones continuas...');
+      logger.d('🔒 PASO 6: Iniciando validaciones continuas...');
       _startContinuousValidations();
 
       setState(() => _isLoading = false);
-      debugPrint('✅ MapViewScreen inicializado con todas las restricciones');
+      logger.d('✅ MapViewScreen inicializado con todas las restricciones');
     } catch (e) {
-      debugPrint('❌ Error crítico en inicialización: $e');
+      logger.d('❌ Error crítico en inicialización: $e');
       _showCriticalInitializationError(e.toString());
     }
   }
@@ -193,14 +194,14 @@ class _MapViewScreenState extends State<MapViewScreen>
       // 1. Ubicación precisa obligatoria
       final hasLocation = await _permissionService.hasLocationPermissions();
       if (!hasLocation) {
-        debugPrint('❌ Ubicación precisa no otorgada');
+        logger.d('❌ Ubicación precisa no otorgada');
         return false;
       }
 
       // 2. Background permissions obligatorios
       final hasBackground = await _permissionService.canRunInBackground();
       if (!hasBackground) {
-        debugPrint('❌ Permisos background no otorgados');
+        logger.d('❌ Permisos background no otorgados');
         return false;
       }
 
@@ -208,15 +209,15 @@ class _MapViewScreenState extends State<MapViewScreen>
       final servicesEnabled =
           await _permissionService.isLocationServiceEnabled();
       if (!servicesEnabled) {
-        debugPrint('❌ Servicios de ubicación desactivados');
+        logger.d('❌ Servicios de ubicación desactivados');
         return false;
       }
 
       setState(() => _hasLocationPermissions = true);
-      debugPrint('✅ Todos los permisos re-validados correctamente');
+      logger.d('✅ Todos los permisos re-validados correctamente');
       return true;
     } catch (e) {
-      debugPrint('❌ Error re-validando permisos: $e');
+      logger.d('❌ Error re-validando permisos: $e');
       return false;
     }
   }
@@ -226,13 +227,13 @@ class _MapViewScreenState extends State<MapViewScreen>
       // 1. Inicializar BackgroundService primero
       await _backgroundService.initialize();
 
-      debugPrint(
+      logger.d(
           '✅ Servicios background inicializados (sin ForegroundService aún)');
 
       // Nota: startForegroundService se llama después en _startSecureTracking()
       // cuando ya tenemos userId y eventId disponibles
     } catch (e) {
-      debugPrint('❌ Error inicializando servicios background: $e');
+      logger.d('❌ Error inicializando servicios background: $e');
       throw Exception('No se pudieron inicializar servicios críticos');
     }
   }
@@ -245,9 +246,9 @@ class _MapViewScreenState extends State<MapViewScreen>
       // 2. Configurar listeners reactivos
       _setupReactiveListeners();
 
-      debugPrint('✅ StudentAttendanceManager configurado con restricciones');
+      logger.d('✅ StudentAttendanceManager configurado con restricciones');
     } catch (e) {
-      debugPrint('❌ Error inicializando AttendanceManager: $e');
+      logger.d('❌ Error inicializando AttendanceManager: $e');
       throw Exception('Error en sistema de asistencia');
     }
   }
@@ -271,15 +272,15 @@ class _MapViewScreenState extends State<MapViewScreen>
           });
 
           // Log crítico para debugging
-          debugPrint('🎯 Estado actualizado: ${newState.statusText}');
-          debugPrint('   - Tracking: ${newState.trackingStatus}');
-          debugPrint('   - Dentro de geofence: ${newState.isInsideGeofence}');
-          debugPrint('   - Grace period: ${newState.isInGracePeriod}');
-          debugPrint('   - Puede registrar: ${newState.canRegisterAttendance}');
+          logger.d('🎯 Estado actualizado: ${newState.statusText}');
+          logger.d('   - Tracking: ${newState.trackingStatus}');
+          logger.d('   - Dentro de geofence: ${newState.isInsideGeofence}');
+          logger.d('   - Grace period: ${newState.isInGracePeriod}');
+          logger.d('   - Puede registrar: ${newState.canRegisterAttendance}');
         }
       },
       onError: (error) {
-        debugPrint('❌ Error en stream de estado: $error');
+        logger.d('❌ Error en stream de estado: $error');
         if (mounted) {
           _showErrorSnackBar('Error en tiempo real: $error');
         }
@@ -294,15 +295,15 @@ class _MapViewScreenState extends State<MapViewScreen>
             _currentLocationResponse = locationResponse;
           });
 
-          debugPrint('📍 Ubicación actualizada:');
-          debugPrint('   - Distancia: ${locationResponse.formattedDistance}');
-          debugPrint(
+          logger.d('📍 Ubicación actualizada:');
+          logger.d('   - Distancia: ${locationResponse.formattedDistance}');
+          logger.d(
               '   - Dentro geofence: ${locationResponse.insideGeofence}');
-          debugPrint('   - Evento activo: ${locationResponse.eventActive}');
+          logger.d('   - Evento activo: ${locationResponse.eventActive}');
         }
       },
       onError: (error) {
-        debugPrint('❌ Error en stream de ubicación: $error');
+        logger.d('❌ Error en stream de ubicación: $error');
       },
     );
   }
@@ -331,9 +332,9 @@ class _MapViewScreenState extends State<MapViewScreen>
         _currentEvento = evento;
       });
 
-      debugPrint('✅ Evento cargado: ${evento.titulo}');
+      logger.d('✅ Evento cargado: ${evento.titulo}');
     } catch (e) {
-      debugPrint('❌ Error cargando evento: $e');
+      logger.d('❌ Error cargando evento: $e');
       throw Exception('Error cargando evento: $e');
     }
   }
@@ -350,7 +351,7 @@ class _MapViewScreenState extends State<MapViewScreen>
         throw Exception('El evento aún no ha iniciado, no se puede iniciar tracking');
       }
       if (now.isAfter(_currentEvento!.horaFinal)) {
-        debugPrint('⚠️ Evento terminado, mostrar solo vista de información');
+        logger.d('⚠️ Evento terminado, mostrar solo vista de información');
         // No permitir tracking para eventos terminados, pero no lanzar error
         return;
       }
@@ -374,9 +375,9 @@ class _MapViewScreenState extends State<MapViewScreen>
       await _notificationManager.showTrackingActiveNotification();
 
       setState(() => _isTrackingActive = true);
-      debugPrint('✅ Tracking seguro iniciado para: ${_currentEvento!.titulo}');
+      logger.d('✅ Tracking seguro iniciado para: ${_currentEvento!.titulo}');
     } catch (e) {
-      debugPrint('❌ Error iniciando tracking: $e');
+      logger.d('❌ Error iniciando tracking: $e');
       throw Exception('Error iniciando tracking: $e');
     }
   }
@@ -394,15 +395,15 @@ class _MapViewScreenState extends State<MapViewScreen>
       (_) => _performHeartbeatValidation(),
     );
 
-    debugPrint('🔒 Validaciones continuas iniciadas');
+    logger.d('🔒 Validaciones continuas iniciadas');
   }
 
   Future<void> _performPeriodicPermissionValidation() async {
-    debugPrint('🔒 Validación periódica de permisos...');
+    logger.d('🔒 Validación periódica de permisos...');
 
     final permissionsValid = await _revalidateAllPermissions();
     if (!permissionsValid) {
-      debugPrint('🚨 Permisos perdidos durante tracking');
+      logger.d('🚨 Permisos perdidos durante tracking');
       await _handlePermissionLoss();
     }
   }
@@ -412,9 +413,9 @@ class _MapViewScreenState extends State<MapViewScreen>
 
     try {
       await _attendanceManager.sendHeartbeatToBackend();
-      debugPrint('💓 Heartbeat enviado exitosamente');
+      logger.d('💓 Heartbeat enviado exitosamente');
     } catch (e) {
-      debugPrint('❌ Falla en heartbeat: $e');
+      logger.d('❌ Falla en heartbeat: $e');
       await _handleHeartbeatFailure();
     }
   }
@@ -464,16 +465,16 @@ class _MapViewScreenState extends State<MapViewScreen>
       await Future.delayed(Duration(seconds: 10 * (attempts + 1)));
       try {
         await _attendanceManager.sendHeartbeatToBackend();
-        debugPrint('✅ Heartbeat recuperado en intento ${attempts + 1}');
+        logger.d('✅ Heartbeat recuperado en intento ${attempts + 1}');
         return;
       } catch (e) {
         attempts++;
-        debugPrint('❌ Falla en reconexión $attempts: $e');
+        logger.d('❌ Falla en reconexión $attempts: $e');
       }
     }
 
     // Si no se pudo reconectar, marcar como perdida
-    debugPrint(
+    logger.d(
         '🚨 No se pudo reconectar heartbeat - marcando asistencia perdida');
     await _attendanceManager.stopTracking();
   }
@@ -486,7 +487,7 @@ class _MapViewScreenState extends State<MapViewScreen>
     setState(() => _isRegisteringAttendance = true);
 
     try {
-      debugPrint('📝 Registrando asistencia con backend real...');
+      logger.d('📝 Registrando asistencia con backend real...');
 
       final success = await _attendanceManager.registerAttendanceWithBackend();
 
@@ -497,7 +498,7 @@ class _MapViewScreenState extends State<MapViewScreen>
         _showErrorSnackBar('❌ Error registrando asistencia');
       }
     } catch (e) {
-      debugPrint('❌ Error registrando asistencia: $e');
+      logger.d('❌ Error registrando asistencia: $e');
       _showErrorSnackBar('Error: $e');
     } finally {
       setState(() => _isRegisteringAttendance = false);
@@ -510,7 +511,7 @@ class _MapViewScreenState extends State<MapViewScreen>
       await _notificationManager.showBreakStartedNotification();
       _showSuccessSnackBar('⏸️ Receso iniciado');
     } catch (e) {
-      debugPrint('❌ Error iniciando receso: $e');
+      logger.d('❌ Error iniciando receso: $e');
       _showErrorSnackBar('Error iniciando receso: $e');
     }
   }
@@ -521,7 +522,7 @@ class _MapViewScreenState extends State<MapViewScreen>
       await _notificationManager.showBreakEndedNotification();
       _showSuccessSnackBar('▶️ Receso terminado');
     } catch (e) {
-      debugPrint('❌ Error terminando receso: $e');
+      logger.d('❌ Error terminando receso: $e');
       _showErrorSnackBar('Error terminando receso: $e');
     }
   }
@@ -534,7 +535,7 @@ class _MapViewScreenState extends State<MapViewScreen>
         setState(() {});
       }
     } catch (e) {
-      debugPrint('❌ Error refrescando datos: $e');
+      logger.d('❌ Error refrescando datos: $e');
     }
   }
 
@@ -627,7 +628,7 @@ class _MapViewScreenState extends State<MapViewScreen>
 
   @override
   void dispose() {
-    debugPrint('🧹 Limpiando MapViewScreen...');
+    logger.d('🧹 Limpiando MapViewScreen...');
 
     // Cancelar subscriptions
     _stateSubscription?.cancel();

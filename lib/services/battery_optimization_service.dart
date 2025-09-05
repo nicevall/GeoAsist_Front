@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/battery_optimization_service.dart
 // 🔋 SERVICIO ESPECIALIZADO PARA EXENCIÓN DE OPTIMIZACIÓN DE BATERÍA
 import 'package:flutter/services.dart'; // ✅ CORRECCIÓN: Removido foundation.dart
@@ -29,15 +30,15 @@ class BatteryOptimizationService {
     if (_isInitialized) return;
 
     try {
-      debugPrint('🔋 Inicializando BatteryOptimizationService');
+      logger.d('🔋 Inicializando BatteryOptimizationService');
 
       await _notificationManager.initialize();
       await _checkCurrentExemptionStatus();
 
       _isInitialized = true;
-      debugPrint('✅ BatteryOptimizationService inicializado');
+      logger.d('✅ BatteryOptimizationService inicializado');
     } catch (e) {
-      debugPrint('❌ Error inicializando BatteryOptimizationService: $e');
+      logger.d('❌ Error inicializando BatteryOptimizationService: $e');
       rethrow;
     }
   }
@@ -45,7 +46,7 @@ class BatteryOptimizationService {
   /// Verificar el estado actual de la exención
   Future<bool> _checkCurrentExemptionStatus() async {
     try {
-      debugPrint('🔍 Verificando estado actual de battery optimization');
+      logger.d('🔍 Verificando estado actual de battery optimization');
 
       final isIgnored = await _nativeChannel
               .invokeMethod<bool>('isBatteryOptimizationIgnored') ??
@@ -54,12 +55,12 @@ class BatteryOptimizationService {
       _isExemptionGranted = isIgnored;
       _hasCheckedStatus = true;
 
-      debugPrint(
+      logger.d(
           '📊 Estado battery optimization: ${isIgnored ? "EXENTA" : "NO EXENTA"}');
 
       return isIgnored;
     } catch (e) {
-      debugPrint('❌ Error verificando battery optimization: $e');
+      logger.d('❌ Error verificando battery optimization: $e');
       return false;
     }
   }
@@ -70,18 +71,18 @@ class BatteryOptimizationService {
     bool showDialogIfNeeded = true,
   }) async {
     try {
-      debugPrint('🔋 Asegurando exención de battery optimization OBLIGATORIA');
+      logger.d('🔋 Asegurando exención de battery optimization OBLIGATORIA');
 
       // 1. Verificar estado actual
       final isCurrentlyExempt = await _checkCurrentExemptionStatus();
 
       if (isCurrentlyExempt) {
-        debugPrint('✅ App ya está exenta de battery optimization');
+        logger.d('✅ App ya está exenta de battery optimization');
         return true;
       }
 
       // 2. Si no está exenta, es OBLIGATORIO solicitarla
-      debugPrint('⚠️ App NO está exenta - Solicitando exención OBLIGATORIA');
+      logger.d('⚠️ App NO está exenta - Solicitando exención OBLIGATORIA');
 
       if (showDialogIfNeeded) {
         // ✅ CORRECCIÓN LÍNEA 87: Verificar context antes de usar
@@ -103,15 +104,15 @@ class BatteryOptimizationService {
       final isNowExempt = await _checkCurrentExemptionStatus();
 
       if (isNowExempt) {
-        debugPrint('✅ Exención de battery optimization otorgada exitosamente');
+        logger.d('✅ Exención de battery optimization otorgada exitosamente');
         await _notificationManager.showTestNotification();
         return true;
       } else {
-        debugPrint('❌ Exención no otorgada - Reintentando...');
+        logger.d('❌ Exención no otorgada - Reintentando...');
         return false;
       }
     } catch (e) {
-      debugPrint('❌ Error en exención battery optimization: $e');
+      logger.d('❌ Error en exención battery optimization: $e');
       return false;
     }
   }
@@ -119,13 +120,13 @@ class BatteryOptimizationService {
   /// Solicitar exención usando el MethodChannel nativo
   Future<void> _requestBatteryOptimizationExemption() async {
     try {
-      debugPrint('📱 Solicitando exención de battery optimization');
+      logger.d('📱 Solicitando exención de battery optimization');
 
       await _nativeChannel.invokeMethod('requestBatteryOptimizationExemption');
 
-      debugPrint('✅ Solicitud de exención enviada');
+      logger.d('✅ Solicitud de exención enviada');
     } catch (e) {
-      debugPrint('❌ Error solicitando exención: $e');
+      logger.d('❌ Error solicitando exención: $e');
       rethrow;
     }
   }
@@ -272,7 +273,7 @@ class BatteryOptimizationService {
     required BuildContext context,
   }) async {
     try {
-      debugPrint('🔋 Validando battery optimization antes de tracking');
+      logger.d('🔋 Validando battery optimization antes de tracking');
 
       if (!_isInitialized) {
         await initialize();
@@ -282,12 +283,12 @@ class BatteryOptimizationService {
       final isExempt = await _checkCurrentExemptionStatus();
 
       if (isExempt) {
-        debugPrint('✅ Validation passed - Battery optimization exenta');
+        logger.d('✅ Validation passed - Battery optimization exenta');
         return true;
       }
 
       // Si no está exenta, solicitar OBLIGATORIAMENTE
-      debugPrint('⚠️ Validation failed - Solicitando exención obligatoria');
+      logger.d('⚠️ Validation failed - Solicitando exención obligatoria');
 
       // ✅ CORRECCIÓN: Verificar context antes de usar después de await
       if (!context.mounted) return false;
@@ -308,7 +309,7 @@ class BatteryOptimizationService {
 
       return true;
     } catch (e) {
-      debugPrint('❌ Error en validación battery optimization: $e');
+      logger.d('❌ Error en validación battery optimization: $e');
       return false;
     }
   }
@@ -400,25 +401,25 @@ class BatteryOptimizationService {
   /// 🎯 MÉTODO PARA TESTING
   Future<void> testBatteryOptimizationStatus() async {
     try {
-      debugPrint('🧪 Testing battery optimization status');
+      logger.d('🧪 Testing battery optimization status');
 
       final status = await _checkCurrentExemptionStatus();
 
-      debugPrint('📊 Test results:');
-      debugPrint('  - Exemption granted: $status');
-      debugPrint('  - Service initialized: $_isInitialized');
-      debugPrint('  - Has checked status: $_hasCheckedStatus');
+      logger.d('📊 Test results:');
+      logger.d('  - Exemption granted: $status');
+      logger.d('  - Service initialized: $_isInitialized');
+      logger.d('  - Has checked status: $_hasCheckedStatus');
 
       // Mostrar notificación de test
       await _notificationManager.showTestNotification();
     } catch (e) {
-      debugPrint('❌ Error en test battery optimization: $e');
+      logger.d('❌ Error en test battery optimization: $e');
     }
   }
 
   /// Re-verificar estado (útil después de cambios manuales)
   Future<bool> refreshExemptionStatus() async {
-    debugPrint('🔄 Refrescando estado de battery optimization');
+    logger.d('🔄 Refrescando estado de battery optimization');
     return await _checkCurrentExemptionStatus();
   }
 }

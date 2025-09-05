@@ -1,4 +1,5 @@
 // lib/services/evento/evento_validator.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/evento_model.dart';
 import '../../models/usuario_model.dart';
@@ -17,7 +18,7 @@ class EventoValidator {
 
   /// ✅ VALIDAR CREACIÓN DE EVENTO
   ValidationResult validateEventCreation(Evento evento, Usuario? usuario) {
-    debugPrint('🔍 Validating event creation: ${evento.titulo}');
+    logger.d('🔍 Validating event creation: ${evento.titulo}');
 
     // 1. Validar usuario
     final userValidation = _validateUser(usuario);
@@ -49,13 +50,13 @@ class EventoValidator {
       return locationValidation;
     }
 
-    debugPrint('✅ Event creation validation passed');
+    logger.d('✅ Event creation validation passed');
     return ValidationResult.success('Evento válido para creación');
   }
 
   /// ✅ VALIDAR EDICIÓN DE EVENTO
   ValidationResult validateEventUpdate(Evento evento, Usuario? usuario) {
-    debugPrint('🔍 Validating event update: ${evento.titulo}');
+    logger.d('🔍 Validating event update: ${evento.titulo}');
 
     // 1. Validar que el evento existe y no está eliminado
     if (evento.estado.toLowerCase() == 'eliminado') {
@@ -85,13 +86,13 @@ class EventoValidator {
       return activeValidation;
     }
 
-    debugPrint('✅ Event update validation passed');
+    logger.d('✅ Event update validation passed');
     return ValidationResult.success('Evento válido para edición');
   }
 
   /// ✅ VALIDAR ELIMINACIÓN DE EVENTO (SOFT DELETE)
   ValidationResult validateEventDeletion(String eventoId, Usuario? usuario) {
-    debugPrint('🔍 Validating event deletion: $eventoId');
+    logger.d('🔍 Validating event deletion: $eventoId');
 
     // 1. Validar usuario
     final userValidation = _validateUser(usuario);
@@ -110,13 +111,13 @@ class EventoValidator {
       return ValidationResult.error('ID de evento requerido para eliminación');
     }
 
-    debugPrint('✅ Event deletion validation passed');
+    logger.d('✅ Event deletion validation passed');
     return ValidationResult.success('Evento válido para eliminación');
   }
 
   /// ✅ VALIDAR TOGGLE ESTADO ACTIVO
   ValidationResult validateToggleActive(String eventoId, bool isActive, Usuario? usuario) {
-    debugPrint('🔍 Validating toggle active: $eventoId → $isActive');
+    logger.d('🔍 Validating toggle active: $eventoId → $isActive');
 
     // 1. Validar usuario
     final userValidation = _validateUser(usuario);
@@ -135,13 +136,13 @@ class EventoValidator {
       return ValidationResult.error('ID de evento requerido');
     }
 
-    debugPrint('✅ Toggle active validation passed');
+    logger.d('✅ Toggle active validation passed');
     return ValidationResult.success('Válido para cambiar estado');
   }
 
   /// ✅ VALIDAR ACCESO A EVENTO (ESTUDIANTES)
   ValidationResult validateStudentEventAccess(Evento evento, Usuario? usuario) {
-    debugPrint('🔍 Validating student access to: ${evento.titulo}');
+    logger.d('🔍 Validating student access to: ${evento.titulo}');
 
     // 1. Validar usuario estudiante
     if (usuario == null || usuario.rol != AppConstants.estudianteRole) {
@@ -171,7 +172,7 @@ class EventoValidator {
       return ValidationResult.error('Este evento aún no está disponible para unirse');
     }
 
-    debugPrint('✅ Student event access validation passed');
+    logger.d('✅ Student event access validation passed');
     return ValidationResult.success('Estudiante puede acceder al evento');
   }
 
@@ -335,7 +336,7 @@ class EventoValidator {
     if (evento.estado.toLowerCase() == 'activo' && evento.isActive) {
       // Aquí podrían agregarse validaciones más específicas
       // Por ejemplo, no permitir cambio de ubicación si hay estudiantes activos
-      debugPrint('⚠️ Editing active event - proceed with caution');
+      logger.d('⚠️ Editing active event - proceed with caution');
     }
 
     return ValidationResult.success('Edición de evento activo permitida');
@@ -343,7 +344,7 @@ class EventoValidator {
 
   /// 🧹 Cleanup
   void dispose() {
-    debugPrint('🧹 EventoValidator disposed');
+    logger.d('🧹 EventoValidator disposed');
   }
 }
 

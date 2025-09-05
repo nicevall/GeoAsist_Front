@@ -3,12 +3,12 @@
 // Detección automática WiFi/móvil/sin conexión, cache inteligente
 // Sincronización automática, optimización de requests, retry logic
 
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 📡 Gestor inteligente de conectividad
@@ -18,16 +18,6 @@ class ConnectivityManager {
   factory ConnectivityManager() => _instance;
   ConnectivityManager._internal();
 
-  final Logger _logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 2,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
-    ),
-  );
 
   final Connectivity _connectivity = Connectivity();
 
@@ -76,7 +66,7 @@ class ConnectivityManager {
     if (_isInitialized) return;
 
     try {
-      _logger.i('📡 Inicializando Connectivity Manager...');
+      logger.i('📡 Inicializando Connectivity Manager...');
 
       // Verificar conectividad inicial
       await _updateConnectivityStatus();
@@ -93,11 +83,11 @@ class ConnectivityManager {
       }
 
       _isInitialized = true;
-      _logger.i(
+      logger.i(
           '✅ Connectivity Manager inicializado - Estado: $_currentConnectivity, '
           'Conectado: $_isConnected');
     } catch (e, stackTrace) {
-      _logger.e('❌ Error inicializando Connectivity Manager',
+      logger.e('❌ Error inicializando Connectivity Manager',
           error: e, stackTrace: stackTrace);
       rethrow;
     }
@@ -113,7 +103,7 @@ class ConnectivityManager {
         }
       },
       onError: (error) {
-        _logger.w('⚠️ Error en stream de conectividad: $error');
+        logger.w('⚠️ Error en stream de conectividad: $error');
       },
     );
 
@@ -132,7 +122,7 @@ class ConnectivityManager {
         await _processConnectivityChange(results.first);
       }
     } catch (e) {
-      _logger.w('⚠️ Error actualizando estado de conectividad: $e');
+      logger.w('⚠️ Error actualizando estado de conectividad: $e');
     }
   }
 
@@ -169,7 +159,7 @@ class ConnectivityManager {
     }
 
     if (kDebugMode) {
-      _logger.d('📡 Conectividad: $result, Conectado: $_isConnected');
+      logger.d('📡 Conectividad: $result, Conectado: $_isConnected');
     }
   }
 
@@ -180,7 +170,7 @@ class ConnectivityManager {
 
   /// ✅ Conexión restaurada
   Future<void> _onConnectionRestored() async {
-    _logger.i('✅ Conexión restaurada: $_currentConnectivity');
+    logger.i('✅ Conexión restaurada: $_currentConnectivity');
 
     _lastConnectedTime = DateTime.now();
 
@@ -195,7 +185,7 @@ class ConnectivityManager {
 
   /// ❌ Conexión perdida
   void _onConnectionLost() {
-    _logger.w('❌ Conexión perdida');
+    logger.w('❌ Conexión perdida');
 
     if (_lastConnectedTime != null) {
       _totalOfflineTime =
@@ -240,12 +230,12 @@ class ConnectivityManager {
       final hasInternet = results.any((result) => result);
       
       if (kDebugMode) {
-        _logger.d('🌐 Internet real: $hasInternet (${results.where((r) => r).length}/3 endpoints OK)');
+        logger.d('🌐 Internet real: $hasInternet (${results.where((r) => r).length}/3 endpoints OK)');
       }
       
       return hasInternet;
     } catch (e) {
-      _logger.w('⚠️ Error verificando internet real: $e');
+      logger.w('⚠️ Error verificando internet real: $e');
       return false;
     }
   }
@@ -292,7 +282,7 @@ class ConnectivityManager {
       }
     } catch (e) {
       _connectionQuality = ConnectionQuality.poor;
-      _logger.w('⚠️ Error probando calidad de conexión: $e');
+      logger.w('⚠️ Error probando calidad de conexión: $e');
     }
 
     _notifyQualityCallbacks(_connectionQuality);
@@ -326,7 +316,7 @@ class ConnectivityManager {
     // Persistir en storage
     await _saveOfflineCache();
 
-    _logger.d('🗂️ Datos cacheados offline: $key');
+    logger.d('🗂️ Datos cacheados offline: $key');
   }
 
   Map<String, dynamic>? getCachedData(String key) {
@@ -356,7 +346,7 @@ class ConnectivityManager {
     );
 
     _pendingRequests.add(request);
-    _logger.d('📨 Request pendiente agregado: $method $url');
+    logger.d('📨 Request pendiente agregado: $method $url');
   }
 
   /// 🔄 Sincronizar requests pendientes
@@ -365,7 +355,7 @@ class ConnectivityManager {
       return false;
     }
 
-    _logger.i(
+    logger.i(
         '🔄 Iniciando sincronización de ${_pendingRequests.length} requests pendientes...');
     _isSyncInProgress = true;
 
@@ -388,7 +378,7 @@ class ConnectivityManager {
         }
       }
 
-      _logger.i('✅ Sincronización completada - Éxito: $successCount, '
+      logger.i('✅ Sincronización completada - Éxito: $successCount, '
           'Fallos permanentes: ${failedRequests.length}, '
           'Pendientes: ${_pendingRequests.length}');
 
@@ -401,7 +391,7 @@ class ConnectivityManager {
   /// 📤 Sincronizar request individual
   Future<bool> _syncSingleRequest(PendingRequest request) async {
     try {
-      _logger.d('📤 Sincronizando: ${request.method} ${request.url}');
+      logger.d('📤 Sincronizando: ${request.method} ${request.url}');
 
       final client = HttpClient();
       client.connectionTimeout = const Duration(seconds: 10);
@@ -422,14 +412,14 @@ class ConnectivityManager {
       final success = response.statusCode >= 200 && response.statusCode < 300;
 
       if (success) {
-        _logger.d('✅ Request sincronizado exitosamente: ${request.url}');
+        logger.d('✅ Request sincronizado exitosamente: ${request.url}');
       } else {
-        _logger.w('❌ Error sincronizando request: ${response.statusCode}');
+        logger.w('❌ Error sincronizando request: ${response.statusCode}');
       }
 
       return success;
     } catch (e) {
-      _logger.w('❌ Error en sincronización de request: $e');
+      logger.w('❌ Error en sincronización de request: $e');
       return false;
     }
   }
@@ -444,7 +434,7 @@ class ConnectivityManager {
       }
     });
 
-    _logger
+    logger
         .d('⏱️ Sincronización automática iniciada - Intervalo: $_syncInterval');
   }
 
@@ -464,7 +454,7 @@ class ConnectivityManager {
 
       await prefs.setString('offline_cache', jsonEncode(cacheMap));
     } catch (e) {
-      _logger.w('⚠️ Error guardando cache offline: $e');
+      logger.w('⚠️ Error guardando cache offline: $e');
     }
   }
 
@@ -493,10 +483,10 @@ class ConnectivityManager {
           }
         }
 
-        _logger.d('💾 Cache offline cargado: ${_offlineCache.length} entradas');
+        logger.d('💾 Cache offline cargado: ${_offlineCache.length} entradas');
       }
     } catch (e) {
-      _logger.w('⚠️ Error cargando cache offline: $e');
+      logger.w('⚠️ Error cargando cache offline: $e');
     }
   }
 
@@ -522,12 +512,12 @@ class ConnectivityManager {
   void setUpdateFrequency(Duration frequency) {
     _updateFrequency = frequency;
     _setupConnectivityMonitoring(); // Reiniciar con nueva frecuencia
-    _logger.d('⚙️ Frecuencia de actualización cambiada: $frequency');
+    logger.d('⚙️ Frecuencia de actualización cambiada: $frequency');
   }
 
   void enableOfflineMode(bool enabled) {
     _isOfflineModeEnabled = enabled;
-    _logger.i('📱 Modo offline ${enabled ? 'habilitado' : 'deshabilitado'}');
+    logger.i('📱 Modo offline ${enabled ? 'habilitado' : 'deshabilitado'}');
   }
 
   void configureRetry({
@@ -537,7 +527,7 @@ class ConnectivityManager {
     if (maxAttempts != null) _maxRetryAttempts = maxAttempts;
     if (retryDelay != null) _retryDelay = retryDelay;
 
-    _logger.i(
+    logger.i(
         '🔄 Configuración de retry: Max=$_maxRetryAttempts, Delay=$_retryDelay');
   }
 
@@ -551,7 +541,7 @@ class ConnectivityManager {
       _syncTimer?.cancel();
     }
 
-    _logger.i(
+    logger.i(
         '🔄 Sincronización automática ${enabled ? 'habilitada' : 'deshabilitada'}');
   }
 
@@ -639,7 +629,7 @@ class ConnectivityManager {
       try {
         callback(isConnected);
       } catch (e) {
-        _logger.w('⚠️ Error en callback de conectividad: $e');
+        logger.w('⚠️ Error en callback de conectividad: $e');
       }
     }
   }
@@ -649,7 +639,7 @@ class ConnectivityManager {
       try {
         callback(type);
       } catch (e) {
-        _logger.w('⚠️ Error en callback de tipo de conectividad: $e');
+        logger.w('⚠️ Error en callback de tipo de conectividad: $e');
       }
     }
   }
@@ -659,14 +649,14 @@ class ConnectivityManager {
       try {
         callback(quality);
       } catch (e) {
-        _logger.w('⚠️ Error en callback de calidad: $e');
+        logger.w('⚠️ Error en callback de calidad: $e');
       }
     }
   }
 
   /// 🎯 Optimización forzada
   Future<void> forceOptimization() async {
-    _logger.i('🎯 Forzando optimización de conectividad...');
+    logger.i('🎯 Forzando optimización de conectividad...');
 
     // Limpiar cache expirado
     final expiredKeys = <String>[];
@@ -684,7 +674,7 @@ class ConnectivityManager {
 
     if (expiredKeys.isNotEmpty) {
       await _saveOfflineCache();
-      _logger.d('🗂️ Cache expirado limpiado: ${expiredKeys.length} entradas');
+      logger.d('🗂️ Cache expirado limpiado: ${expiredKeys.length} entradas');
     }
 
     // Intentar sincronización si hay conexión
@@ -692,7 +682,7 @@ class ConnectivityManager {
       await syncPendingRequests();
     }
 
-    _logger.i('✅ Optimización de conectividad completada');
+    logger.i('✅ Optimización de conectividad completada');
   }
 
   /// 🛑 Dispose
@@ -708,7 +698,7 @@ class ConnectivityManager {
     _qualityCallbacks.clear();
     _isInitialized = false;
 
-    _logger.i('🛑 Connectivity Manager disposed');
+    logger.i('🛑 Connectivity Manager disposed');
   }
 }
 

@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/evento_service.dart
 import '../models/evento_model.dart';
 import '../models/api_response_model.dart';
@@ -5,7 +6,6 @@ import '../models/event_statistics_model.dart';
 import '../core/app_constants.dart';
 import 'api_service.dart';
 import 'storage_service.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'notifications/notification_manager.dart';
@@ -92,7 +92,7 @@ class EventoService {
       _stateController.add(Map.from(_loadingStates));
     }
     
-    debugPrint('🔄 [$operation] Estado: $state ${error != null ? "Error: $error" : ""}');
+    logger.d('🔄 [$operation] Estado: $state ${error != null ? "Error: $error" : ""}');
   }
 
   Future<void> notifyEventCreated() async {
@@ -105,18 +105,18 @@ class EventoService {
     
     try {
       _updateLoadingState(operation, EventoLoadingState.loading);
-      debugPrint('📋 Loading events from backend');
+      logger.d('📋 Loading events from backend');
 
       final response = await _apiService.get(AppConstants.eventosEndpoint);
 
-      debugPrint('📡 Events response success: ${response.success}');
-      debugPrint('📄 Events response data available: ${response.data != null}');
+      logger.d('📡 Events response success: ${response.success}');
+      logger.d('📄 Events response data available: ${response.data != null}');
 
       if (response.success && response.data != null) {
         final dynamic responseData = response.data;
 
-        debugPrint('🔍 Full response structure: $responseData');
-        debugPrint('🔍 Response data type: ${responseData.runtimeType}');
+        logger.d('🔍 Full response structure: $responseData');
+        logger.d('🔍 Response data type: ${responseData.runtimeType}');
 
         List<dynamic> eventosList = <dynamic>[];
 
@@ -127,10 +127,10 @@ class EventoService {
             final dataField = responseData['data'];
             if (dataField is List<dynamic>) {
               eventosList = dataField;
-              debugPrint(
+              logger.d(
                   '✅ Found array in "data": ${eventosList.length} events');
             } else {
-              debugPrint(
+              logger.d(
                   '❌ Field "data" is not an array: ${dataField.runtimeType}');
               return <Evento>[];
             }
@@ -138,26 +138,26 @@ class EventoService {
             final eventosField = responseData['eventos'];
             if (eventosField is List<dynamic>) {
               eventosList = eventosField;
-              debugPrint(
+              logger.d(
                   '✅ Found array in "eventos": ${eventosList.length} events');
             } else {
-              debugPrint(
+              logger.d(
                   '❌ Field "eventos" is not an array: ${eventosField.runtimeType}');
               return <Evento>[];
             }
           } else {
-            debugPrint(
+            logger.d(
                 '❌ Response is object but contains neither "data" nor "eventos"');
-            debugPrint('🔍 Available keys: ${responseData.keys.toList()}');
+            logger.d('🔍 Available keys: ${responseData.keys.toList()}');
             return <Evento>[];
           }
         } else if (responseData is List<dynamic>) {
           // Case 2: Response is directly an array
           eventosList = responseData;
-          debugPrint(
+          logger.d(
               '✅ Response is direct array: ${eventosList.length} events');
         } else {
-          debugPrint(
+          logger.d(
               '❌ Unsupported response type: ${responseData.runtimeType}');
           return <Evento>[];
         }
@@ -170,7 +170,7 @@ class EventoService {
         
         for (int i = 0; i < eventosList.length; i++) {
           final eventoData = eventosList[i];
-          debugPrint('🔍 Processing event $i: ${eventoData.runtimeType}');
+          logger.d('🔍 Processing event $i: ${eventoData.runtimeType}');
 
           if (eventoData is Map<String, dynamic> &&
               _isValidBackendEventData(eventoData)) {
@@ -180,21 +180,21 @@ class EventoService {
             final nombre = eventoData['nombre'] ?? eventoData['titulo'] ?? 'Unknown';
             final eventId = eventoData['id']?.toString() ?? eventoData['_id']?.toString() ?? '';
             
-            debugPrint('🔍 CHECKING EVENT: "$nombre" (ID: $eventId) - estado: "$estado"');
-            debugPrint('🔍 EXCLUDED STATES: $excludedStates');
-            debugPrint('🔍 CONTAINS CHECK: ${excludedStates.contains(estado)}');
+            logger.d('🔍 CHECKING EVENT: "$nombre" (ID: $eventId) - estado: "$estado"');
+            logger.d('🔍 EXCLUDED STATES: $excludedStates');
+            logger.d('🔍 CONTAINS CHECK: ${excludedStates.contains(estado)}');
             
             // Filtrar por estado
             if (excludedStates.contains(estado)) {
               filteredOutCount++;
-              debugPrint('🚫 FILTERING OUT deleted event: "$nombre" (estado: $estado)');
+              logger.d('🚫 FILTERING OUT deleted event: "$nombre" (estado: $estado)');
               continue; // Saltar este evento
             }
             
             // Filtrar eventos problemáticos conocidos del servidor
             if (problemEventIds.contains(eventId)) {
               filteredOutCount++;
-              debugPrint('🚫 FILTERING OUT problematic server event: "$nombre" (ID: $eventId)');
+              logger.d('🚫 FILTERING OUT problematic server event: "$nombre" (ID: $eventId)');
               continue; // Saltar este evento problemático
             }
             
@@ -202,30 +202,30 @@ class EventoService {
               final eventoMapeado = _mapBackendToFlutter(eventoData);
               final evento = Evento.fromJson(eventoMapeado);
               eventos.add(evento);
-              debugPrint('✅ Event added: "$nombre" (estado: $estado)');
+              logger.d('✅ Event added: "$nombre" (estado: $estado)');
             } catch (e) {
-              debugPrint('❌ Error mapping event $i: $e');
-              debugPrint('🔍 Event data: $eventoData');
+              logger.d('❌ Error mapping event $i: $e');
+              logger.d('🔍 Event data: $eventoData');
             }
           } else {
-            debugPrint('❌ Invalid event data at index $i: $eventoData');
+            logger.d('❌ Invalid event data at index $i: $eventoData');
           }
         }
 
         if (filteredOutCount > 0) {
-          debugPrint('🗑️ Filtered out $filteredOutCount deleted/inactive events');
+          logger.d('🗑️ Filtered out $filteredOutCount deleted/inactive events');
         }
-        debugPrint('✅ Total events loaded: ${eventos.length} (${eventosList.length} total, $filteredOutCount filtered out)');
+        logger.d('✅ Total events loaded: ${eventos.length} (${eventosList.length} total, $filteredOutCount filtered out)');
         _updateLoadingState(operation, EventoLoadingState.success);
         return eventos;
       }
 
-      debugPrint('❌ Failed to load events: ${response.error}');
+      logger.d('❌ Failed to load events: ${response.error}');
       _updateLoadingState(operation, EventoLoadingState.error, 
           error: response.error ?? 'Error desconocido al cargar eventos');
       return <Evento>[];
     } catch (e) {
-      debugPrint('❌ Exception loading events: $e');
+      logger.d('❌ Exception loading events: $e');
       _updateLoadingState(operation, EventoLoadingState.error, 
           error: 'Excepción: $e');
       return <Evento>[];
@@ -238,35 +238,35 @@ class EventoService {
     
     try {
       _updateLoadingState(operation, EventoLoadingState.loading);
-      debugPrint('🔍 Loading event by ID: $eventoId');
+      logger.d('🔍 Loading event by ID: $eventoId');
 
       final response =
           await _apiService.get('${AppConstants.eventosEndpoint}/$eventoId');
 
-      debugPrint('📡 Event by ID response success: ${response.success}');
+      logger.d('📡 Event by ID response success: ${response.success}');
 
       if (response.success && response.data != null) {
         final eventoData = response.data!['evento'];
         if (eventoData != null && _isValidBackendEventData(eventoData)) {
           final eventoMapeado = _mapBackendToFlutter(eventoData);
           final evento = Evento.fromJson(eventoMapeado);
-          debugPrint('✅ Individual event parsed: ${evento.titulo}');
+          logger.d('✅ Individual event parsed: ${evento.titulo}');
           _updateLoadingState(operation, EventoLoadingState.success);
           return evento;
         } else {
-          debugPrint('❌ Invalid event data for ID: $eventoId');
+          logger.d('❌ Invalid event data for ID: $eventoId');
           _updateLoadingState(operation, EventoLoadingState.error, 
               error: 'Datos de evento inválidos');
           return null;
         }
       }
 
-      debugPrint('❌ Failed to load event: ${response.error}');
+      logger.d('❌ Failed to load event: ${response.error}');
       _updateLoadingState(operation, EventoLoadingState.error, 
           error: response.error ?? 'Error cargando evento');
       return null;
     } catch (e) {
-      debugPrint('❌ Exception loading event: $e');
+      logger.d('❌ Exception loading event: $e');
       _updateLoadingState(operation, EventoLoadingState.error, 
           error: 'Excepción: $e');
       return null;
@@ -292,19 +292,19 @@ class EventoService {
     bool requiereJustificacion = false,
   }) async {
     try {
-      debugPrint('📝 Creating new event: $titulo');
-      debugPrint('📍 Location: $lugar ($latitud, $longitud)');
-      debugPrint('📅 Date: ${fecha.toIso8601String().split('T')[0]}');
-      debugPrint(
+      logger.d('📝 Creating new event: $titulo');
+      logger.d('📍 Location: $lugar ($latitud, $longitud)');
+      logger.d('📅 Date: ${fecha.toIso8601String().split('T')[0]}');
+      logger.d(
           '⏰ Time: ${horaInicio.hour}:${horaInicio.minute} - ${horaFinal.hour}:${horaFinal.minute}');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No session for event creation');
+        logger.d('❌ No session for event creation');
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint('🎫 Token found, proceeding with event creation');
+      logger.d('🎫 Token found, proceeding with event creation');
 
       // Backend expected format
       final body = {
@@ -330,14 +330,14 @@ class EventoService {
       };
 
       // ✅ NUEVO: Debug de fechas específicas
-      debugPrint('🔍 DEBUG FECHAS:');
-      debugPrint('   📅 horaInicio completa: ${horaInicio.toIso8601String()}');
-      debugPrint('   📅 horaFinal completa: ${horaFinal.toIso8601String()}');
-      debugPrint('   📅 fechaInicio enviada: ${horaInicio.toIso8601String()}');
-      debugPrint('   📅 fechaFin enviada: ${horaFinal.toIso8601String()}');
+      logger.d('🔍 DEBUG FECHAS:');
+      logger.d('   📅 horaInicio completa: ${horaInicio.toIso8601String()}');
+      logger.d('   📅 horaFinal completa: ${horaFinal.toIso8601String()}');
+      logger.d('   📅 fechaInicio enviada: ${horaInicio.toIso8601String()}');
+      logger.d('   📅 fechaFin enviada: ${horaFinal.toIso8601String()}');
       
-      debugPrint('📦 Event creation payload: ${jsonEncode(body)}');
-      debugPrint('🌐 Endpoint: ${AppConstants.eventosEndpoint}/crear');
+      logger.d('📦 Event creation payload: ${jsonEncode(body)}');
+      logger.d('🌐 Endpoint: ${AppConstants.eventosEndpoint}/crear');
 
       final response = await _apiService.post(
         '/eventos/crear',  // ✅ CORRECTO: baseUrl ya incluye /api
@@ -345,27 +345,27 @@ class EventoService {
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Create event response success: ${response.success}');
-      debugPrint('📄 Create event response data: ${response.data}');
-      debugPrint('💬 Create event response message: ${response.message}');
-      debugPrint('❌ Create event response error: ${response.error}');
+      logger.d('📡 Create event response success: ${response.success}');
+      logger.d('📄 Create event response data: ${response.data}');
+      logger.d('💬 Create event response message: ${response.message}');
+      logger.d('❌ Create event response error: ${response.error}');
 
       if (response.success && response.data != null) {
         final eventoData = response.data!['evento'];
         if (eventoData != null) {
-          debugPrint('✅ Event created successfully');
+          logger.d('✅ Event created successfully');
           final eventoMapeado = _mapBackendToFlutter(eventoData);
           final evento = Evento.fromJson(eventoMapeado);
           return ApiResponse.success(evento, message: response.message);
         } else {
-          debugPrint('❌ No event data in creation response');
+          logger.d('❌ No event data in creation response');
         }
       }
 
-      debugPrint('❌ Event creation failed: ${response.error}');
+      logger.d('❌ Event creation failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error al crear evento');
     } catch (e) {
-      debugPrint('❌ Event creation exception: $e');
+      logger.d('❌ Event creation exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -375,16 +375,16 @@ class EventoService {
     Map<String, dynamic> datosActualizados,
   ) async {
     try {
-      debugPrint('🔄 Updating event ID: $eventoId');
-      debugPrint('📝 Update data: $datosActualizados');
+      logger.d('🔄 Updating event ID: $eventoId');
+      logger.d('📝 Update data: $datosActualizados');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No session for event update');
+        logger.d('❌ No session for event update');
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint('🎫 Token found, proceeding with event update');
+      logger.d('🎫 Token found, proceeding with event update');
 
       final response = await _apiService.put(
         '/eventos/$eventoId',
@@ -392,25 +392,25 @@ class EventoService {
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Update event response success: ${response.success}');
-      debugPrint('📄 Update event response data: ${response.data}');
+      logger.d('📡 Update event response success: ${response.success}');
+      logger.d('📄 Update event response data: ${response.data}');
 
       if (response.success && response.data != null) {
         final eventoData = response.data!['evento'];
         if (eventoData != null && _isValidBackendEventData(eventoData)) {
           final eventoMapeado = _mapBackendToFlutter(eventoData);
           final evento = Evento.fromJson(eventoMapeado);
-          debugPrint('✅ Event updated successfully: ${evento.titulo}');
+          logger.d('✅ Event updated successfully: ${evento.titulo}');
           return ApiResponse.success(evento, message: response.message);
         } else {
-          debugPrint('❌ Invalid event data in update response');
+          logger.d('❌ Invalid event data in update response');
         }
       }
 
-      debugPrint('❌ Event update failed: ${response.error}');
+      logger.d('❌ Event update failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error al actualizar evento');
     } catch (e) {
-      debugPrint('❌ Event update exception: $e');
+      logger.d('❌ Event update exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -436,17 +436,17 @@ class EventoService {
     bool requiereJustificacion = false,
   }) async {
     try {
-      debugPrint('📝 Editing event: $eventoId');
-      debugPrint('📝 New title: $titulo');
-      debugPrint('📍 New location: $lugar ($latitud, $longitud)');
+      logger.d('📝 Editing event: $eventoId');
+      logger.d('📝 New title: $titulo');
+      logger.d('📍 New location: $lugar ($latitud, $longitud)');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No session for event edit');
+        logger.d('❌ No session for event edit');
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint('🎫 Token found, proceeding with edit');
+      logger.d('🎫 Token found, proceeding with edit');
 
       final body = {
         'nombre': titulo,
@@ -470,8 +470,8 @@ class EventoService {
         },
       };
 
-      debugPrint('📦 Edit event payload: ${jsonEncode(body)}');
-      debugPrint('🌐 Edit endpoint: /eventos/$eventoId');
+      logger.d('📦 Edit event payload: ${jsonEncode(body)}');
+      logger.d('🌐 Edit endpoint: /eventos/$eventoId');
 
       final response = await _apiService.put(
         '/eventos/$eventoId',
@@ -479,24 +479,24 @@ class EventoService {
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Edit response success: ${response.success}');
+      logger.d('📡 Edit response success: ${response.success}');
 
       if (response.success && response.data != null) {
         final eventoData = response.data!['evento'];
         if (eventoData != null) {
           final eventoMapeado = _mapBackendToFlutter(eventoData);
           final evento = Evento.fromJson(eventoMapeado);
-          debugPrint('✅ Event edited successfully: ${evento.titulo}');
+          logger.d('✅ Event edited successfully: ${evento.titulo}');
           return ApiResponse.success(evento, message: response.message);
         } else {
-          debugPrint('❌ No event data in edit response');
+          logger.d('❌ No event data in edit response');
         }
       }
 
-      debugPrint('❌ Event edit failed: ${response.error}');
+      logger.d('❌ Event edit failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error editando evento');
     } catch (e) {
-      debugPrint('❌ Event edit exception: $e');
+      logger.d('❌ Event edit exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -504,35 +504,35 @@ class EventoService {
   // 🎯 MÉTODO 2: Eliminar evento - FASE B
   Future<ApiResponse<bool>> eliminarEvento(String eventoId) async {
     try {
-      debugPrint('🗑️ [FRONTEND] Intentando eliminar evento: $eventoId');
-      debugPrint('🔍 [FRONTEND] Longitud del ID: ${eventoId.length}');
-      debugPrint('🔍 [FRONTEND] ID válido format: ${eventoId.isNotEmpty && eventoId.length == 24}');
+      logger.d('🗑️ [FRONTEND] Intentando eliminar evento: $eventoId');
+      logger.d('🔍 [FRONTEND] Longitud del ID: ${eventoId.length}');
+      logger.d('🔍 [FRONTEND] ID válido format: ${eventoId.isNotEmpty && eventoId.length == 24}');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No session for event deletion');
+        logger.d('❌ No session for event deletion');
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint('🎫 Token found, proceeding with deletion');
+      logger.d('🎫 Token found, proceeding with deletion');
 
       final response = await _apiService.delete(
         '/eventos/$eventoId',
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Delete response success: ${response.success}');
+      logger.d('📡 Delete response success: ${response.success}');
 
       if (response.success) {
-        debugPrint('✅ Event deleted successfully: $eventoId');
+        logger.d('✅ Event deleted successfully: $eventoId');
         return ApiResponse.success(true,
             message: 'Evento eliminado exitosamente');
       }
 
-      debugPrint('❌ Event deletion failed: ${response.error}');
+      logger.d('❌ Event deletion failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error eliminando evento');
     } catch (e) {
-      debugPrint('❌ Event deletion exception: $e');
+      logger.d('❌ Event deletion exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -540,35 +540,35 @@ class EventoService {
   // 🎯 MÉTODO 3: Obtener eventos específicos del profesor - FASE B
   Future<List<Evento>> obtenerEventosDocente(String profesorId) async {
     try {
-      debugPrint('👨‍🏫 Loading events for teacher: $profesorId');
+      logger.d('👨‍🏫 Loading events for teacher: $profesorId');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No session for teacher events');
+        logger.d('❌ No session for teacher events');
         return [];
       }
 
-      debugPrint('🎫 Token found, loading teacher events');
+      logger.d('🎫 Token found, loading teacher events');
 
       final response = await _apiService.get(
         '/eventos/mis',
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Teacher events response success: ${response.success}');
+      logger.d('📡 Teacher events response success: ${response.success}');
 
       if (response.success && response.data != null) {
         final eventos = await _procesarEventosResponse(response.data!);
         final eventosDocente =
             eventos.where((e) => e.creadoPor == profesorId).toList();
-        debugPrint('✅ Teacher events loaded: ${eventosDocente.length} events');
+        logger.d('✅ Teacher events loaded: ${eventosDocente.length} events');
         return eventosDocente;
       }
 
-      debugPrint('❌ Failed to load teacher events: ${response.error}');
+      logger.d('❌ Failed to load teacher events: ${response.error}');
       return [];
     } catch (e) {
-      debugPrint('❌ Teacher events exception: $e');
+      logger.d('❌ Teacher events exception: $e');
       return [];
     }
   }
@@ -576,34 +576,34 @@ class EventoService {
   // 🎯 MÉTODO 4: Finalizar evento y generar reporte
   Future<ApiResponse<String>> finalizarEvento(String eventoId) async {
     try {
-      debugPrint('🏁 Finalizing event: $eventoId');
+      logger.d('🏁 Finalizing event: $eventoId');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No session for event finalization');
+        logger.d('❌ No session for event finalization');
         return ApiResponse.error('No hay sesión activa');
       }
 
-      debugPrint('🎫 Token found, proceeding with finalization');
+      logger.d('🎫 Token found, proceeding with finalization');
 
       final response = await _apiService.post(
         '/eventos/$eventoId/finalizar',
         headers: AppConstants.getAuthHeaders(token),
       );
 
-      debugPrint('📡 Finalize event response success: ${response.success}');
+      logger.d('📡 Finalize event response success: ${response.success}');
 
       if (response.success && response.data != null) {
         final reportUrl =
             response.data!['reporteUrl'] ?? response.data!['pdfUrl'];
-        debugPrint('✅ Event finalized, report generated: $reportUrl');
+        logger.d('✅ Event finalized, report generated: $reportUrl');
         return ApiResponse.success(reportUrl, message: response.message);
       }
 
-      debugPrint('❌ Event finalization failed: ${response.error}');
+      logger.d('❌ Event finalization failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error finalizando evento');
     } catch (e) {
-      debugPrint('❌ Event finalization exception: $e');
+      logger.d('❌ Event finalization exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -612,28 +612,28 @@ class EventoService {
   Future<List<Evento>> _procesarEventosResponse(
       dynamic data) async {
     try {
-      debugPrint('🔄 Processing events response data');
+      logger.d('🔄 Processing events response data');
 
       List<dynamic> eventosList = <dynamic>[];
 
       // 🚨 NUEVO: Manejar cuando la respuesta es directamente un array
       if (data is List<dynamic>) {
         eventosList = data;
-        debugPrint('✅ Response is direct array: ${eventosList.length} events');
+        logger.d('✅ Response is direct array: ${eventosList.length} events');
       } else if (data is Map<String, dynamic>) {
         if (data.containsKey('data')) {
           final dataField = data['data'];
           if (dataField is List<dynamic>) {
             eventosList = dataField;
           } else {
-            debugPrint('❌ Field "data" is not a List');
+            logger.d('❌ Field "data" is not a List');
           }
         } else if (data.containsKey('eventos')) {
           final eventosField = data['eventos'];
           if (eventosField is List<dynamic>) {
             eventosList = eventosField;
           } else {
-            debugPrint('❌ Field "eventos" is not a List');
+            logger.d('❌ Field "eventos" is not a List');
           }
         }
       }
@@ -644,13 +644,13 @@ class EventoService {
       int filteredOutCount = 0;
       
       for (final eventoData in eventosList) {
-        debugPrint('🔍 TEACHER - Processing event data type: ${eventoData.runtimeType}');
-        debugPrint('🔍 TEACHER - Is Map check: ${eventoData is Map<String, dynamic>}');
+        logger.d('🔍 TEACHER - Processing event data type: ${eventoData.runtimeType}');
+        logger.d('🔍 TEACHER - Is Map check: ${eventoData is Map<String, dynamic>}');
         
         if (eventoData is Map<String, dynamic>) {
-          debugPrint('🔍 TEACHER - Event is Map, checking validity...');
+          logger.d('🔍 TEACHER - Event is Map, checking validity...');
           final isValid = _isValidBackendEventData(eventoData);
-          debugPrint('🔍 TEACHER - Event validity: $isValid');
+          logger.d('🔍 TEACHER - Event validity: $isValid');
           
           if (isValid) {
           
@@ -658,13 +658,13 @@ class EventoService {
           final estado = eventoData['estado']?.toString().toLowerCase() ?? '';
           final nombre = eventoData['nombre'] ?? eventoData['titulo'] ?? 'Unknown';
           
-          debugPrint('🔍 MIS EVENTOS - CHECKING EVENT: "$nombre" - estado: "$estado"');
-          debugPrint('🔍 MIS EVENTOS - EXCLUDED STATES: $excludedStates');
-          debugPrint('🔍 MIS EVENTOS - CONTAINS CHECK: ${excludedStates.contains(estado)}');
+          logger.d('🔍 MIS EVENTOS - CHECKING EVENT: "$nombre" - estado: "$estado"');
+          logger.d('🔍 MIS EVENTOS - EXCLUDED STATES: $excludedStates');
+          logger.d('🔍 MIS EVENTOS - CONTAINS CHECK: ${excludedStates.contains(estado)}');
           
           if (excludedStates.contains(estado)) {
             filteredOutCount++;
-            debugPrint('🚫 FILTERING OUT deleted event: "$nombre" (estado: $estado)');
+            logger.d('🚫 FILTERING OUT deleted event: "$nombre" (estado: $estado)');
             continue; // Saltar este evento
           }
           
@@ -672,25 +672,25 @@ class EventoService {
             final eventoMapeado = _mapBackendToFlutter(eventoData);
             final evento = Evento.fromJson(eventoMapeado);
             eventos.add(evento);
-            debugPrint('✅ Event added: "$nombre" (estado: $estado)');
+            logger.d('✅ Event added: "$nombre" (estado: $estado)');
           } catch (e) {
-            debugPrint('❌ Error processing event: $e');
+            logger.d('❌ Error processing event: $e');
           }
           } else {
-            debugPrint('⚠️ TEACHER - Event failed validation, skipping');
+            logger.d('⚠️ TEACHER - Event failed validation, skipping');
           }
         } else {
-          debugPrint('⚠️ TEACHER - Event is not a Map, skipping');
+          logger.d('⚠️ TEACHER - Event is not a Map, skipping');
         }
       }
 
       if (filteredOutCount > 0) {
-        debugPrint('🗑️ Filtered out $filteredOutCount deleted/inactive events');
+        logger.d('🗑️ Filtered out $filteredOutCount deleted/inactive events');
       }
-      debugPrint('✅ Processed ${eventos.length} events successfully (${eventosList.length} total, $filteredOutCount filtered out)');
+      logger.d('✅ Processed ${eventos.length} events successfully (${eventosList.length} total, $filteredOutCount filtered out)');
       return eventos;
     } catch (e) {
-      debugPrint('❌ Exception processing events response: $e');
+      logger.d('❌ Exception processing events response: $e');
       return [];
     }
   }
@@ -701,26 +701,26 @@ class EventoService {
   /// El backend automáticamente cambia eventos de 'activo' a 'En proceso' según fecha/hora
   /// No es necesario activar/desactivar manualmente
   Future<bool> activarEvento(String eventoId) async {
-    debugPrint('⚠️ Activación de eventos es automática via cron job');
-    debugPrint('💡 Los eventos cambian automáticamente de "activo" a "En proceso" según fecha/hora');
+    logger.d('⚠️ Activación de eventos es automática via cron job');
+    logger.d('💡 Los eventos cambian automáticamente de "activo" a "En proceso" según fecha/hora');
     return false; // No implementado porque es automático
   }
 
   /// NOTA: La desactivación también es automática
   Future<bool> desactivarEvento(String eventoId) async {
-    debugPrint('⚠️ Desactivación de eventos es automática via cron job');
-    debugPrint('💡 Los eventos cambian automáticamente a "finalizado" según fecha/hora');
+    logger.d('⚠️ Desactivación de eventos es automática via cron job');
+    logger.d('💡 Los eventos cambian automáticamente a "finalizado" según fecha/hora');
     return false; // No implementado porque es automático
   }
 
   /// Iniciar receso durante el evento
   Future<bool> iniciarReceso(String eventoId) async {
     try {
-      debugPrint('⏸️ Iniciando receso para evento: $eventoId');
+      logger.d('⏸️ Iniciando receso para evento: $eventoId');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No hay sesión activa para iniciar receso');
+        logger.d('❌ No hay sesión activa para iniciar receso');
         return false;
       }
 
@@ -737,14 +737,14 @@ class EventoService {
       );
 
       if (response.success) {
-        debugPrint('✅ Receso iniciado exitosamente');
+        logger.d('✅ Receso iniciado exitosamente');
         return true;
       }
 
-      debugPrint('❌ Error iniciando receso: ${response.error}');
+      logger.d('❌ Error iniciando receso: ${response.error}');
       return false;
     } catch (e) {
-      debugPrint('❌ Excepción iniciando receso: $e');
+      logger.d('❌ Excepción iniciando receso: $e');
       return false;
     }
   }
@@ -752,11 +752,11 @@ class EventoService {
   /// ✅ NUEVO: Terminar receso en el evento
   Future<bool> terminarReceso(String eventoId) async {
     try {
-      debugPrint('▶️ Terminando receso para evento: $eventoId');
+      logger.d('▶️ Terminando receso para evento: $eventoId');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No hay sesión activa para terminar receso');
+        logger.d('❌ No hay sesión activa para terminar receso');
         return false;
       }
 
@@ -772,14 +772,14 @@ class EventoService {
       );
 
       if (response.success) {
-        debugPrint('✅ Receso terminado exitosamente');
+        logger.d('✅ Receso terminado exitosamente');
         return true;
       }
 
-      debugPrint('❌ Error terminando receso: ${response.error}');
+      logger.d('❌ Error terminando receso: ${response.error}');
       return false;
     } catch (e) {
-      debugPrint('❌ Excepción terminando receso: $e');
+      logger.d('❌ Excepción terminando receso: $e');
       return false;
     }
   }
@@ -788,11 +788,11 @@ class EventoService {
   /// Obtener métricas en tiempo real de un evento específico
   Future<Map<String, dynamic>> obtenerMetricasEvento(String eventoId) async {
     try {
-      debugPrint('📊 Obteniendo métricas del evento: $eventoId');
+      logger.d('📊 Obteniendo métricas del evento: $eventoId');
 
       final token = await _storageService.getToken();
       if (token == null) {
-        debugPrint('❌ No hay sesión activa para métricas');
+        logger.d('❌ No hay sesión activa para métricas');
         return {};
       }
 
@@ -803,14 +803,14 @@ class EventoService {
 
       if (response.success && response.data != null) {
         final metricas = response.data!;
-        debugPrint('✅ Métricas obtenidas: ${metricas.keys}');
+        logger.d('✅ Métricas obtenidas: ${metricas.keys}');
         return metricas;
       }
 
-      debugPrint('❌ Error obteniendo métricas: ${response.error}');
+      logger.d('❌ Error obteniendo métricas: ${response.error}');
       return {};
     } catch (e) {
-      debugPrint('❌ Excepción obteniendo métricas: $e');
+      logger.d('❌ Excepción obteniendo métricas: $e');
       return {};
     }
   }
@@ -820,20 +820,20 @@ class EventoService {
     // ✅ CORREGIDO: Verificar tanto '_id' como 'id'
     final hasId = data.containsKey('_id') || data.containsKey('id');
     if (!hasId || (data['_id'] == null && data['id'] == null)) {
-      debugPrint('❌ Missing required field: _id or id');
+      logger.d('❌ Missing required field: _id or id');
       return false;
     }
 
     // ✅ CORREGIDO: Verificar tanto 'nombre' como 'titulo'
     final hasTitle = data.containsKey('nombre') || data.containsKey('titulo');
     if (!hasTitle || (data['nombre'] == null && data['titulo'] == null)) {
-      debugPrint('❌ Missing required field: nombre or titulo');
+      logger.d('❌ Missing required field: nombre or titulo');
       return false;
     }
 
     // ✅ MANTENER: Validar coordenadas (está bien)
     if (!data.containsKey('coordenadas') || data['coordenadas'] == null) {
-      debugPrint('❌ Missing required field: coordenadas');
+      logger.d('❌ Missing required field: coordenadas');
       return false;
     }
 
@@ -842,7 +842,7 @@ class EventoService {
     if (coordenadas is! Map<String, dynamic> ||
         !coordenadas.containsKey('latitud') ||
         !coordenadas.containsKey('longitud')) {
-      debugPrint('❌ Invalid coordinates structure');
+      logger.d('❌ Invalid coordinates structure');
       return false;
     }
 
@@ -891,7 +891,7 @@ class EventoService {
             },
       };
     } catch (e) {
-      debugPrint('❌ Error mapping backend data: $e');
+      logger.d('❌ Error mapping backend data: $e');
       rethrow;
     }
   }
@@ -904,7 +904,7 @@ class EventoService {
     if (!_stateController.isClosed) {
       _stateController.add(Map.from(_loadingStates));
     }
-    debugPrint('🧹 Cleared loading state for: $operation');
+    logger.d('🧹 Cleared loading state for: $operation');
   }
 
   /// Clear all loading states
@@ -913,7 +913,7 @@ class EventoService {
     if (!_stateController.isClosed) {
       _stateController.add(<String, EventoStateData>{});
     }
-    debugPrint('🧹 Cleared all loading states');
+    logger.d('🧹 Cleared all loading states');
   }
 
   /// Get all current loading states (for debugging)
@@ -937,22 +937,22 @@ class EventoService {
   // 🎯 MÉTODO 5: Obtener eventos públicos (para justificaciones) - FASE B
   Future<List<Evento>> obtenerEventosPublicos() async {
     try {
-      debugPrint('🌍 Loading public events');
+      logger.d('🌍 Loading public events');
 
       final response = await _apiService.get(AppConstants.eventosEndpoint);
 
-      debugPrint('📡 Public events response success: ${response.success}');
+      logger.d('📡 Public events response success: ${response.success}');
 
       if (response.success && response.data != null) {
         final eventos = await _procesarEventosResponse(response.data!);
-        debugPrint('✅ Public events loaded: ${eventos.length} events');
+        logger.d('✅ Public events loaded: ${eventos.length} events');
         return eventos;
       }
 
-      debugPrint('❌ Failed to load public events: ${response.error}');
+      logger.d('❌ Failed to load public events: ${response.error}');
       return [];
     } catch (e) {
-      debugPrint('❌ Public events exception: $e');
+      logger.d('❌ Public events exception: $e');
       return [];
     }
   }
@@ -965,24 +965,24 @@ class EventoService {
   // 📊 EVENT STATISTICS: Get detailed event analytics
   Future<ApiResponse<EventStatistics>> getEventStatistics(String eventoId) async {
     try {
-      debugPrint('📊 [FRONTEND] Fetching statistics for event: $eventoId');
+      logger.d('📊 [FRONTEND] Fetching statistics for event: $eventoId');
       
       final endpoint = AppConstants.eventStatisticsEndpoint.replaceAll('[eventId]', eventoId);
       
       final response = await _apiService.get(endpoint);
       
-      debugPrint('📡 Statistics response success: ${response.success}');
+      logger.d('📡 Statistics response success: ${response.success}');
       
       if (response.success && response.data != null) {
         final estadisticas = EventStatistics.fromJson(response.data!);
-        debugPrint('✅ Event statistics loaded: ${estadisticas.totalStudents} students');
+        logger.d('✅ Event statistics loaded: ${estadisticas.totalStudents} students');
         return ApiResponse.success(estadisticas, message: response.message);
       }
       
-      debugPrint('❌ Event statistics failed: ${response.error}');
+      logger.d('❌ Event statistics failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error obteniendo estadísticas');
     } catch (e) {
-      debugPrint('❌ Event statistics exception: $e');
+      logger.d('❌ Event statistics exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
@@ -990,13 +990,13 @@ class EventoService {
   // 👥 EVENT STUDENTS: Get list of students enrolled in event
   Future<ApiResponse<List<StudentAttendanceStat>>> getEventStudents(String eventoId) async {
     try {
-      debugPrint('👥 [FRONTEND] Fetching students for event: $eventoId');
+      logger.d('👥 [FRONTEND] Fetching students for event: $eventoId');
       
       final endpoint = '/eventos/$eventoId/students';
       
       final response = await _apiService.get(endpoint);
       
-      debugPrint('📡 Students response success: ${response.success}');
+      logger.d('📡 Students response success: ${response.success}');
       
       if (response.success && response.data != null) {
         final studentsData = response.data!['students'] as List? ?? [];
@@ -1004,27 +1004,27 @@ class EventoService {
             .map((data) => StudentAttendanceStat.fromJson(data))
             .toList();
         
-        debugPrint('✅ Event students loaded: ${students.length} students');
+        logger.d('✅ Event students loaded: ${students.length} students');
         return ApiResponse.success(students, message: response.message);
       }
       
-      debugPrint('❌ Event students failed: ${response.error}');
+      logger.d('❌ Event students failed: ${response.error}');
       return ApiResponse.error(response.error ?? 'Error obteniendo estudiantes');
     } catch (e) {
-      debugPrint('❌ Event students exception: $e');
+      logger.d('❌ Event students exception: $e');
       return ApiResponse.error('Error de conexión: $e');
     }
   }
 
   /// Dispose resources and cleanup
   void dispose() {
-    debugPrint('🧹 Disposing EventoService resources');
+    logger.d('🧹 Disposing EventoService resources');
     clearAllLoadingStates();
     
     if (!_stateController.isClosed) {
       _stateController.close();
     }
     
-    debugPrint('✅ EventoService disposed successfully');
+    logger.d('✅ EventoService disposed successfully');
   }
 }

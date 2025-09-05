@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/student_attendance_manager.dart
 import 'dart:async';
 import 'package:flutter/widgets.dart'; // Para AppLifecycleState
@@ -80,7 +81,7 @@ class StudentAttendanceManager {
   Future<void> _triggerGracePeriod() async {
     if (_currentState.isInGracePeriod) return;
 
-    debugPrint('🚨 Grace period iniciado - 30 segundos');
+    logger.d('🚨 Grace period iniciado - 30 segundos');
 
     await _notificationManager.showAppClosedWarningNotification(30);
 
@@ -102,7 +103,7 @@ class StudentAttendanceManager {
   Future<void> _cancelGracePeriod() async {
     if (!_currentState.isInGracePeriod) return;
 
-    debugPrint('✅ Grace period cancelado');
+    logger.d('✅ Grace period cancelado');
 
     _gracePeriodTimer?.cancel();
     await _notificationManager.clearAllNotifications();
@@ -114,7 +115,7 @@ class StudentAttendanceManager {
   }
 
   Future<void> _triggerAttendanceLoss() async {
-    debugPrint('❌ Asistencia perdida por cierre de app');
+    logger.d('❌ Asistencia perdida por cierre de app');
 
     if (_currentState.currentEvent != null &&
         _currentState.currentUser != null) {
@@ -145,10 +146,10 @@ class StudentAttendanceManager {
     String? eventId,
     bool autoStart = true, // ✅ AGREGAR PARÁMETRO
   }) async {
-    debugPrint('🎯 Inicializando StudentAttendanceManager (autoStart: $autoStart)');
+    logger.d('🎯 Inicializando StudentAttendanceManager (autoStart: $autoStart)');
 
     try {
-      debugPrint('🚀 Inicializando servicios de asistencia...');
+      logger.d('🚀 Inicializando servicios de asistencia...');
       
       // 1. Inicializar servicios críticos con error handling
       await _notificationManager.initialize();
@@ -159,9 +160,9 @@ class StudentAttendanceManager {
       // 2. ✅ INICIALIZACIÓN SEGURA DE BACKGROUND SERVICE
       try {
         _backgroundService = await BackgroundLocationService.getInstance();
-        debugPrint('✅ BackgroundService inicializado');
+        logger.d('✅ BackgroundService inicializado');
       } catch (e) {
-        debugPrint('⚠️ BackgroundService no disponible: $e');
+        logger.d('⚠️ BackgroundService no disponible: $e');
         // Continuar sin background service (modo degradado)
         _backgroundService = null;
       }
@@ -188,9 +189,9 @@ class StudentAttendanceManager {
       }
 
       _isServicesInitialized = true;
-      debugPrint('✅ Servicios de asistencia inicializados (autoStart: $autoStart)');
+      logger.d('✅ Servicios de asistencia inicializados (autoStart: $autoStart)');
     } catch (e) {
-      debugPrint('❌ Error crítico inicializando servicios: $e');
+      logger.d('❌ Error crítico inicializando servicios: $e');
       _isServicesInitialized = false;
       await _notificationManager.showCriticalAppLifecycleWarning();
       rethrow;
@@ -200,7 +201,7 @@ class StudentAttendanceManager {
   /// ✅ NUEVO: Método privado para iniciar tracking de evento específico
   Future<void> _startTrackingForEvent(String eventId, String? userId) async {
     try {
-      debugPrint('🚀 Iniciando tracking automático para evento: $eventId');
+      logger.d('🚀 Iniciando tracking automático para evento: $eventId');
       
       // Buscar el evento
       final eventoService = EventoService();
@@ -213,16 +214,16 @@ class StudentAttendanceManager {
       // Iniciar tracking para este evento
       await startEventTracking(evento);
       
-      debugPrint('✅ Tracking automático iniciado para: ${evento.titulo}');
+      logger.d('✅ Tracking automático iniciado para: ${evento.titulo}');
     } catch (e) {
-      debugPrint('❌ Error iniciando tracking automático: $e');
+      logger.d('❌ Error iniciando tracking automático: $e');
       // No rethrow para que no bloquee la inicialización
     }
   }
 
   // 🎯 INICIAR TRACKING PARA UN EVENTO ESPECÍFICO
   Future<void> startEventTracking(Evento evento) async {
-    debugPrint('🎯 Iniciando tracking para evento: ${evento.titulo}');
+    logger.d('🎯 Iniciando tracking para evento: ${evento.titulo}');
 
     try {
       // 1. Cargar políticas del evento
@@ -233,7 +234,7 @@ class StudentAttendanceManager {
       if (currentUser == null) {
         throw Exception('No hay usuario logueado para iniciar tracking');
       }
-      debugPrint('✅ Usuario cargado para tracking: ${currentUser.correo}');
+      logger.d('✅ Usuario cargado para tracking: ${currentUser.correo}');
 
       // 3. Actualizar estado inicial con evento Y usuario
       _updateState(_currentState.copyWith(
@@ -255,7 +256,7 @@ class StudentAttendanceManager {
             evento.titulo); // Fixed: use titulo instead of nombre
         await _notificationManager.showTrackingActiveNotification();
       } else {
-        debugPrint(
+        logger.d(
             '⚠️ Evento sin ID válido - omitiendo notificación específica');
         // Podrías mostrar una notificación genérica o manejar el error
       }
@@ -275,9 +276,9 @@ class StudentAttendanceManager {
       // 7. Realizar primera actualización inmediata
       await _performLocationUpdate();
 
-      debugPrint('✅ Tracking iniciado exitosamente');
+      logger.d('✅ Tracking iniciado exitosamente');
     } catch (e) {
-      debugPrint('❌ Error iniciando tracking: $e');
+      logger.d('❌ Error iniciando tracking: $e');
       _updateState(_currentState.copyWith(
         trackingStatus: TrackingStatus.error,
         lastError: 'Error iniciando tracking: $e',
@@ -291,7 +292,7 @@ class StudentAttendanceManager {
     bool enableBackgroundTracking = true,
   }) async {
     if (!_isServicesInitialized) {
-      debugPrint('❌ Servicios no inicializados');
+      logger.d('❌ Servicios no inicializados');
       return false;
     }
     
@@ -305,12 +306,12 @@ class StudentAttendanceManager {
           userId: _currentState.currentUser?.id ?? '',
           eventoId: eventoId,
         );
-        debugPrint(bgSuccess ? '✅ Background tracking iniciado' : '⚠️ Background tracking falló');
+        logger.d(bgSuccess ? '✅ Background tracking iniciado' : '⚠️ Background tracking falló');
       }
       
       return true;
     } catch (e) {
-      debugPrint('❌ Error iniciando tracking: $e');
+      logger.d('❌ Error iniciando tracking: $e');
       return false;
     }
   }
@@ -324,7 +325,7 @@ class StudentAttendanceManager {
       (_) => _performLocationUpdate(),
     );
 
-    debugPrint(
+    logger.d(
         '🕒 Timer de tracking iniciado (${AppConstants.trackingIntervalSeconds}s)');
   }
 
@@ -332,7 +333,7 @@ class StudentAttendanceManager {
   Future<void> _performLocationUpdate() async {
     if (_currentState.currentEvent == null ||
         _currentState.currentUser == null) {
-      debugPrint('⚠️ No hay evento o usuario activo para tracking');
+      logger.d('⚠️ No hay evento o usuario activo para tracking');
       return;
     }
 
@@ -340,7 +341,7 @@ class StudentAttendanceManager {
       // 1. Obtener ubicación actual del usuario
       final userPosition = await _locationService.getCurrentPosition();
       if (userPosition == null) {
-        debugPrint('⚠️ No se pudo obtener ubicación del usuario');
+        logger.d('⚠️ No se pudo obtener ubicación del usuario');
         return;
       }
 
@@ -364,7 +365,7 @@ class StudentAttendanceManager {
         await _updateSessionState();
       }
     } catch (e) {
-      debugPrint('❌ Error en actualización de ubicación: $e');
+      logger.d('❌ Error en actualización de ubicación: $e');
       _updateState(_currentState.copyWith(
         lastError: 'Error actualizando ubicación: $e',
       ));
@@ -373,11 +374,11 @@ class StudentAttendanceManager {
 
   // 🎯 PROCESAR RESPUESTA COMPLETA DEL BACKEND
   Future<void> _processLocationResponse(LocationResponseModel response) async {
-    debugPrint('📍 Procesando respuesta del backend:');
-    debugPrint('   - insideGeofence: ${response.insideGeofence}');
-    debugPrint('   - distance: ${response.distance}m');
-    debugPrint('   - eventActive: ${response.eventActive}');
-    debugPrint('   - eventStarted: ${response.eventStarted}');
+    logger.d('📍 Procesando respuesta del backend:');
+    logger.d('   - insideGeofence: ${response.insideGeofence}');
+    logger.d('   - distance: ${response.distance}m');
+    logger.d('   - eventActive: ${response.eventActive}');
+    logger.d('   - eventStarted: ${response.eventStarted}');
 
     // 1. Verificar si el evento sigue activo
     if (!response.eventActive) {
@@ -399,11 +400,11 @@ class StudentAttendanceManager {
     }
 
     // 4. Actualizar estado principal
-    debugPrint('🗺️ ACTUALIZANDO COORDENADAS DEL USUARIO:');
-    debugPrint('   - Lat: ${response.latitude}');
-    debugPrint('   - Lng: ${response.longitude}');
-    debugPrint('   - Inside geofence: ${response.insideGeofence}');
-    debugPrint('   - Distance: ${response.distance}m');
+    logger.d('🗺️ ACTUALIZANDO COORDENADAS DEL USUARIO:');
+    logger.d('   - Lat: ${response.latitude}');
+    logger.d('   - Lng: ${response.longitude}');
+    logger.d('   - Inside geofence: ${response.insideGeofence}');
+    logger.d('   - Distance: ${response.distance}m');
     
     _updateState(_currentState.copyWith(
       isInsideGeofence: response.insideGeofence,
@@ -420,7 +421,7 @@ class StudentAttendanceManager {
 
   // 🎯 MANEJAR ENTRADA AL GEOFENCE
   Future<void> _handleEnteredGeofence(LocationResponseModel response) async {
-    debugPrint('✅ Usuario entró al geofence del evento');
+    logger.d('✅ Usuario entró al geofence del evento');
 
     // 1. Cancelar período de gracia si estaba activo
     _cancelGracePeriod();
@@ -445,7 +446,7 @@ class StudentAttendanceManager {
 
   // 🎯 MANEJAR SALIDA DEL GEOFENCE
   Future<void> _handleExitedGeofence(LocationResponseModel response) async {
-    debugPrint('⚠️ Usuario salió del geofence del evento');
+    logger.d('⚠️ Usuario salió del geofence del evento');
 
     // 1. ✅ NUEVO: Mostrar notificación inmediata de salida
     await _notificationManager.showGeofenceExitedNotification(
@@ -469,7 +470,7 @@ class StudentAttendanceManager {
   Future<void> _notifyTeacherStudentLeftArea() async {
     try {
       if (_currentState.currentEvent == null || _currentState.currentUser == null) {
-        debugPrint('⚠️ No hay evento o usuario para notificar al profesor');
+        logger.d('⚠️ No hay evento o usuario para notificar al profesor');
         return;
       }
 
@@ -480,9 +481,9 @@ class StudentAttendanceManager {
         timeOutside: null, // Se calculará en el backend o en tiempo real
       );
 
-      debugPrint('📨 Docente notificado: estudiante ${_currentState.currentUser!.nombre} salió del área');
+      logger.d('📨 Docente notificado: estudiante ${_currentState.currentUser!.nombre} salió del área');
     } catch (e) {
-      debugPrint('❌ Error notificando profesor sobre estudiante que salió: $e');
+      logger.d('❌ Error notificando profesor sobre estudiante que salió: $e');
     }
   }
 
@@ -490,7 +491,7 @@ class StudentAttendanceManager {
   Future<void> _notifyTeacherStudentJoined() async {
     try {
       if (_currentState.currentEvent == null || _currentState.currentUser == null) {
-        debugPrint('⚠️ No hay evento o usuario para notificar al profesor');
+        logger.d('⚠️ No hay evento o usuario para notificar al profesor');
         return;
       }
 
@@ -506,9 +507,9 @@ class StudentAttendanceManager {
         totalStudents: totalExpected,
       );
 
-      debugPrint('📨 Docente notificado: estudiante ${_currentState.currentUser!.nombre} se registró');
+      logger.d('📨 Docente notificado: estudiante ${_currentState.currentUser!.nombre} se registró');
     } catch (e) {
-      debugPrint('❌ Error notificando profesor sobre estudiante registrado: $e');
+      logger.d('❌ Error notificando profesor sobre estudiante registrado: $e');
     }
   }
 
@@ -546,23 +547,23 @@ class StudentAttendanceManager {
       },
     );
 
-    debugPrint('⏰ Período de gracia iniciado: ${gracePeriodSeconds}s');
+    logger.d('⏰ Período de gracia iniciado: ${gracePeriodSeconds}s');
   }
 
   /// ✅ NUEVO DÍA 4: Continuar heartbeat en background (sin interrumpir)
   void _continueBackgroundHeartbeat() {
-    debugPrint('💓 Continuando heartbeat en background');
+    logger.d('💓 Continuando heartbeat en background');
 
     // El heartbeat sigue funcionando normalmente en background
     // No se interrumpe por estar en background
     if (_heartbeatTimer?.isActive == true) {
-      debugPrint('✅ Heartbeat activo en background - sin cambios');
+      logger.d('✅ Heartbeat activo en background - sin cambios');
     }
   }
 
   // 🎯 MANEJAR EXPIRACIÓN DEL PERÍODO DE GRACIA
   Future<void> _handleGracePeriodExpired() async {
-    debugPrint('❌ Período de gracia expirado');
+    logger.d('❌ Período de gracia expirado');
 
     // 1. Mostrar notificación crítica - CORREGIDO (ya existe en NotificationService)
     // ✅ UNIFIED: Usar NotificationManager para grace period expirado
@@ -578,7 +579,7 @@ class StudentAttendanceManager {
 
   // 🎯 MANEJAR FIN DEL EVENTO
   Future<void> _handleEventEnded() async {
-    debugPrint('🏁 Evento terminado');
+    logger.d('🏁 Evento terminado');
 
     // 1. Detener tracking
     await stopTracking();
@@ -592,7 +593,7 @@ class StudentAttendanceManager {
 
   // 🎯 DETENER TRACKING
   Future<void> stopTracking() async {
-    debugPrint('🛑 Deteniendo tracking con limpieza completa');
+    logger.d('🛑 Deteniendo tracking con limpieza completa');
 
     // 1. Cancelar todos los timers críticos
     _trackingTimer?.cancel();
@@ -622,12 +623,12 @@ class StudentAttendanceManager {
       gracePeriodRemaining: 0,
     ));
 
-    debugPrint('✅ Tracking detenido con limpieza completa');
+    logger.d('✅ Tracking detenido con limpieza completa');
   }
 
   // 🎯 PAUSAR TRACKING (DURANTE RECESOS)
   Future<void> pauseTracking() async {
-    debugPrint('⏸️ Pausando tracking para receso');
+    logger.d('⏸️ Pausando tracking para receso');
 
     _trackingTimer?.cancel();
     _gracePeriodTimer?.cancel();
@@ -643,7 +644,7 @@ class StudentAttendanceManager {
 
   // 🎯 REANUDAR TRACKING (DESPUÉS DEL RECESO)
   Future<void> resumeTracking() async {
-    debugPrint('▶️ Reanudando tracking después del receso');
+    logger.d('▶️ Reanudando tracking después del receso');
 
     _updateState(_currentState.copyWith(
       trackingStatus: TrackingStatus.active,
@@ -663,12 +664,12 @@ class StudentAttendanceManager {
   // 🎯 REGISTRAR ASISTENCIA MANUALMENTE
   Future<bool> registerAttendance() async {
     if (!_currentState.canAttemptAttendanceRegistration) {
-      debugPrint('⚠️ No se puede registrar asistencia en este momento');
+      logger.d('⚠️ No se puede registrar asistencia en este momento');
       return false;
     }
 
     try {
-      debugPrint(
+      logger.d(
           '📝 Registrando asistencia para evento: ${_currentState.currentEvent?.titulo}');
 
       // Aquí iría la lógica para registrar en el backend
@@ -687,10 +688,10 @@ class StudentAttendanceManager {
       // ✅ NUEVO: Enviar notificación via WebSocket
       _sendAttendanceUpdate('presente');
 
-      debugPrint('✅ Asistencia registrada exitosamente');
+      logger.d('✅ Asistencia registrada exitosamente');
       return true;
     } catch (e) {
-      debugPrint('❌ Error registrando asistencia: $e');
+      logger.d('❌ Error registrando asistencia: $e');
       _updateState(_currentState.copyWith(
         lastError: 'Error registrando asistencia: $e',
       ));
@@ -720,13 +721,13 @@ class StudentAttendanceManager {
 
     // Log del estado para debugging
     if (AppConstants.enableDetailedLogging) {
-      debugPrint('🎯 Estado actualizado: ${_currentState.statusText}');
+      logger.d('🎯 Estado actualizado: ${_currentState.statusText}');
     }
   }
 
   // 🎯 CLEANUP Y DISPOSE - FIXED: Enhanced memory leak prevention
   Future<void> dispose() async {
-    debugPrint('🧹 Limpiando StudentAttendanceManager con recursos críticos');
+    logger.d('🧹 Limpiando StudentAttendanceManager con recursos críticos');
 
     // 1. Detener tracking activo (ya cancela la mayoría de timers)
     await stopTracking();
@@ -749,7 +750,7 @@ class StudentAttendanceManager {
         await _stateController.close();
       }
     } catch (e) {
-      debugPrint('⚠️ Error closing state controller: $e');
+      logger.d('⚠️ Error closing state controller: $e');
     }
 
     try {
@@ -757,24 +758,24 @@ class StudentAttendanceManager {
         await _locationController.close();
       }
     } catch (e) {
-      debugPrint('⚠️ Error closing location controller: $e');
+      logger.d('⚠️ Error closing location controller: $e');
     }
 
     // 4. FIXED: Location service cleanup (no subscriptions to stop, but ensure no pending operations)
     // Note: LocationService doesn't have persistent subscriptions to stop
-    debugPrint('✅ Location service cleanup completed');
+    logger.d('✅ Location service cleanup completed');
 
     // 5. FIXED: Clean up notification service
     try {
       await _notificationManager.clearAllNotifications();
     } catch (e) {
-      debugPrint('⚠️ Error clearing notifications: $e');
+      logger.d('⚠️ Error clearing notifications: $e');
     }
 
     // 6. FIXED: Reset state to prevent accidental reuse
     _currentState = AttendanceState.initial();
 
-    debugPrint('✅ StudentAttendanceManager disposed completamente - No memory leaks');
+    logger.d('✅ StudentAttendanceManager disposed completamente - No memory leaks');
   }
 
   // 🎯 ========== MÉTODOS CRÍTICOS DÍA 2 ==========
@@ -782,12 +783,12 @@ class StudentAttendanceManager {
   /// Registro de asistencia con backend real
   Future<bool> registerAttendanceWithBackend() async {
     if (!_currentState.canAttemptAttendanceRegistration) {
-      debugPrint('⚠️ No se puede registrar asistencia en este momento');
+      logger.d('⚠️ No se puede registrar asistencia en este momento');
       return false;
     }
 
     try {
-      debugPrint('📝 Registrando asistencia en backend real');
+      logger.d('📝 Registrando asistencia en backend real');
 
       final response = await _asistenciaService.registrarAsistencia(
         eventoId: _currentState.currentEvent!.id!,
@@ -808,13 +809,13 @@ class StudentAttendanceManager {
           attendanceRegisteredTime: DateTime.now(),
         ));
 
-        debugPrint('✅ Asistencia registrada en backend exitosamente');
+        logger.d('✅ Asistencia registrada en backend exitosamente');
         return true;
       }
 
       return false;
     } catch (e) {
-      debugPrint('❌ Error registrando asistencia en backend: $e');
+      logger.d('❌ Error registrando asistencia en backend: $e');
       return false;
     }
   }
@@ -822,33 +823,33 @@ class StudentAttendanceManager {
   /// Validar permisos antes de iniciar tracking
   Future<bool> validatePermissionsBeforeTracking() async {
     try {
-      debugPrint('🔍 Validando permisos antes de iniciar tracking');
+      logger.d('🔍 Validando permisos antes de iniciar tracking');
 
       final permissionsValid =
           await _permissionService.validateAllPermissionsForTracking();
 
       if (!permissionsValid) {
-        debugPrint('❌ Permisos insuficientes para tracking');
+        logger.d('❌ Permisos insuficientes para tracking');
         await _notificationManager.showCriticalAppLifecycleWarning();
         return false;
       }
 
-      debugPrint('✅ Todos los permisos validados correctamente');
+      logger.d('✅ Todos los permisos validados correctamente');
       return true;
     } catch (e) {
-      debugPrint('❌ Error validando permisos: $e');
+      logger.d('❌ Error validando permisos: $e');
       return false;
     }
   }
 
   /// Manejo mejorado de app lifecycle con restricciones
   void handleAppLifecycleChange(AppLifecycleState state) {
-    debugPrint('📱 App lifecycle cambió a: $state');
+    logger.d('📱 App lifecycle cambió a: $state');
 
     switch (state) {
       case AppLifecycleState.resumed:
         _isAppInForeground = true;
-        debugPrint('✅ App en foreground - tracking normal');
+        logger.d('✅ App en foreground - tracking normal');
 
         if (_currentState.isInGracePeriod) {
           _cancelGracePeriod();
@@ -857,24 +858,24 @@ class StudentAttendanceManager {
 
       case AppLifecycleState.paused:
         _isAppInForeground = false;
-        debugPrint('📱 App en background - tracking continúa normalmente');
+        logger.d('📱 App en background - tracking continúa normalmente');
         // ✅ CORREGIDO: NO iniciar grace period para 'paused' - solo background tracking normal
         _updateBackgroundTrackingStatus();
         break;
 
       case AppLifecycleState.detached:
-        debugPrint('🚨 App CERRADA COMPLETAMENTE - Iniciando grace period 30s');
+        logger.d('🚨 App CERRADA COMPLETAMENTE - Iniciando grace period 30s');
         _isAppInForeground = false;
         _triggerGracePeriod();
         break;
 
       case AppLifecycleState.inactive:
-        debugPrint('⏸️ App inactiva temporalmente - sin cambios');
+        logger.d('⏸️ App inactiva temporalmente - sin cambios');
         break;
 
       case AppLifecycleState.hidden:
         _isAppInForeground = false;
-        debugPrint('🙈 App hidden - background tracking normal');
+        logger.d('🙈 App hidden - background tracking normal');
         // ✅ CORREGIDO: NO grace period para hidden - solo background tracking
         _updateBackgroundTrackingStatus();
         break;
@@ -885,7 +886,7 @@ class StudentAttendanceManager {
   void _updateBackgroundTrackingStatus() {
     if (_currentState.trackingStatus != TrackingStatus.active) return;
 
-    debugPrint('📱 Actualizando a background tracking - SIN penalización');
+    logger.d('📱 Actualizando a background tracking - SIN penalización');
 
     // Mostrar notificación informativa (no warning)
     _notificationManager.showBackgroundTrackingNotification();
@@ -909,7 +910,7 @@ class StudentAttendanceManager {
     }
 
     try {
-      debugPrint('💓 Enviando heartbeat crítico al backend');
+      logger.d('💓 Enviando heartbeat crítico al backend');
 
       final response = await _asistenciaService.enviarHeartbeat(
         usuarioId: _currentState.currentUser!.id,
@@ -925,19 +926,19 @@ class StudentAttendanceManager {
           await _processBackendCommand(response.data!['command']);
         }
 
-        debugPrint('✅ Heartbeat enviado exitosamente');
+        logger.d('✅ Heartbeat enviado exitosamente');
       } else {
-        debugPrint('⚠️ Heartbeat falló - intentando reconectar');
+        logger.d('⚠️ Heartbeat falló - intentando reconectar');
         _handleHeartbeatFailure();
       }
     } catch (e) {
-      debugPrint('❌ Error enviando heartbeat: $e');
+      logger.d('❌ Error enviando heartbeat: $e');
       _handleHeartbeatFailure();
     }
   }
 
   Future<void> _processBackendCommand(String command) async {
-    debugPrint('📡 Procesando comando del backend: $command');
+    logger.d('📡 Procesando comando del backend: $command');
 
     switch (command) {
       case 'force_attendance_loss':
@@ -958,7 +959,7 @@ class StudentAttendanceManager {
         await resumeTracking();
         break;
       default:
-        debugPrint('⚠️ Comando desconocido: $command');
+        logger.d('⚠️ Comando desconocido: $command');
     }
   }
 
@@ -982,10 +983,10 @@ class StudentAttendanceManager {
         longitud: longitude,
       );
 
-      debugPrint(
+      logger.d(
           '📍 Evento geofence registrado: ${entering ? "entrada" : "salida"}');
     } catch (e) {
-      debugPrint('❌ Error registrando evento geofence: $e');
+      logger.d('❌ Error registrando evento geofence: $e');
     }
   }
 
@@ -1004,12 +1005,12 @@ class StudentAttendanceManager {
       },
     );
 
-    debugPrint('💓 Heartbeat iniciado cada 30 segundos');
+    logger.d('💓 Heartbeat iniciado cada 30 segundos');
   }
 
   /// Manejar falla crítica de heartbeat - FIXED: No memory leaks
   void _handleHeartbeatFailure() {
-    debugPrint('🚨 Falla crítica de heartbeat detectada');
+    logger.d('🚨 Falla crítica de heartbeat detectada');
 
     _notificationManager.showAppClosedWarningNotification(30);
 
@@ -1038,20 +1039,20 @@ class StudentAttendanceManager {
       },
     );
 
-    debugPrint('📱 Monitoreo de lifecycle iniciado');
+    logger.d('📱 Monitoreo de lifecycle iniciado');
   }
 
   /// Manejar app en background
   void _handleAppInBackground() {
     if (_currentState.trackingStatus != TrackingStatus.active) return;
 
-    debugPrint('📱 App en background durante tracking activo');
+    logger.d('📱 App en background durante tracking activo');
     _notificationManager.showCriticalAppLifecycleWarning();
   }
 
   /// Pérdida automática de asistencia
   Future<void> _triggerAutomaticAttendanceLoss(String reason) async {
-    debugPrint('🚨 PÉRDIDA AUTOMÁTICA DE ASISTENCIA: $reason');
+    logger.d('🚨 PÉRDIDA AUTOMÁTICA DE ASISTENCIA: $reason');
 
     if (_currentState.currentEvent == null ||
         _currentState.currentUser == null) {
@@ -1072,21 +1073,21 @@ class StudentAttendanceManager {
         lastError: reason,
       ));
 
-      debugPrint('✅ Pérdida de asistencia procesada');
+      logger.d('✅ Pérdida de asistencia procesada');
     } catch (e) {
-      debugPrint('❌ Error procesando pérdida de asistencia: $e');
+      logger.d('❌ Error procesando pérdida de asistencia: $e');
     }
   }
 
   /// ✅ NUEVO: Inicializar WebSocket para el evento
   Future<void> _initializeWebSocketForEvent(String eventoId) async {
     try {
-      debugPrint('🔌 Inicializando WebSocket para estudiante en evento: $eventoId');
+      logger.d('🔌 Inicializando WebSocket para estudiante en evento: $eventoId');
       
       // Obtener información del usuario actual
       final currentUser = await _storageService.getUser();
       if (currentUser == null) {
-        debugPrint('❌ No hay usuario logueado para WebSocket');
+        logger.d('❌ No hay usuario logueado para WebSocket');
         return;
       }
       
@@ -1102,14 +1103,14 @@ class StudentAttendanceManager {
         _wsSubscription = WebSocketService.instance.messageStream.listen(
           _handleWebSocketMessage,
           onError: (error) {
-            debugPrint('❌ Error WebSocket en attendance manager: $error');
+            logger.d('❌ Error WebSocket en attendance manager: $error');
           },
         );
         
-        debugPrint('✅ WebSocket inicializado para estudiante');
+        logger.d('✅ WebSocket inicializado para estudiante');
       }
     } catch (e) {
-      debugPrint('❌ Error configurando WebSocket: $e');
+      logger.d('❌ Error configurando WebSocket: $e');
     }
   }
 
@@ -1117,7 +1118,7 @@ class StudentAttendanceManager {
   void _handleWebSocketMessage(Map<String, dynamic> data) {
     final messageType = data['type'] as String?;
     
-    debugPrint('📨 Mensaje WebSocket recibido en attendance manager: $messageType');
+    logger.d('📨 Mensaje WebSocket recibido en attendance manager: $messageType');
     
     switch (messageType) {
       case 'event_status_changed':
@@ -1145,7 +1146,7 @@ class StudentAttendanceManager {
   /// ✅ NUEVO: Manejar cambio de estado de evento
   void _handleEventStatusChanged(Map<String, dynamic> data) {
     final newStatus = data['newStatus'] as String?;
-    debugPrint('📢 Estado de evento cambiado: $newStatus');
+    logger.d('📢 Estado de evento cambiado: $newStatus');
     
     if (newStatus == 'finalizado' || newStatus == 'cancelado') {
       _handleEventEnded();
@@ -1157,7 +1158,7 @@ class StudentAttendanceManager {
   /// ✅ NUEVO: Manejar período de gracia iniciado via WebSocket
   void _handleGracePeriodStarted(Map<String, dynamic> data) {
     final gracePeriodSeconds = data['gracePeriodSeconds'] as int? ?? 60;
-    debugPrint('⏰ Período de gracia iniciado via WebSocket: ${gracePeriodSeconds}s');
+    logger.d('⏰ Período de gracia iniciado via WebSocket: ${gracePeriodSeconds}s');
     
     // Iniciar período de gracia local
     _triggerGracePeriod();
@@ -1165,7 +1166,7 @@ class StudentAttendanceManager {
 
   /// ✅ NUEVO: Manejar verificación forzada de asistencia
   void _handleForcedAttendanceCheck(Map<String, dynamic> data) {
-    debugPrint('🔍 Verificación forzada de asistencia solicitada');
+    logger.d('🔍 Verificación forzada de asistencia solicitada');
     // Realizar verificación inmediata de ubicación
     _performLocationUpdate();
   }
@@ -1173,7 +1174,7 @@ class StudentAttendanceManager {
   /// ✅ NUEVO: Manejar inicio de receso
   void _handleBreakStarted(Map<String, dynamic> data) {
     final breakDurationMinutes = data['breakDurationMinutes'] as int? ?? 15;
-    debugPrint('⏸️ Receso iniciado: $breakDurationMinutes minutos');
+    logger.d('⏸️ Receso iniciado: $breakDurationMinutes minutos');
     
     // Mostrar notificación de receso
     _notificationManager.showBreakStartedNotification();
@@ -1181,7 +1182,7 @@ class StudentAttendanceManager {
 
   /// ✅ NUEVO: Manejar fin de receso
   void _handleBreakEnded(Map<String, dynamic> data) {
-    debugPrint('▶️ Receso terminado');
+    logger.d('▶️ Receso terminado');
     
     // Mostrar notificación de fin de receso
     _notificationManager.showBreakEndedNotification();
@@ -1191,7 +1192,7 @@ class StudentAttendanceManager {
   void _sendAttendanceUpdate(String status) {
     try {
       if (_currentState.currentEvent?.id == null || _currentState.currentUser?.id == null) {
-        debugPrint('⚠️ No hay evento o usuario para enviar update WebSocket');
+        logger.d('⚠️ No hay evento o usuario para enviar update WebSocket');
         return;
       }
       
@@ -1209,10 +1210,10 @@ class StudentAttendanceManager {
       };
       
       WebSocketService.instance.sendMessage(message);
-      debugPrint('📤 Actualización de asistencia enviada via WebSocket');
+      logger.d('📤 Actualización de asistencia enviada via WebSocket');
       
     } catch (e) {
-      debugPrint('❌ Error enviando update via WebSocket: $e');
+      logger.d('❌ Error enviando update via WebSocket: $e');
     }
   }
 
@@ -1221,29 +1222,29 @@ class StudentAttendanceManager {
     try {
       await _wsSubscription?.cancel();
       _wsSubscription = null;
-      debugPrint('✅ WebSocket connection cleaned up en attendance manager');
+      logger.d('✅ WebSocket connection cleaned up en attendance manager');
     } catch (e) {
-      debugPrint('❌ Error limpiando WebSocket: $e');
+      logger.d('❌ Error limpiando WebSocket: $e');
     }
   }
 
   /// ✅ NUEVO: Verificar y recuperar sesión activa al inicializar la app
   Future<void> _checkAndRecoverActiveSession() async {
     try {
-      debugPrint('🔍 Verificando si hay sesión activa para recuperar...');
+      logger.d('🔍 Verificando si hay sesión activa para recuperar...');
       
       final activeSession = await _sessionPersistence.getActiveSession();
       if (activeSession == null) {
-        debugPrint('💡 No hay sesión activa para recuperar');
+        logger.d('💡 No hay sesión activa para recuperar');
         return;
       }
       
-      debugPrint('🔄 Sesión activa encontrada: ${activeSession.eventTitle}');
+      logger.d('🔄 Sesión activa encontrada: ${activeSession.eventTitle}');
       
       // Verificar si el evento aún es válido (no ha terminado hace más de 1 hora)
       final now = DateTime.now();
       if (now.isAfter(activeSession.eventEndTime.add(Duration(hours: 1)))) {
-        debugPrint('⚠️ Sesión expirada, limpiando...');
+        logger.d('⚠️ Sesión expirada, limpiando...');
         await _sessionPersistence.clearActiveSession();
         return;
       }
@@ -1251,7 +1252,7 @@ class StudentAttendanceManager {
       // Obtener estado guardado
       final savedState = await _sessionPersistence.getSavedAttendanceState();
       if (savedState == null) {
-        debugPrint('❌ No se pudo recuperar el estado de asistencia');
+        logger.d('❌ No se pudo recuperar el estado de asistencia');
         await _sessionPersistence.clearActiveSession();
         return;
       }
@@ -1262,7 +1263,7 @@ class StudentAttendanceManager {
       
       // Reiniciar el tracking si estaba activo
       if (_currentState.trackingStatus == TrackingStatus.active) {
-        debugPrint('🎯 Recuperando tracking activo para: ${activeSession.eventTitle}');
+        logger.d('🎯 Recuperando tracking activo para: ${activeSession.eventTitle}');
         
         // Reiniciar timers y tracking
         await _resumeTracking(activeSession);
@@ -1273,10 +1274,10 @@ class StudentAttendanceManager {
           _formatDuration(now.difference(activeSession.startedAt)),
         );
         
-        debugPrint('✅ Sesión recuperada exitosamente');
+        logger.d('✅ Sesión recuperada exitosamente');
       }
     } catch (e) {
-      debugPrint('❌ Error recuperando sesión activa: $e');
+      logger.d('❌ Error recuperando sesión activa: $e');
       // En caso de error, limpiar la sesión para evitar estados inconsistentes
       await _sessionPersistence.clearActiveSession();
     }
@@ -1294,9 +1295,9 @@ class StudentAttendanceManager {
       // Actualizar WebSocket si es necesario
       await _initializeWebSocketForEvent(session.eventId);
       
-      debugPrint('✅ Tracking reanudado para: ${session.eventTitle}');
+      logger.d('✅ Tracking reanudado para: ${session.eventTitle}');
     } catch (e) {
-      debugPrint('❌ Error reanudando tracking: $e');
+      logger.d('❌ Error reanudando tracking: $e');
     }
   }
 
@@ -1308,9 +1309,9 @@ class StudentAttendanceManager {
         usuario: usuario,
         state: _currentState,
       );
-      debugPrint('💾 Sesión activa guardada para: ${evento.titulo}');
+      logger.d('💾 Sesión activa guardada para: ${evento.titulo}');
     } catch (e) {
-      debugPrint('❌ Error guardando sesión activa: $e');
+      logger.d('❌ Error guardando sesión activa: $e');
     }
   }
 
@@ -1321,7 +1322,7 @@ class StudentAttendanceManager {
         await _sessionPersistence.updateSessionState(_currentState);
       }
     } catch (e) {
-      debugPrint('❌ Error actualizando estado de sesión: $e');
+      logger.d('❌ Error actualizando estado de sesión: $e');
     }
   }
 
@@ -1329,9 +1330,9 @@ class StudentAttendanceManager {
   Future<void> _clearActiveSession() async {
     try {
       await _sessionPersistence.clearActiveSession();
-      debugPrint('✅ Sesión activa finalizada');
+      logger.d('✅ Sesión activa finalizada');
     } catch (e) {
-      debugPrint('❌ Error finalizando sesión activa: $e');
+      logger.d('❌ Error finalizando sesión activa: $e');
     }
   }
 

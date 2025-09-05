@@ -1,4 +1,5 @@
 // lib/widgets/dashboard/event_students_management_widget.dart
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../utils/colors.dart';
@@ -107,11 +108,11 @@ class _EventStudentsManagementWidgetState extends State<EventStudentsManagementW
     });
 
     try {
-      debugPrint('📚 Loading students data for event: ${widget.evento.id}');
+      logger.d('📚 Loading students data for event: ${widget.evento.id}');
       
       // ✅ VALIDAR que el evento tenga ID antes de hacer la petición
       if (widget.evento.id == null || widget.evento.id!.isEmpty) {
-        debugPrint('❌ Event ID is null or empty, cannot load attendances');
+        logger.d('❌ Event ID is null or empty, cannot load attendances');
         if (mounted) {
           setState(() {
             _attendances = [];
@@ -134,9 +135,9 @@ class _EventStudentsManagementWidgetState extends State<EventStudentsManagementW
         });
       }
 
-      debugPrint('✅ Students data loaded: ${attendances.length} records');
+      logger.d('✅ Students data loaded: ${attendances.length} records');
     } catch (e) {
-      debugPrint('❌ Error loading students data: $e');
+      logger.d('❌ Error loading students data: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -155,7 +156,7 @@ class _EventStudentsManagementWidgetState extends State<EventStudentsManagementW
     try {
       // ✅ VALIDAR ID antes de hacer petición de actualización
       if (widget.evento.id == null || widget.evento.id!.isEmpty) {
-        debugPrint('❌ Event ID is null or empty, cannot refresh attendances');
+        logger.d('❌ Event ID is null or empty, cannot refresh attendances');
         if (mounted) {
           setState(() {
             _isUpdating = false;
@@ -174,7 +175,7 @@ class _EventStudentsManagementWidgetState extends State<EventStudentsManagementW
         });
       }
     } catch (e) {
-      debugPrint('❌ Error refreshing data: $e');
+      logger.d('❌ Error refreshing data: $e');
       if (mounted) {
         setState(() {
           _isUpdating = false;
@@ -189,7 +190,7 @@ class _EventStudentsManagementWidgetState extends State<EventStudentsManagementW
     _absentStudents = _totalStudents - _presentStudents;
     _attendanceRate = _totalStudents > 0 ? (_presentStudents / _totalStudents) * 100 : 0;
     
-    debugPrint('📊 Statistics: Total: $_totalStudents, Present: $_presentStudents, Rate: ${_attendanceRate.toStringAsFixed(1)}%');
+    logger.d('📊 Statistics: Total: $_totalStudents, Present: $_presentStudents, Rate: ${_attendanceRate.toStringAsFixed(1)}%');
   }
 
   @override
@@ -944,14 +945,14 @@ class _EventStudentsManagementWidgetState extends State<EventStudentsManagementW
 
   Future<void> _toggleEventStatus(String action) async {
     // Implementation for event status management
-    debugPrint('Event $action requested for ${widget.evento.id}');
+    logger.d('Event $action requested for ${widget.evento.id}');
     AppRouter.showSnackBar('Funcionalidad en desarrollo: $action evento');
   }
 
   void _navigateToEventMonitor() {
     // ✅ VALIDAR ID antes de navegar
     if (widget.evento.id == null || widget.evento.id!.isEmpty) {
-      debugPrint('❌ Event ID is null or empty, cannot navigate to monitor');
+      logger.d('❌ Event ID is null or empty, cannot navigate to monitor');
       AppRouter.showSnackBar('Error: El evento no tiene ID válido');
       return;
     }

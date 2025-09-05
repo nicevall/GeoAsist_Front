@@ -1,3 +1,4 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/screens/my_events_management_screen.dart
 import 'package:flutter/material.dart';
 import '../utils/colors.dart';
@@ -41,23 +42,23 @@ class _MyEventsManagementScreenState extends State<MyEventsManagementScreen> {
       
       if (_currentUser?.rol == AppConstants.profesorRole) {
         // ✅ PROFESOR: Solo sus eventos
-        debugPrint('📚 Cargando eventos del profesor: ${_currentUser!.id}');
+        logger.d('📚 Cargando eventos del profesor: ${_currentUser!.id}');
         final eventos = await _eventoService.getEventosByCreador(_currentUser!.id);
         setState(() {
           _userEvents = eventos;
           _isLoading = false;
         });
-        debugPrint('✅ Profesor: Cargados ${eventos.length} eventos');
+        logger.d('✅ Profesor: Cargados ${eventos.length} eventos');
         
       } else if (_currentUser?.rol == AppConstants.adminRole) {
         // ✅ ADMIN: Todos los eventos
-        debugPrint('👑 Cargando todos los eventos (admin)');
+        logger.d('👑 Cargando todos los eventos (admin)');
         final eventos = await _eventoService.obtenerEventos();
         setState(() {
           _userEvents = eventos;
           _isLoading = false;
         });
-        debugPrint('✅ Admin: Cargados ${eventos.length} eventos');
+        logger.d('✅ Admin: Cargados ${eventos.length} eventos');
         
       } else {
         throw Exception('Rol no autorizado para gestión de eventos');
@@ -551,7 +552,7 @@ class _MyEventsManagementScreenState extends State<MyEventsManagementScreen> {
   /// ✅ MÉTODO DE MONITOREO FUNCIONAL
   Future<void> _startEventMonitoring(Evento evento) async {
     try {
-      debugPrint('📊 Iniciando monitoreo del evento: ${evento.titulo}');
+      logger.d('📊 Iniciando monitoreo del evento: ${evento.titulo}');
       
       AppRouter.goToEventMonitor(
         eventId: evento.id!,
@@ -559,7 +560,7 @@ class _MyEventsManagementScreenState extends State<MyEventsManagementScreen> {
       );
       
     } catch (e) {
-      debugPrint('❌ Error iniciando monitoreo: $e');
+      logger.d('❌ Error iniciando monitoreo: $e');
       AppRouter.showSnackBar('❌ Error iniciando monitoreo: $e', isError: true);
     }
   }

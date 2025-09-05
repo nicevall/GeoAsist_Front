@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../models/ubicacion_model.dart';
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 
 /// ✅ ATTENDANCE STATE MANAGER: Estados de asistencia según backend
 /// Responsabilidades:
@@ -36,7 +37,7 @@ class AttendanceStateManager {
 
   /// ✅ INICIALIZAR PARA EVENTO
   void initializeForEvent(String eventId) {
-    debugPrint('🎯 Initializing attendance state for event: $eventId');
+    logger.d('🎯 Initializing attendance state for event: $eventId');
     
     _currentEventId = eventId;
     _transitionTo(EstadoAsistencia.inicial, 'Event initialized');
@@ -53,7 +54,7 @@ class AttendanceStateManager {
     final now = DateTime.now();
     final minutesUntilStart = eventStartTime.difference(now).inMinutes;
     
-    debugPrint('📍 Updating state - Distance: ${distance.toStringAsFixed(2)}m, '
+    logger.d('📍 Updating state - Distance: ${distance.toStringAsFixed(2)}m, '
                'Radius: ${allowedRadius}m, Minutes until start: $minutesUntilStart');
 
     _lastKnownLocation = Ubicacion(latitud: latitude, longitud: longitude);
@@ -74,7 +75,7 @@ class AttendanceStateManager {
 
   /// 🔄 FORZAR TRANSICIÓN DE ESTADO
   void forceStateTransition(EstadoAsistencia newState, String reason) {
-    debugPrint('🔄 Forcing state transition to: $newState (reason: $reason)');
+    logger.d('🔄 Forcing state transition to: $newState (reason: $reason)');
     _transitionTo(newState, reason);
   }
 
@@ -112,7 +113,7 @@ class AttendanceStateManager {
     
     // Validar transición
     if (!_isValidTransition(previousState, newState)) {
-      debugPrint('❌ Invalid state transition: $previousState -> $newState');
+      logger.d('❌ Invalid state transition: $previousState -> $newState');
       return;
     }
     
@@ -141,7 +142,7 @@ class AttendanceStateManager {
       distance: _lastCalculatedDistance,
     );
     
-    debugPrint('📊 State transition: $previousState -> $newState (reason: $reason)');
+    logger.d('📊 State transition: $previousState -> $newState (reason: $reason)');
     _emitStateChange(change);
   }
 
@@ -252,7 +253,7 @@ class AttendanceStateManager {
 
   /// 🧹 LIMPIAR ESTADO
   void clearState() {
-    debugPrint('🧹 Clearing attendance state');
+    logger.d('🧹 Clearing attendance state');
     
     _currentState = EstadoAsistencia.inicial;
     _lastStateChange = null;
@@ -265,12 +266,12 @@ class AttendanceStateManager {
 
   /// 🧹 CLEANUP
   void dispose() {
-    debugPrint('🧹 Disposing AttendanceStateManager');
+    logger.d('🧹 Disposing AttendanceStateManager');
     
     _stateController.close();
     _stateHistory.clear();
     
-    debugPrint('🧹 AttendanceStateManager disposed');
+    logger.d('🧹 AttendanceStateManager disposed');
   }
 }
 

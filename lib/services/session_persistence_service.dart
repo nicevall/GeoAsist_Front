@@ -1,7 +1,7 @@
+import 'package:geo_asist_front/core/utils/app_logger.dart';
 // lib/services/session_persistence_service.dart
 import 'dart:convert';
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import '../models/evento_model.dart';
 import '../models/usuario_model.dart';
 import '../models/attendance_state_model.dart';
@@ -29,7 +29,7 @@ class SessionPersistenceService {
     if (_isInitialized) return;
     
     try {
-      debugPrint('💾 Inicializando SessionPersistenceService');
+      logger.d('💾 Inicializando SessionPersistenceService');
       
       // Verificar si hay una sesión activa al iniciar la app
       await _checkForActiveSession();
@@ -38,9 +38,9 @@ class SessionPersistenceService {
       _startPeriodicSave();
       
       _isInitialized = true;
-      debugPrint('✅ SessionPersistenceService inicializado');
+      logger.d('✅ SessionPersistenceService inicializado');
     } catch (e) {
-      debugPrint('❌ Error inicializando SessionPersistenceService: $e');
+      logger.d('❌ Error inicializando SessionPersistenceService: $e');
     }
   }
 
@@ -51,7 +51,7 @@ class SessionPersistenceService {
     required AttendanceState state,
   }) async {
     try {
-      debugPrint('💾 Guardando sesión activa: ${evento.titulo}');
+      logger.d('💾 Guardando sesión activa: ${evento.titulo}');
       
       final sessionData = ActiveSessionData(
         eventId: evento.id!,
@@ -80,9 +80,9 @@ class SessionPersistenceService {
       // Mostrar notificación persistente
       await _showPersistentNotification(sessionData);
       
-      debugPrint('✅ Sesión activa guardada exitosamente');
+      logger.d('✅ Sesión activa guardada exitosamente');
     } catch (e) {
-      debugPrint('❌ Error guardando sesión activa: $e');
+      logger.d('❌ Error guardando sesión activa: $e');
     }
   }
 
@@ -99,10 +99,10 @@ class SessionPersistenceService {
         await _storageService.saveData(_activeSessionKey, json.encode(updatedSession.toJson()));
         await _saveAttendanceState(state);
         
-        debugPrint('💾 Estado de sesión actualizado');
+        logger.d('💾 Estado de sesión actualizado');
       }
     } catch (e) {
-      debugPrint('❌ Error actualizando estado de sesión: $e');
+      logger.d('❌ Error actualizando estado de sesión: $e');
     }
   }
 
@@ -127,7 +127,7 @@ class SessionPersistenceService {
       }
       return null;
     } catch (e) {
-      debugPrint('❌ Error obteniendo sesión activa: $e');
+      logger.d('❌ Error obteniendo sesión activa: $e');
       return null;
     }
   }
@@ -142,7 +142,7 @@ class SessionPersistenceService {
       }
       return null;
     } catch (e) {
-      debugPrint('❌ Error obteniendo estado de asistencia: $e');
+      logger.d('❌ Error obteniendo estado de asistencia: $e');
       return null;
     }
   }
@@ -156,9 +156,9 @@ class SessionPersistenceService {
       // Cancelar notificación persistente
       await _notificationManager.cancelNotification(1000);
       
-      debugPrint('✅ Sesión activa limpiada');
+      logger.d('✅ Sesión activa limpiada');
     } catch (e) {
-      debugPrint('❌ Error limpiando sesión activa: $e');
+      logger.d('❌ Error limpiando sesión activa: $e');
     }
   }
 
@@ -167,7 +167,7 @@ class SessionPersistenceService {
     try {
       final session = await getActiveSession();
       if (session != null) {
-        debugPrint('🔄 Sesión activa encontrada: ${session.eventTitle}');
+        logger.d('🔄 Sesión activa encontrada: ${session.eventTitle}');
         
         // Verificar si el evento aún está en tiempo válido
         final now = DateTime.now();
@@ -182,7 +182,7 @@ class SessionPersistenceService {
       }
       return null;
     } catch (e) {
-      debugPrint('❌ Error verificando sesión activa: $e');
+      logger.d('❌ Error verificando sesión activa: $e');
       return null;
     }
   }
@@ -205,7 +205,7 @@ class SessionPersistenceService {
         }),
       );
     } catch (e) {
-      debugPrint('❌ Error mostrando notificación persistente: $e');
+      logger.d('❌ Error mostrando notificación persistente: $e');
     }
   }
 
@@ -214,7 +214,7 @@ class SessionPersistenceService {
     try {
       await _storageService.saveData(_sessionStateKey, json.encode(state.toJson()));
     } catch (e) {
-      debugPrint('❌ Error guardando estado de asistencia: $e');
+      logger.d('❌ Error guardando estado de asistencia: $e');
     }
   }
 
@@ -233,7 +233,7 @@ class SessionPersistenceService {
       }
     });
     
-    debugPrint('⏱️ Guardado periódico de sesión iniciado (cada 30s)');
+    logger.d('⏱️ Guardado periódico de sesión iniciado (cada 30s)');
   }
 
   /// Verificar si hay una sesión activa
@@ -252,10 +252,10 @@ class SessionPersistenceService {
           // Agregar flag de pausa si es necesario
         );
         await _storageService.saveData(_activeSessionKey, json.encode(pausedSession.toJson()));
-        debugPrint('⏸️ Sesión pausada');
+        logger.d('⏸️ Sesión pausada');
       }
     } catch (e) {
-      debugPrint('❌ Error pausando sesión: $e');
+      logger.d('❌ Error pausando sesión: $e');
     }
   }
 
@@ -265,10 +265,10 @@ class SessionPersistenceService {
       final session = await getActiveSession();
       if (session != null) {
         await _showPersistentNotification(session);
-        debugPrint('▶️ Sesión reanudada');
+        logger.d('▶️ Sesión reanudada');
       }
     } catch (e) {
-      debugPrint('❌ Error reanudando sesión: $e');
+      logger.d('❌ Error reanudando sesión: $e');
     }
   }
 
@@ -276,7 +276,7 @@ class SessionPersistenceService {
   void dispose() {
     _persistenceTimer?.cancel();
     _isInitialized = false;
-    debugPrint('🔄 SessionPersistenceService detenido');
+    logger.d('🔄 SessionPersistenceService detenido');
   }
 }
 

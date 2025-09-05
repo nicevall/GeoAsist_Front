@@ -1,0 +1,1262 @@
+Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 85.0.0 (88.0.0 available)
+  _flutterfire_internals 1.3.59 (1.3.61 available)
+  analyzer 7.5.2 (8.1.1 available)
+  battery_plus 6.2.2 (6.2.3 available)
+  build 2.5.4 (4.0.0 available)
+  build_config 1.1.2 (1.2.0 available)
+  build_resolvers 2.5.4 (3.0.4 available)
+  build_runner 2.5.4 (2.7.2 available)
+  build_runner_core 9.1.2 (9.3.2 available)
+  built_value 8.10.1 (8.11.2 available)
+  characters 1.4.0 (1.4.1 available)
+  cloud_firestore 5.6.12 (6.0.1 available)
+  cloud_firestore_platform_interface 6.6.12 (7.0.1 available)
+  cloud_firestore_web 4.4.12 (5.0.1 available)
+  dart_style 3.1.0 (3.1.2 available)
+  device_info_plus 10.1.2 (11.5.0 available)
+  firebase_analytics 11.6.0 (12.0.1 available)
+  firebase_analytics_platform_interface 4.4.3 (5.0.1 available)
+  firebase_analytics_web 0.5.10+16 (0.6.0+1 available)
+  firebase_auth 5.7.0 (6.0.2 available)
+  firebase_auth_platform_interface 7.7.3 (8.1.1 available)
+  firebase_auth_web 5.15.3 (6.0.2 available)
+  firebase_core 3.15.2 (4.1.0 available)
+  firebase_core_web 2.24.1 (3.1.0 available)
+  firebase_messaging 15.2.10 (16.0.1 available)
+  firebase_messaging_platform_interface 4.6.10 (4.7.1 available)
+  firebase_messaging_web 3.10.10 (4.0.1 available)
+  flutter_local_notifications 19.4.0 (19.4.1 available)
+  flutter_plugin_android_lifecycle 2.0.28 (2.0.30 available)
+  flutter_secure_storage_linux 1.2.3 (2.0.1 available)
+  flutter_secure_storage_macos 3.1.3 (4.0.0 available)
+  flutter_secure_storage_platform_interface 1.1.2 (2.0.1 available)
+  flutter_secure_storage_web 1.2.1 (2.0.0 available)
+  flutter_secure_storage_windows 3.1.2 (4.0.0 available)
+  golden_toolkit 0.15.0 (discontinued)
+  google_maps_flutter 2.12.3 (2.13.1 available)
+  google_maps_flutter_android 2.16.2 (2.18.2 available)
+  google_maps_flutter_ios 2.15.4 (2.15.5 available)
+  google_maps_flutter_platform_interface 2.12.1 (2.14.0 available)
+  google_maps_flutter_web 0.5.12+2 (0.5.14+2 available)
+  intl 0.18.1 (0.20.2 available)
+  js 0.6.7 (0.7.2 available)
+  json_serializable 6.9.5 (6.11.0 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.16.0 (1.17.0 available)
+  mockito 5.4.6 (5.5.1 available)
+  package_info_plus 8.3.0 (8.3.1 available)
+  package_info_plus_platform_interface 3.2.0 (3.2.1 available)
+  path_provider_android 2.2.17 (2.2.18 available)
+  path_provider_foundation 2.4.1 (2.4.2 available)
+  petitparser 6.1.0 (7.0.1 available)
+  pointycastle 3.9.1 (4.0.0 available)
+  process 5.0.3 (5.0.5 available)
+  provider 6.1.5 (6.1.5+1 available)
+  shared_preferences_android 2.4.10 (2.4.12 available)
+  source_gen 2.0.0 (4.0.1 available)
+  source_helper 1.3.5 (1.3.7 available)
+  test 1.26.2 (1.26.3 available)
+  test_api 0.7.6 (0.7.7 available)
+  test_core 0.6.11 (0.6.12 available)
+  url_launcher_android 6.3.17 (6.3.18 available)
+  vm_service 15.0.0 (15.0.2 available)
+  watcher 1.1.2 (1.1.3 available)
+  web_socket_channel 2.4.0 (3.0.3 available)
+  win32_registry 1.1.5 (2.1.0 available)
+  workmanager_android 0.9.0 (0.9.0+2 available)
+  workmanager_apple 0.9.1 (0.9.1+2 available)
+  workmanager_platform_interface 0.9.0 (0.9.1+1 available)
+  xml 6.5.0 (6.6.1 available)
+Got dependencies!
+1 package is discontinued.
+68 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing geo_asist_front...                                    
+
+  error - Target of URI doesn't exist: '../utils/app_logger.dart' - lib\core\backend_sync_service.dart:2:8 - uri_does_not_exist
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:64:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:78:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:87:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:98:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:122:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:135:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:149:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:152:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:164:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:174:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:178:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:199:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:202:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:220:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:223:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:241:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:244:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:259:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:262:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:274:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:291:15 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:300:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:306:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:310:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:360:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:367:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:385:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:395:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:414:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:419:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:430:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\backend_sync_service.dart:439:5 - undefined_identifier
+warning - Unused import: 'package:equatable/equatable.dart' - lib\core\bloc\base_bloc.dart:3:8 - unused_import
+   info - Parameter 'initialState' could be a super parameter - lib\core\bloc\base_bloc.dart:8:3 - use_super_parameters
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:32:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:33:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:37:5 - avoid_print
+   info - Unnecessary braces in a string interpolation - lib\core\bloc\base_bloc.dart:37:16 - unnecessary_brace_in_string_interps
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:41:5 - avoid_print
+   info - Unnecessary braces in a string interpolation - lib\core\bloc\base_bloc.dart:41:16 - unnecessary_brace_in_string_interps
+   info - Parameter 'initialState' could be a super parameter - lib\core\bloc\base_bloc.dart:71:3 - use_super_parameters
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:86:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:87:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\bloc\base_bloc.dart:91:5 - avoid_print
+   info - Unnecessary braces in a string interpolation - lib\core\bloc\base_bloc.dart:91:16 - unnecessary_brace_in_string_interps
+  error - Target of URI doesn't exist: '../utils/app_logger.dart' - lib\core\error_handler.dart:1:8 - uri_does_not_exist
+  error - Undefined name 'logger' - lib\core\error_handler.dart:91:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\error_handler.dart:308:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\error_handler.dart:309:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\error_handler.dart:310:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\error_handler.dart:311:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\error_handler.dart:312:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\error_handler.dart:315:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\error_handler.dart:316:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\error_handler.dart:347:5 - undefined_identifier
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib\core\errors\failures.dart:28:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib\core\errors\failures.dart:65:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib\core\errors\failures.dart:112:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib\core\errors\failures.dart:156:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib\core\errors\failures.dart:201:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib\core\errors\failures.dart:238:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib\core\errors\failures.dart:267:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib\core\errors\failures.dart:296:9 - use_super_parameters
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:30:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:43:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:47:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:51:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:59:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:68:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:73:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:75:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:100:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:106:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:107:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:110:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:116:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:122:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:125:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:131:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:136:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:137:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:138:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:140:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:146:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:151:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:157:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\geo_assist_app.dart:162:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\performance\android_optimizations.dart:74:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\performance\android_optimizations.dart:81:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\performance\android_optimizations.dart:98:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\core\performance\android_optimizations.dart:224:7 - undefined_identifier
+  error - Missing concrete implementation of 'abstract class StatelessWidget extends Widget.build' - lib\core\performance\widget_optimization.dart:117:7 - non_abstract_class_inherits_abstract_member
+  error - Expected an initializer - lib\core\performance\widget_optimization.dart:143:102 - missing_initializer
+   info - Empty constructor bodies should be written using a ';' rather than '{}' - lib\core\performance\widget_optimization.dart:144:3 - empty_constructor_bodies
+  error - '' isn't a field in the enclosing class - lib\core\performance\widget_optimization.dart:144:3 - initializer_for_non_existent_field
+  error - A function body must be provided - lib\core\performance\widget_optimization.dart:144:3 - missing_function_body
+  error - Const constructors can't have a body - lib\core\performance\widget_optimization.dart:144:3 - const_constructor_with_body
+  error - Invalid constant value - lib\core\performance\widget_optimization.dart:144:3 - invalid_constant
+  error - Expected a method, getter, setter or operator declaration - lib\core\performance\widget_optimization.dart:144:4 - expected_executable
+  error - Unexpected text ';' - lib\core\performance\widget_optimization.dart:144:5 - unexpected_token
+  error - Undefined name 'assetPath' - lib\core\performance\widget_optimization.dart:149:9 - undefined_identifier
+  error - Undefined name 'assetPath' - lib\core\performance\widget_optimization.dart:151:9 - undefined_identifier
+  error - Undefined name 'width' - lib\core\performance\widget_optimization.dart:152:16 - undefined_identifier
+  error - Undefined name 'height' - lib\core\performance\widget_optimization.dart:153:17 - undefined_identifier
+  error - Undefined name 'fit' - lib\core\performance\widget_optimization.dart:154:14 - undefined_identifier
+  error - Undefined name 'color' - lib\core\performance\widget_optimization.dart:155:16 - undefined_identifier
+  error - Undefined name 'colorBlendMode' - lib\core\performance\widget_optimization.dart:156:25 - undefined_identifier
+  error - Undefined name 'errorWidget' - lib\core\performance\widget_optimization.dart:158:18 - undefined_identifier
+  error - Undefined name 'imageUrl' - lib\core\performance\widget_optimization.dart:165:7 - undefined_identifier
+  error - Undefined name 'width' - lib\core\performance\widget_optimization.dart:166:14 - undefined_identifier
+  error - Undefined name 'height' - lib\core\performance\widget_optimization.dart:167:15 - undefined_identifier
+  error - Undefined name 'fit' - lib\core\performance\widget_optimization.dart:168:12 - undefined_identifier
+  error - Undefined name 'color' - lib\core\performance\widget_optimization.dart:169:14 - undefined_identifier
+  error - Undefined name 'colorBlendMode' - lib\core\performance\widget_optimization.dart:170:23 - undefined_identifier
+  error - Undefined name 'fadeInDuration' - lib\core\performance\widget_optimization.dart:175:23 - undefined_identifier
+  error - Undefined name 'placeholder' - lib\core\performance\widget_optimization.dart:180:16 - undefined_identifier
+  error - Undefined name 'errorWidget' - lib\core\performance\widget_optimization.dart:183:16 - undefined_identifier
+  error - Undefined name 'width' - lib\core\performance\widget_optimization.dart:190:14 - undefined_identifier
+  error - Undefined name 'height' - lib\core\performance\widget_optimization.dart:191:15 - undefined_identifier
+  error - Undefined name 'width' - lib\core\performance\widget_optimization.dart:206:14 - undefined_identifier
+  error - Undefined name 'height' - lib\core\performance\widget_optimization.dart:207:15 - undefined_identifier
+  error - Expected a method, getter, setter or operator declaration - lib\core\performance\widget_optimization.dart:215:1 - expected_executable
+  error - Undefined name 'logger' - lib\core\performance\widget_optimization.dart:292:9 - undefined_identifier
+warning - The value of the local variable 'timer' isn't used - lib\core\performance\widget_optimization.dart:413:12 - unused_local_variable
+  error - Undefined name 'logger' - lib\core\performance\widget_optimization.dart:435:7 - undefined_identifier
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib\core\theme\android_theme.dart:36:16 - argument_type_not_assignable
+  error - The argument type 'DialogTheme' can't be assigned to the parameter type 'DialogThemeData?'.  - lib\core\theme\android_theme.dart:110:18 - argument_type_not_assignable
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib\core\theme\android_theme.dart:205:16 - argument_type_not_assignable
+   info - The type parameter name 'Type' matches a visible type name - lib\core\usecases\usecase.dart:8:24 - avoid_types_as_parameter_names
+   info - The type parameter name 'Params' matches a visible type name - lib\core\usecases\usecase.dart:8:30 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib\core\usecases\usecase.dart:14:32 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib\core\usecases\usecase.dart:20:30 - avoid_types_as_parameter_names
+   info - The type parameter name 'Params' matches a visible type name - lib\core\usecases\usecase.dart:20:36 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib\core\usecases\usecase.dart:26:38 - avoid_types_as_parameter_names
+   info - Parameters ''page', 'limit', 'sortBy', and 'ascending'' could be super parameters - lib\core\usecases\usecase.dart:69:9 - use_super_parameters
+   info - The type parameter name 'Params' matches a visible type name - lib\core\usecases\usecase.dart:126:47 - avoid_types_as_parameter_names
+  error - 'Params' doesn't conform to the bound 'Params' of the type parameter 'P' - lib\core\usecases\usecase.dart:129:30 - type_argument_not_matching_bounds
+  error - A value of type 'Failure' can't be returned from the method 'executeWithValidation' because it has a return type of 'Future<Result<T>>' - lib\core\usecases\usecase.dart:176:14 - return_of_invalid_type
+  error - Abstract classes can't be instantiated - lib\core\usecases\usecase.dart:176:14 - instantiate_abstract_class
+  error - The named parameter 'message' is required, but there's no corresponding argument - lib\core\usecases\usecase.dart:176:14 - missing_required_argument
+  error - The type 'Failure' is declared with 0 type parameters, but 1 type arguments were given - lib\core\usecases\usecase.dart:176:14 - wrong_number_of_type_arguments
+  error - Too many positional arguments: 0 expected, but 1 found - lib\core\usecases\usecase.dart:176:25 - extra_positional_arguments_could_be_named
+  error - The type 'Failure' is declared with 0 type parameters, but 1 type arguments were given - lib\core\usecases\usecase.dart:176:46 - wrong_number_of_type_arguments
+  error - The getter 'failure' isn't defined for the type 'Failure' - lib\core\usecases\usecase.dart:176:61 - undefined_getter
+   info - Don't invoke 'print' in production code - lib\core\usecases\usecase.dart:200:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\usecases\usecase.dart:205:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\core\usecases\usecase.dart:210:5 - avoid_print
+   info - 'printTime' is deprecated and shouldn't be used. Use `dateTimeFormat` with `DateTimeFormat.onlyTimeAndSinceStart` or `DateTimeFormat.none` instead - lib\core\utils\app_logger.dart:26:9 - deprecated_member_use
+   info - An uninitialized field should have an explicit type annotation - lib\core\utils\result.dart:75:9 - prefer_typing_uninitialized_variables
+   info - Missing type annotation - lib\core\utils\result.dart:75:9 - strict_top_level_inference
+  error - 'FailureResult.fold' ('R Function<R>(R Function(dynamic), R Function(T))') isn't a valid override of 'Result.fold' ('R Function<R>(R Function(Failure), R Function(T))') - lib\core\utils\result.dart:80:5 - invalid_override
+  error - failure isn't a type - lib\core\utils\result.dart:80:24 - not_a_type
+  error - Undefined class 'failure' - lib\core\utils\result.dart:106:37 - undefined_class
+  error - Undefined class 'failure' - lib\core\utils\result.dart:116:19 - undefined_class
+   info - Missing type annotation - lib\core\utils\result.dart:137:31 - strict_top_level_inference
+  error - A value of type 'Failure' can't be returned from the method '_checkAuthStatus' because it has a return type of 'Future<Result<AuthUser>>' - lib\features\auth\presentation\bloc\auth_bloc.dart:314:12 - return_of_invalid_type
+  error - Abstract classes can't be instantiated - lib\features\auth\presentation\bloc\auth_bloc.dart:314:18 - instantiate_abstract_class
+  error - The named parameter 'message' is required, but there's no corresponding argument - lib\features\auth\presentation\bloc\auth_bloc.dart:314:18 - missing_required_argument
+  error - Too many positional arguments: 0 expected, but 1 found - lib\features\auth\presentation\bloc\auth_bloc.dart:314:26 - extra_positional_arguments_could_be_named
+  error - Target of URI doesn't exist: 'package:flutter_localizations/flutter_localizations.dart' - lib\generated\l10n\app_localizations.dart:5:8 - uri_does_not_exist
+  error - Const variables must be initialized with a constant value - lib\generated\l10n\app_localizations.dart:90:5 - const_initialized_with_non_constant_value
+  error - The values in a const list literal must be constants - lib\generated\l10n\app_localizations.dart:90:5 - non_constant_list_element
+  error - Undefined name 'GlobalMaterialLocalizations' - lib\generated\l10n\app_localizations.dart:90:5 - undefined_identifier
+  error - The values in a const list literal must be constants - lib\generated\l10n\app_localizations.dart:91:5 - non_constant_list_element
+  error - Undefined name 'GlobalCupertinoLocalizations' - lib\generated\l10n\app_localizations.dart:91:5 - undefined_identifier
+  error - The values in a const list literal must be constants - lib\generated\l10n\app_localizations.dart:92:5 - non_constant_list_element
+  error - Undefined name 'GlobalWidgetsLocalizations' - lib\generated\l10n\app_localizations.dart:92:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\asistencia_model.dart:135:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\asistencia_model.dart:136:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:64:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:65:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:66:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:67:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:68:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:69:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:70:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:71:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:72:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:73:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:74:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:129:13 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:135:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:145:13 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:148:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:157:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:176:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:195:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:200:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:201:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:202:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:203:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:204:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:229:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\models\evento_model.dart:230:7 - undefined_identifier
+warning - The '!' will have no effect because the receiver can't be null - lib\screens\attendance\attendance_tracking_screen.dart:603:35 - unnecessary_non_null_assertion
+   info - Don't use 'BuildContext's across async gaps - lib\screens\attendance\attendance_tracking_screen.dart:812:54 - use_build_context_synchronously
+  error - Undefined name 'logger' - lib\screens\attendance\managers\attendance_tracking_manager.dart:100:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\screens\attendance\managers\attendance_tracking_manager.dart:115:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\screens\attendance\managers\attendance_tracking_manager.dart:153:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\screens\attendance\managers\attendance_tracking_manager.dart:166:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\screens\attendance\managers\attendance_tracking_manager.dart:213:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\screens\attendance\managers\attendance_tracking_manager.dart:253:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\screens\attendance\managers\attendance_tracking_manager.dart:294:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\screens\attendance\managers\attendance_tracking_manager.dart:322:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\screens\attendance\managers\attendance_tracking_manager.dart:390:7 - undefined_identifier
+warning - The '!' will have no effect because the receiver can't be null - lib\screens\dashboard_screen.dart:87:57 - unnecessary_non_null_assertion
+warning - The '!' will have no effect because the receiver can't be null - lib\screens\dashboard_screen.dart:88:44 - unnecessary_non_null_assertion
+   info - Don't use 'BuildContext's across async gaps - lib\screens\dashboard_screen.dart:592:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\dashboard_screen.dart:605:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\dashboard_screen.dart:618:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\dashboard_screen.dart:628:21 - use_build_context_synchronously
+  error - Undefined name 'logger' - lib\screens\map_view\widgets\map_area.dart:43:5 - undefined_identifier
+warning - The declaration '_buildSearchSection' isn't referenced - lib\screens\material3_demo_screen.dart:181:10 - unused_element
+warning - The declaration '_buildSegmentedSection' isn't referenced - lib\screens\material3_demo_screen.dart:226:10 - unused_element
+warning - The declaration '_buildCardsSection' isn't referenced - lib\screens\material3_demo_screen.dart:265:10 - unused_element
+warning - The declaration '_buildProgressSection' isn't referenced - lib\screens\material3_demo_screen.dart:331:10 - unused_element
+warning - The declaration '_buildCarouselSection' isn't referenced - lib\screens\material3_demo_screen.dart:389:10 - unused_element
+warning - The declaration '_buildDateTimeSection' isn't referenced - lib\screens\material3_demo_screen.dart:458:10 - unused_element
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:483:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:502:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:504:73 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:663:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:691:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\screens\material3_demo_screen.dart:693:58 - use_build_context_synchronously
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\analytics_service.dart:4:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\api_service.dart:10:8 - unused_import
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:54:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:55:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:91:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:103:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:118:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:123:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:134:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:159:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:162:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:167:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:174:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:179:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:192:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:196:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:199:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:206:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:211:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:227:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:231:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:234:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:246:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:279:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:290:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:308:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:313:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:329:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\asistencia_service.dart:335:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:42:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:43:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:44:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:55:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:60:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:66:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:72:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:85:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:105:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:200:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\geofence_manager.dart:206:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\heartbeat_manager.dart:58:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\heartbeat_manager.dart:68:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\heartbeat_manager.dart:91:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\heartbeat_manager.dart:105:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\heartbeat_manager.dart:119:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\heartbeat_manager.dart:122:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\heartbeat_manager.dart:152:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\asistencia\heartbeat_manager.dart:158:5 - undefined_identifier
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\asistencia_service.dart:5:8 - unused_import
+   info - Unnecessary use of string interpolation - lib\services\asistencia_service.dart:264:9 - unnecessary_string_interpolations
+  error - Undefined name 'logger' - lib\services\attendance\attendance_state_manager.dart:39:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\attendance_state_manager.dart:56:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\attendance_state_manager.dart:77:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\attendance_state_manager.dart:115:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\attendance_state_manager.dart:144:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\attendance_state_manager.dart:255:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\attendance_state_manager.dart:268:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\attendance_state_manager.dart:273:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:50:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:54:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:106:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:110:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:151:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:155:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:178:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:182:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:203:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:219:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:271:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:284:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\grace_period_manager.dart:293:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:49:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:61:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:69:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:91:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:111:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:120:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:123:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:155:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:159:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:162:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:239:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:252:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:301:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\permission_flow_manager.dart:310:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:63:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:69:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:95:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:99:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:107:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:135:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:138:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:144:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:184:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:207:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:210:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:220:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:241:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:247:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:261:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:274:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:285:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:289:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:301:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:304:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:308:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:314:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:330:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:338:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:346:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:354:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:367:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:387:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:390:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:449:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\attendance\student_attendance_manager.dart:459:5 - undefined_identifier
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\attendance_service_adapter.dart:6:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\auth_service.dart:9:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\background_location_service.dart:4:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\background_service.dart:5:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\biometric_service.dart:3:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\certificate_pinning.dart:5:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\dashboard_service.dart:3:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\demo_verification_service.dart:4:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\event_automation_service.dart:5:8 - unused_import
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:22:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:31:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:36:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:45:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:52:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:53:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:57:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:58:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:65:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:69:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:77:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:83:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:84:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:90:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:129:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:143:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:146:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:160:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:171:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:174:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:176:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:241:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:247:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_mapper.dart:284:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:24:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:29:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:30:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:35:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:36:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:41:13 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:46:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:50:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:56:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:63:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:68:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:73:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:78:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:81:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:88:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:93:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:99:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:102:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:109:15 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:112:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:118:13 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:124:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:127:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:134:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:139:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:142:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:149:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:156:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:166:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:171:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:174:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:181:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:188:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:198:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:203:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:206:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:213:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:221:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:232:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:237:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:240:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:243:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:247:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:254:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:259:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:264:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:269:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:272:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:279:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:284:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:290:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:295:13 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:301:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:304:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_repository.dart:341:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:62:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:79:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:80:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:95:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:107:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:121:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:133:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:147:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:155:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:167:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:175:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:180:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:275:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:328:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:363:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:385:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:396:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:408:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:420:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:428:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:430:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:438:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:444:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:447:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:451:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:469:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_service.dart:478:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:20:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:52:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:58:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:88:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:94:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:113:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:119:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:138:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:144:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:174:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:338:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\evento\evento_validator.dart:346:5 - undefined_identifier
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\evento_service.dart:9:8 - unused_import
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:23:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:28:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:33:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:42:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:44:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:51:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:56:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:61:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:66:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:72:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:81:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:113:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:122:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_asistencia_service.dart:131:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_auth_service.dart:23:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_auth_service.dart:32:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_auth_service.dart:41:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_auth_service.dart:64:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:18:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:26:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:33:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:40:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:43:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:48:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:55:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:56:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:88:3 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:89:3 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:90:3 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:91:3 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:106:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:114:3 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:123:3 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_config.dart:129:3 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:24:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:29:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:36:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:41:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:53:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:55:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:62:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:67:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:72:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:77:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:83:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_evento_service.dart:110:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_geofencing_service.dart:33:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_geofencing_service.dart:43:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_geofencing_service.dart:45:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_geofencing_service.dart:57:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_geofencing_service.dart:96:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_geofencing_service.dart:106:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_geofencing_service.dart:108:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_geofencing_service.dart:273:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:34:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:52:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:54:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:71:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:162:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:187:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:191:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:207:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:219:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:222:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:240:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:241:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:242:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:252:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:263:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:330:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:351:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:367:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:370:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:379:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:386:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:414:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:416:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:423:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:425:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:437:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:440:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:447:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:460:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:462:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firebase_messaging_service.dart:467:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firestore_service.dart:19:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firestore_service.dart:21:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firestore_service.dart:28:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firestore_service.dart:32:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firestore_service.dart:36:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firestore_service.dart:42:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firestore_service.dart:48:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\firestore_service.dart:54:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:37:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:58:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:61:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:79:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:85:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:93:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:107:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:117:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:129:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:136:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:143:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:148:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:160:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:179:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:186:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:220:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:245:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:268:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:294:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:306:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:315:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:316:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:343:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:344:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:345:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:346:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:347:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:348:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_backend_service.dart:349:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:44:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:49:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:67:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:70:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:90:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:98:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:102:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:117:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:128:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:144:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:149:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:150:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:151:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:173:11 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:179:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:182:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:192:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:205:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:230:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:237:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:249:15 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:256:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:264:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:271:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:277:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:291:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:301:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:310:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:314:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:341:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\firebase\hybrid_location_service.dart:391:5 - undefined_identifier
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\justificacion_service.dart:4:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\local_geofencing_service.dart:5:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\local_presence_manager.dart:5:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\location_service.dart:7:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\notification_service.dart:5:8 - unused_import
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:49:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:60:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:62:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:91:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:127:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:153:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:177:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:272:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:278:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:286:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:320:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:322:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:358:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:365:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:378:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:385:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:400:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:409:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:422:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:429:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:442:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:449:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:462:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:471:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:495:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:497:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:504:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:528:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:530:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:537:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:561:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:563:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:572:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:584:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:596:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:611:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:620:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:636:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:645:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:743:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:750:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:759:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:873:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1000:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1030:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1032:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1041:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1045:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1047:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1055:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1057:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1080:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1114:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1126:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1133:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1175:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1184:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1194:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1196:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1210:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1256:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1263:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1302:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1317:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1331:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1333:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1347:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1349:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1363:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1365:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1378:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1380:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1392:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1443:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1445:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1458:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1514:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1516:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1525:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1527:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1538:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1578:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1580:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1589:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1617:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1619:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1629:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1670:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1672:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1681:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1709:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\services\notifications\notification_manager.dart:1711:7 - undefined_identifier
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\pre_registration_notification_service.dart:5:8 - unused_import
+warning - Dead code - lib\services\production_health_check.dart:326:29 - dead_code
+warning - Dead code - lib\services\production_health_check.dart:326:46 - dead_code
+warning - The value of the local variable 'testKey' isn't used - lib\services\production_health_check.dart:355:13 - unused_local_variable
+warning - The value of the local variable 'testValue' isn't used - lib\services\production_health_check.dart:356:13 - unused_local_variable
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\security_service.dart:5:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\session_persistence_service.dart:5:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\storage_service.dart:4:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\student_notification_service.dart:6:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\teacher_notification_scheduler.dart:6:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\websocket_service.dart:7:8 - unused_import
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\websocket_student_service.dart:6:8 - unused_import
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_button.dart:36:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_button.dart:61:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_button.dart:86:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_button.dart:111:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_card.dart:39:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_card.dart:56:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_card.dart:73:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_card.dart:90:5 - invalid_super_formal_parameter_location
+  error - Invalid constant value - lib\shared\widgets\app_card.dart:165:27 - invalid_constant
+  error - The getter 'black05' isn't defined for the type 'Colors' - lib\shared\widgets\app_card.dart:165:34 - undefined_getter
+  error - Invalid constant value - lib\shared\widgets\app_card.dart:176:27 - invalid_constant
+  error - The getter 'primary05' isn't defined for the type 'AppColors' - lib\shared\widgets\app_card.dart:176:37 - undefined_getter
+  error - Invalid constant value - lib\shared\widgets\app_card.dart:187:27 - invalid_constant
+  error - The getter 'success05' isn't defined for the type 'AppColors' - lib\shared\widgets\app_card.dart:187:37 - undefined_getter
+  error - Invalid constant value - lib\shared\widgets\app_card.dart:199:27 - invalid_constant
+  error - The getter 'black05' isn't defined for the type 'Colors' - lib\shared\widgets\app_card.dart:199:34 - undefined_getter
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_text_field.dart:67:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_text_field.dart:105:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib\shared\widgets\app_text_field.dart:144:5 - invalid_super_formal_parameter_location
+  error - Undefined name 'SemanticsService' - lib\shared\widgets\app_text_field.dart:226:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\app_router.dart:588:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\app_router.dart:595:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:30:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:34:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:36:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:51:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:65:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:74:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:83:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:89:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:98:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:211:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:220:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:223:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:245:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:249:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:252:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:297:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:308:7 - undefined_identifier
+warning - The declaration '_adjustTasksForPowerState' isn't referenced - lib\utils\background_task_helper.dart:314:16 - unused_element
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:323:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:327:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:331:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\background_task_helper.dart:365:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:20:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:41:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:69:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:76:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:91:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:92:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:99:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:494:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:500:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:506:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\error_handler.dart:517:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:28:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:47:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:49:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:55:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:61:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:66:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:76:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:94:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:99:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:111:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:120:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:134:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:140:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:143:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:147:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:153:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:165:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:176:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:181:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:188:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:202:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:211:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:213:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:219:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:225:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:227:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:234:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:240:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:260:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:280:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:291:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:299:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:306:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:318:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:328:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:338:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:347:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:348:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:349:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:351:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\memory_optimizer.dart:352:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:23:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:28:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:30:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:41:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:45:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:58:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:70:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:85:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:99:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:111:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:120:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:131:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:143:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:152:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:157:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\notification_helper.dart:187:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\test_helpers.dart:471:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\test_helpers.dart:473:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\utils\test_helpers.dart:475:7 - undefined_identifier
+warning - Unused import: 'package:flutter/physics.dart' - lib\widgets\animated_components.dart:3:8 - unused_import
+warning - The value of the field '_isHovered' isn't used - lib\widgets\animated_components.dart:337:8 - unused_field
+warning - The value of the local variable 'theme' isn't used - lib\widgets\animated_components.dart:491:11 - unused_local_variable
+  error - The argument type 'GradientTransform' can't be assigned to the parameter type 'GradientTransform?'.  - lib\widgets\animated_components.dart:517:26 - argument_type_not_assignable
+warning - The method doesn't override an inherited method - lib\widgets\animated_components.dart:538:12 - override_on_non_overriding_member
+  error - Undefined name 'logger' - lib\widgets\attendance\attendance_recovery_widget.dart:141:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\attendance\attendance_recovery_widget.dart:143:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\dashboard\event_students_management_widget.dart:110:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\dashboard\event_students_management_widget.dart:114:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\dashboard\event_students_management_widget.dart:137:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\dashboard\event_students_management_widget.dart:139:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\dashboard\event_students_management_widget.dart:158:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\dashboard\event_students_management_widget.dart:177:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\dashboard\event_students_management_widget.dart:192:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\dashboard\event_students_management_widget.dart:947:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\dashboard\event_students_management_widget.dart:954:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\detailed_stats_widget.dart:283:7 - undefined_identifier
+warning - The value of the field '_version' isn't used - lib\widgets\material3_components.dart:7:23 - unused_field
+  error - Undefined name 'logger' - lib\widgets\optimized_list_view.dart:79:5 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\optimized_list_view.dart:90:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\optimized_list_view.dart:144:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\optimized_list_view.dart:149:7 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\optimized_list_view.dart:461:9 - undefined_identifier
+  error - Undefined name 'logger' - lib\widgets\student_notification_widget.dart:60:9 - undefined_identifier
+warning - Unused import: 'package:equatable/equatable.dart' - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:3:8 - unused_import
+   info - Parameter 'initialState' could be a super parameter - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:8:3 - use_super_parameters
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:32:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:33:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:37:5 - avoid_print
+   info - Unnecessary braces in a string interpolation - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:37:16 - unnecessary_brace_in_string_interps
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:41:5 - avoid_print
+   info - Unnecessary braces in a string interpolation - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:41:16 - unnecessary_brace_in_string_interps
+   info - Parameter 'initialState' could be a super parameter - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:71:3 - use_super_parameters
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:86:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:87:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:91:5 - avoid_print
+   info - Unnecessary braces in a string interpolation - lib_backup_before_logger_replacement\core\bloc\base_bloc.dart:91:16 - unnecessary_brace_in_string_interps
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib_backup_before_logger_replacement\core\errors\failures.dart:28:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib_backup_before_logger_replacement\core\errors\failures.dart:65:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib_backup_before_logger_replacement\core\errors\failures.dart:112:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib_backup_before_logger_replacement\core\errors\failures.dart:156:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib_backup_before_logger_replacement\core\errors\failures.dart:201:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib_backup_before_logger_replacement\core\errors\failures.dart:238:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib_backup_before_logger_replacement\core\errors\failures.dart:267:9 - use_super_parameters
+   info - Parameters ''message', 'code', and 'technicalMessage'' could be super parameters - lib_backup_before_logger_replacement\core\errors\failures.dart:296:9 - use_super_parameters
+  error - Missing concrete implementation of 'abstract class StatelessWidget extends Widget.build' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:117:7 - non_abstract_class_inherits_abstract_member
+  error - Expected an initializer - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:143:102 - missing_initializer
+   info - Empty constructor bodies should be written using a ';' rather than '{}' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:3 - empty_constructor_bodies
+  error - '' isn't a field in the enclosing class - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:3 - initializer_for_non_existent_field
+  error - A function body must be provided - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:3 - missing_function_body
+  error - Const constructors can't have a body - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:3 - const_constructor_with_body
+  error - Invalid constant value - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:3 - invalid_constant
+  error - Expected a method, getter, setter or operator declaration - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:4 - expected_executable
+  error - Unexpected text ';' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:144:5 - unexpected_token
+  error - Undefined name 'assetPath' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:149:9 - undefined_identifier
+  error - Undefined name 'assetPath' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:151:9 - undefined_identifier
+  error - Undefined name 'width' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:152:16 - undefined_identifier
+  error - Undefined name 'height' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:153:17 - undefined_identifier
+  error - Undefined name 'fit' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:154:14 - undefined_identifier
+  error - Undefined name 'color' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:155:16 - undefined_identifier
+  error - Undefined name 'colorBlendMode' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:156:25 - undefined_identifier
+  error - Undefined name 'errorWidget' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:158:18 - undefined_identifier
+  error - Undefined name 'imageUrl' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:165:7 - undefined_identifier
+  error - Undefined name 'width' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:166:14 - undefined_identifier
+  error - Undefined name 'height' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:167:15 - undefined_identifier
+  error - Undefined name 'fit' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:168:12 - undefined_identifier
+  error - Undefined name 'color' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:169:14 - undefined_identifier
+  error - Undefined name 'colorBlendMode' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:170:23 - undefined_identifier
+  error - Undefined name 'fadeInDuration' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:175:23 - undefined_identifier
+  error - Undefined name 'placeholder' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:180:16 - undefined_identifier
+  error - Undefined name 'errorWidget' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:183:16 - undefined_identifier
+  error - Undefined name 'width' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:190:14 - undefined_identifier
+  error - Undefined name 'height' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:191:15 - undefined_identifier
+  error - Undefined name 'width' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:206:14 - undefined_identifier
+  error - Undefined name 'height' - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:207:15 - undefined_identifier
+  error - Expected a method, getter, setter or operator declaration - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:215:1 - expected_executable
+warning - The value of the local variable 'timer' isn't used - lib_backup_before_logger_replacement\core\performance\widget_optimization.dart:413:12 - unused_local_variable
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib_backup_before_logger_replacement\core\theme\android_theme.dart:36:16 - argument_type_not_assignable
+  error - The argument type 'DialogTheme' can't be assigned to the parameter type 'DialogThemeData?'.  - lib_backup_before_logger_replacement\core\theme\android_theme.dart:110:18 - argument_type_not_assignable
+  error - The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.  - lib_backup_before_logger_replacement\core\theme\android_theme.dart:205:16 - argument_type_not_assignable
+   info - The type parameter name 'Type' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:8:24 - avoid_types_as_parameter_names
+   info - The type parameter name 'Params' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:8:30 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:14:32 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:20:30 - avoid_types_as_parameter_names
+   info - The type parameter name 'Params' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:20:36 - avoid_types_as_parameter_names
+   info - The type parameter name 'Type' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:26:38 - avoid_types_as_parameter_names
+   info - Parameters ''page', 'limit', 'sortBy', and 'ascending'' could be super parameters - lib_backup_before_logger_replacement\core\usecases\usecase.dart:69:9 - use_super_parameters
+   info - The type parameter name 'Params' matches a visible type name - lib_backup_before_logger_replacement\core\usecases\usecase.dart:126:47 - avoid_types_as_parameter_names
+  error - 'Params' doesn't conform to the bound 'Params' of the type parameter 'P' - lib_backup_before_logger_replacement\core\usecases\usecase.dart:129:30 - type_argument_not_matching_bounds
+  error - A value of type 'Failure' can't be returned from the method 'executeWithValidation' because it has a return type of 'Future<Result<T>>' - lib_backup_before_logger_replacement\core\usecases\usecase.dart:176:14 - return_of_invalid_type
+  error - Abstract classes can't be instantiated - lib_backup_before_logger_replacement\core\usecases\usecase.dart:176:14 - instantiate_abstract_class
+  error - The named parameter 'message' is required, but there's no corresponding argument - lib_backup_before_logger_replacement\core\usecases\usecase.dart:176:14 - missing_required_argument
+  error - The type 'Failure' is declared with 0 type parameters, but 1 type arguments were given - lib_backup_before_logger_replacement\core\usecases\usecase.dart:176:14 - wrong_number_of_type_arguments
+  error - Too many positional arguments: 0 expected, but 1 found - lib_backup_before_logger_replacement\core\usecases\usecase.dart:176:25 - extra_positional_arguments_could_be_named
+  error - The type 'Failure' is declared with 0 type parameters, but 1 type arguments were given - lib_backup_before_logger_replacement\core\usecases\usecase.dart:176:46 - wrong_number_of_type_arguments
+  error - The getter 'failure' isn't defined for the type 'Failure' - lib_backup_before_logger_replacement\core\usecases\usecase.dart:176:61 - undefined_getter
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\usecases\usecase.dart:200:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\usecases\usecase.dart:205:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib_backup_before_logger_replacement\core\usecases\usecase.dart:210:5 - avoid_print
+   info - An uninitialized field should have an explicit type annotation - lib_backup_before_logger_replacement\core\utils\result.dart:75:9 - prefer_typing_uninitialized_variables
+   info - Missing type annotation - lib_backup_before_logger_replacement\core\utils\result.dart:75:9 - strict_top_level_inference
+  error - 'FailureResult.fold' ('R Function<R>(R Function(dynamic), R Function(T))') isn't a valid override of 'Result.fold' ('R Function<R>(R Function(Failure), R Function(T))') - lib_backup_before_logger_replacement\core\utils\result.dart:80:5 - invalid_override
+  error - failure isn't a type - lib_backup_before_logger_replacement\core\utils\result.dart:80:24 - not_a_type
+  error - Undefined class 'failure' - lib_backup_before_logger_replacement\core\utils\result.dart:106:37 - undefined_class
+  error - Undefined class 'failure' - lib_backup_before_logger_replacement\core\utils\result.dart:116:19 - undefined_class
+   info - Missing type annotation - lib_backup_before_logger_replacement\core\utils\result.dart:137:31 - strict_top_level_inference
+  error - A value of type 'Failure' can't be returned from the method '_checkAuthStatus' because it has a return type of 'Future<Result<AuthUser>>' - lib_backup_before_logger_replacement\features\auth\presentation\bloc\auth_bloc.dart:314:12 - return_of_invalid_type
+  error - Abstract classes can't be instantiated - lib_backup_before_logger_replacement\features\auth\presentation\bloc\auth_bloc.dart:314:18 - instantiate_abstract_class
+  error - The named parameter 'message' is required, but there's no corresponding argument - lib_backup_before_logger_replacement\features\auth\presentation\bloc\auth_bloc.dart:314:18 - missing_required_argument
+  error - Too many positional arguments: 0 expected, but 1 found - lib_backup_before_logger_replacement\features\auth\presentation\bloc\auth_bloc.dart:314:26 - extra_positional_arguments_could_be_named
+  error - Target of URI doesn't exist: 'package:flutter_localizations/flutter_localizations.dart' - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:5:8 - uri_does_not_exist
+  error - Const variables must be initialized with a constant value - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:90:5 - const_initialized_with_non_constant_value
+  error - The values in a const list literal must be constants - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:90:5 - non_constant_list_element
+  error - Undefined name 'GlobalMaterialLocalizations' - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:90:5 - undefined_identifier
+  error - The values in a const list literal must be constants - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:91:5 - non_constant_list_element
+  error - Undefined name 'GlobalCupertinoLocalizations' - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:91:5 - undefined_identifier
+  error - The values in a const list literal must be constants - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:92:5 - non_constant_list_element
+  error - Undefined name 'GlobalWidgetsLocalizations' - lib_backup_before_logger_replacement\generated\l10n\app_localizations.dart:92:5 - undefined_identifier
+warning - The '!' will have no effect because the receiver can't be null - lib_backup_before_logger_replacement\screens\attendance\attendance_tracking_screen.dart:602:35 - unnecessary_non_null_assertion
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\attendance\attendance_tracking_screen.dart:811:54 - use_build_context_synchronously
+warning - The '!' will have no effect because the receiver can't be null - lib_backup_before_logger_replacement\screens\dashboard_screen.dart:86:59 - unnecessary_non_null_assertion
+warning - The '!' will have no effect because the receiver can't be null - lib_backup_before_logger_replacement\screens\dashboard_screen.dart:87:44 - unnecessary_non_null_assertion
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\dashboard_screen.dart:591:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\dashboard_screen.dart:604:21 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\dashboard_screen.dart:617:28 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\dashboard_screen.dart:627:21 - use_build_context_synchronously
+warning - The declaration '_buildSearchSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:180:10 - unused_element
+warning - The declaration '_buildSegmentedSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:225:10 - unused_element
+warning - The declaration '_buildCardsSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:264:10 - unused_element
+warning - The declaration '_buildProgressSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:330:10 - unused_element
+warning - The declaration '_buildCarouselSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:388:10 - unused_element
+warning - The declaration '_buildDateTimeSection' isn't referenced - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:457:10 - unused_element
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:482:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:501:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:503:73 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:662:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:690:40 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib_backup_before_logger_replacement\screens\material3_demo_screen.dart:692:58 - use_build_context_synchronously
+   info - Unnecessary use of string interpolation - lib_backup_before_logger_replacement\services\asistencia_service.dart:263:9 - unnecessary_string_interpolations
+warning - Dead code - lib_backup_before_logger_replacement\services\production_health_check.dart:325:29 - dead_code
+warning - Dead code - lib_backup_before_logger_replacement\services\production_health_check.dart:325:46 - dead_code
+warning - The value of the local variable 'testKey' isn't used - lib_backup_before_logger_replacement\services\production_health_check.dart:354:13 - unused_local_variable
+warning - The value of the local variable 'testValue' isn't used - lib_backup_before_logger_replacement\services\production_health_check.dart:355:13 - unused_local_variable
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_button.dart:36:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_button.dart:61:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_button.dart:86:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_button.dart:111:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:39:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:56:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:73:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:90:5 - invalid_super_formal_parameter_location
+  error - Invalid constant value - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:165:27 - invalid_constant
+  error - The getter 'black05' isn't defined for the type 'Colors' - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:165:34 - undefined_getter
+  error - Invalid constant value - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:176:27 - invalid_constant
+  error - The getter 'primary05' isn't defined for the type 'AppColors' - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:176:37 - undefined_getter
+  error - Invalid constant value - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:187:27 - invalid_constant
+  error - The getter 'success05' isn't defined for the type 'AppColors' - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:187:37 - undefined_getter
+  error - Invalid constant value - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:199:27 - invalid_constant
+  error - The getter 'black05' isn't defined for the type 'Colors' - lib_backup_before_logger_replacement\shared\widgets\app_card.dart:199:34 - undefined_getter
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_text_field.dart:67:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_text_field.dart:105:5 - invalid_super_formal_parameter_location
+  error - Super parameters can only be used in non-redirecting generative constructors - lib_backup_before_logger_replacement\shared\widgets\app_text_field.dart:144:5 - invalid_super_formal_parameter_location
+  error - Undefined name 'SemanticsService' - lib_backup_before_logger_replacement\shared\widgets\app_text_field.dart:226:5 - undefined_identifier
+warning - The declaration '_adjustTasksForPowerState' isn't referenced - lib_backup_before_logger_replacement\utils\background_task_helper.dart:314:16 - unused_element
+warning - Unused import: 'package:flutter/physics.dart' - lib_backup_before_logger_replacement\widgets\animated_components.dart:3:8 - unused_import
+warning - The value of the field '_isHovered' isn't used - lib_backup_before_logger_replacement\widgets\animated_components.dart:337:8 - unused_field
+warning - The value of the local variable 'theme' isn't used - lib_backup_before_logger_replacement\widgets\animated_components.dart:491:11 - unused_local_variable
+  error - The argument type 'GradientTransform' can't be assigned to the parameter type 'GradientTransform?'.  - lib_backup_before_logger_replacement\widgets\animated_components.dart:517:26 - argument_type_not_assignable
+warning - The method doesn't override an inherited method - lib_backup_before_logger_replacement\widgets\animated_components.dart:538:12 - override_on_non_overriding_member
+warning - The value of the field '_version' isn't used - lib_backup_before_logger_replacement\widgets\material3_components.dart:7:23 - unused_field
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:21:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:38:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:96:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:134:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:158:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:185:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:222:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:256:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:283:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:303:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:318:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:336:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\comprehensive_widget_test.dart:352:7 - avoid_print
+  error - Invalid constant value - test\golden\golden_tests.dart:45:26 - invalid_constant
+warning - The value of the local variable 'errorController' isn't used - test\golden\golden_tests.dart:212:15 - unused_local_variable
+   info - 'window' is deprecated and shouldn't be used. Use WidgetTester.platformDispatcher or WidgetTester.view instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:43:22 - deprecated_member_use
+   info - 'physicalSizeTestValue' is deprecated and shouldn't be used. Use WidgetTester.view.physicalSize instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:43:29 - deprecated_member_use
+   info - 'window' is deprecated and shouldn't be used. Use WidgetTester.platformDispatcher or WidgetTester.view instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:44:22 - deprecated_member_use
+   info - 'devicePixelRatioTestValue' is deprecated and shouldn't be used. Use WidgetTester.view.devicePixelRatio instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:44:29 - deprecated_member_use
+   info - 'window' is deprecated and shouldn't be used. Use WidgetTester.platformDispatcher or WidgetTester.view instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:58:34 - deprecated_member_use
+   info - 'clearPhysicalSizeTestValue' is deprecated and shouldn't be used. Use WidgetTester.view.resetPhysicalSize() instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:58:41 - deprecated_member_use
+   info - 'window' is deprecated and shouldn't be used. Use WidgetTester.platformDispatcher or WidgetTester.view instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:62:22 - deprecated_member_use
+   info - 'physicalSizeTestValue' is deprecated and shouldn't be used. Use WidgetTester.view.physicalSize instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:62:29 - deprecated_member_use
+   info - 'window' is deprecated and shouldn't be used. Use WidgetTester.platformDispatcher or WidgetTester.view instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:63:22 - deprecated_member_use
+   info - 'devicePixelRatioTestValue' is deprecated and shouldn't be used. Use WidgetTester.view.devicePixelRatio instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:63:29 - deprecated_member_use
+   info - 'window' is deprecated and shouldn't be used. Use WidgetTester.platformDispatcher or WidgetTester.view instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:77:34 - deprecated_member_use
+   info - 'clearPhysicalSizeTestValue' is deprecated and shouldn't be used. Use WidgetTester.view.resetPhysicalSize() instead. Deprecated to prepare for the upcoming multi-window support. This feature was deprecated after v3.9.0-0.1.pre - test\golden_file_test.dart:77:41 - deprecated_member_use
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:20:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:25:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:27:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:30:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:52:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:57:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:59:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:74:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:79:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:82:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:96:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:101:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:104:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:118:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:120:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:134:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:140:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:142:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:162:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:167:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:170:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:173:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:175:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:183:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:211:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:212:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:213:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:214:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:226:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:241:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:246:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:260:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:264:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:266:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:268:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:272:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:295:13 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:302:17 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:304:17 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:308:13 - avoid_print
+   info - Don't invoke 'print' in production code - test\integration_backend_test.dart:312:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\material3_components_test.dart:57:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\material3_components_test.dart:337:9 - avoid_print
+warning - The value of the field '_tag' isn't used - test\overflow_detection_test.dart:12:23 - unused_field
+   info - Don't invoke 'print' in production code - test\overflow_detection_test.dart:188:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\overflow_detection_test.dart:237:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:29:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:30:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:48:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:72:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:123:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:162:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:214:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:215:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:216:7 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - test\performance_benchmark_test.dart:246:55 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - test\performance_benchmark_test.dart:247:57 - deprecated_member_use
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:285:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:321:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:322:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\performance_benchmark_test.dart:323:7 - avoid_print
+warning - The value of the local variable 'dioAdapter' isn't used - test\services\api_service_test.dart:13:21 - unused_local_variable
+warning - The value of the local variable 'mockClient' isn't used - test\services\api_service_test.dart:14:22 - unused_local_variable
+  error - This expression has a type of 'void' so its value can't be used - test\services\asistencia_service_test.dart:102:9 - use_of_void_result
+  error - The function 'argThat' isn't defined - test\services\asistencia_service_test.dart:161:17 - undefined_function
+  error - The function 'argThat' isn't defined - test\services\asistencia_service_test.dart:334:17 - undefined_function
+  error - The function 'argThat' isn't defined - test\services\asistencia_service_test.dart:427:17 - undefined_function
+  error - The returned type 'ApiResponse<bool>' isn't returnable from a 'Future<ApiResponse<Map<String, dynamic>>>' function, as required by the closure's context - test\services\asistencia_service_test.dart:473:36 - return_of_invalid_type_from_closure
+  error - The returned type 'ApiResponse<bool>' isn't returnable from a 'Future<ApiResponse<Map<String, dynamic>>>' function, as required by the closure's context - test\services\asistencia_service_test.dart:512:36 - return_of_invalid_type_from_closure
+  error - This expression has a type of 'void' so its value can't be used - test\services\asistencia_service_test.dart:514:9 - use_of_void_result
+  error - The function 'argThat' isn't defined - test\services\asistencia_service_test.dart:567:17 - undefined_function
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:619:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:619:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:625:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:629:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:629:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:635:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:639:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:639:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:645:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:665:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:665:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:671:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:675:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:675:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:681:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:685:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:685:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:691:19 - argument_type_not_assignable
+  error - The named parameter 'evento' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:695:11 - missing_required_argument
+  error - The named parameter 'usuario' is required, but there's no corresponding argument - test\services\asistencia_service_test.dart:695:11 - missing_required_argument
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\services\asistencia_service_test.dart:701:19 - argument_type_not_assignable
+   info - Can't use a relative path to import a library in 'lib' - test\unit\auth_bloc_test.dart:4:8 - avoid_relative_lib_imports
+   info - Can't use a relative path to import a library in 'lib' - test\unit\auth_bloc_test.dart:5:8 - avoid_relative_lib_imports
+warning - Unused import: '../../lib/core/errors/failures.dart' - test\unit\auth_bloc_test.dart:5:8 - unused_import
+  error - A value of type 'String' can't be assigned to a parameter of type 'DateTime' in a const constructor - test\unit\auth_bloc_test.dart:104:11 - const_constructor_param_type_mismatch
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\unit\auth_bloc_test.dart:104:22 - argument_type_not_assignable
+  error - A value of type 'String' can't be assigned to a parameter of type 'DateTime' in a const constructor - test\unit\auth_bloc_test.dart:121:11 - const_constructor_param_type_mismatch
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\unit\auth_bloc_test.dart:121:22 - argument_type_not_assignable
+  error - A value of type 'String' can't be assigned to a parameter of type 'DateTime' in a const constructor - test\unit\auth_bloc_test.dart:129:11 - const_constructor_param_type_mismatch
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\unit\auth_bloc_test.dart:129:22 - argument_type_not_assignable
+  error - A value of type 'String' can't be assigned to a parameter of type 'DateTime' in a const constructor - test\unit\auth_bloc_test.dart:141:11 - const_constructor_param_type_mismatch
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\unit\auth_bloc_test.dart:141:22 - argument_type_not_assignable
+  error - A value of type 'String' can't be assigned to a parameter of type 'DateTime' in a const constructor - test\unit\auth_bloc_test.dart:158:11 - const_constructor_param_type_mismatch
+  error - The argument type 'String' can't be assigned to the parameter type 'DateTime'.  - test\unit\auth_bloc_test.dart:158:22 - argument_type_not_assignable
+   info - Can't use a relative path to import a library in 'lib' - test\unit\base_bloc_test.dart:5:8 - avoid_relative_lib_imports
+   info - Can't use a relative path to import a library in 'lib' - test\unit\base_bloc_test.dart:6:8 - avoid_relative_lib_imports
+   info - Can't use a relative path to import a library in 'lib' - test\unit\base_bloc_test.dart:7:8 - avoid_relative_lib_imports
+   info - Can't use a relative path to import a library in 'lib' - test\unit\base_bloc_test.dart:8:8 - avoid_relative_lib_imports
+warning - Unused import: '../../lib/core/errors/failures.dart' - test\unit\base_bloc_test.dart:8:8 - unused_import
+  error - Const variables must be initialized with a constant value - test\unit\base_bloc_test.dart:201:23 - const_initialized_with_non_constant_value
+  error - The constructor being called isn't a const constructor - test\unit\base_bloc_test.dart:201:23 - const_with_non_const
+   info - Can't use a relative path to import a library in 'lib' - test\widget\app_button_test.dart:4:8 - avoid_relative_lib_imports
+   info - Can't use a relative path to import a library in 'lib' - test\widget\app_button_test.dart:5:8 - avoid_relative_lib_imports
+   info - 'hasFlag' is deprecated and shouldn't be used. Use flagsCollection instead. This feature was deprecated after v3.32.0-0.0.pre - test\widget\app_button_test.dart:367:24 - deprecated_member_use
+  error - Undefined name 'SemanticsFlag' - test\widget\app_button_test.dart:367:32 - undefined_identifier
+   info - 'hasFlag' is deprecated and shouldn't be used. Use flagsCollection instead. This feature was deprecated after v3.32.0-0.0.pre - test\widget\app_button_test.dart:368:24 - deprecated_member_use
+  error - Undefined name 'SemanticsFlag' - test\widget\app_button_test.dart:368:32 - undefined_identifier
+   info - Can't use a relative path to import a library in 'lib' - test\widget\app_card_test.dart:4:8 - avoid_relative_lib_imports
+   info - Can't use a relative path to import a library in 'lib' - test\widget\app_card_test.dart:5:8 - avoid_relative_lib_imports
+  error - The method 'hasAction' isn't defined for the type 'SemanticsNode' - test\widget\app_card_test.dart:252:24 - undefined_method
+  error - Undefined name 'SemanticsAction' - test\widget\app_card_test.dart:252:34 - undefined_identifier
+   info - Can't use a relative path to import a library in 'lib' - test\widget\app_text_field_test.dart:4:8 - avoid_relative_lib_imports
+  error - The getter 'readOnly' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:153:24 - undefined_getter
+  error - The getter 'keyboardType' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:169:26 - undefined_getter
+  error - The getter 'textInputAction' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:170:26 - undefined_getter
+  error - The getter 'obscureText' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:190:26 - undefined_getter
+  error - The getter 'keyboardType' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:191:26 - undefined_getter
+  error - The getter 'textInputAction' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:192:26 - undefined_getter
+  error - The getter 'obscureText' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:211:26 - undefined_getter
+  error - The getter 'obscureText' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:220:26 - undefined_getter
+  error - The getter 'obscureText' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:229:26 - undefined_getter
+  error - The getter 'keyboardType' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:247:26 - undefined_getter
+  error - The getter 'textInputAction' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:248:26 - undefined_getter
+  error - The getter 'maxLength' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:398:24 - undefined_getter
+  error - The getter 'maxLines' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:415:24 - undefined_getter
+  error - The getter 'minLines' isn't defined for the type 'TextFormField' - test\widget\app_text_field_test.dart:416:24 - undefined_getter
+warning - The value of the local variable 'wasPressed' isn't used - test\widgets\custom_button_test.dart:12:12 - unused_local_variable
+  error - The method 'hasAction' isn't defined for the type 'SemanticsNode' - test\widgets\custom_button_test.dart:317:24 - undefined_method
+  error - Undefined name 'SemanticsAction' - test\widgets\custom_button_test.dart:317:34 - undefined_identifier
+
+1183 issues found. (ran in 2.9s)
